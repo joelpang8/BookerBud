@@ -9,7 +9,7 @@ from bookerbud.models import Sport
 from bookerbud.providers.base import ProviderAuthError, ProviderError
 from bookerbud.providers.sportsgameodds import SportsGameOddsProvider
 from bookerbud.raw_log import RawLogger
-from tests.conftest import ALL_BOOKS, load_fixture
+from tests.conftest import ALL_BOOKS, ALL_LEAGUES, NBA, load_fixture
 
 START = datetime(2026, 10, 24, 4, 0, tzinfo=UTC)
 END = datetime(2026, 10, 25, 4, 0, tzinfo=UTC)
@@ -46,7 +46,7 @@ def test_paginates_sends_params_and_logs_raw(tmp_path):
         return httpx.Response(200, json=pages[req.url.params.get("cursor")])
 
     p, clock = make_provider(tmp_path, handler)
-    r = p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+    r = p.fetch_slate(NBA, START, END, ALL_BOOKS)
 
     assert len(seen) == 2 and r.requests_made == 2
     q = seen[0].url.params
@@ -60,6 +60,7 @@ def test_paginates_sends_params_and_logs_raw(tmp_path):
     assert seen[1].url.params["cursor"] == "n.SYNTH.page2"
 
     assert {e.event_id for e in r.events} == {"SYNTH_NBA_LAL_DEN", "SYNTH_NBA_GSW_PHX"}
+    assert r.objects_used == 2 and q["limit"] == "25" and not r.truncated
     assert len(r.raw_paths) == 2
     for path in r.raw_paths:
         text = path.read_text()
@@ -77,9 +78,10 @@ def test_include_started_drops_filter(tmp_path):
         return httpx.Response(200, json={"success": True, "data": []})
 
     p, _ = make_provider(tmp_path, handler)
-    p.fetch_slate(Sport.MLB, START, END, ALL_BOOKS, include_started=True)
+    r = p.fetch_slate(ALL_LEAGUES, START, END, ALL_BOOKS, include_started=True)
     assert "started" not in seen[0].url.params
-    assert seen[0].url.params["leagueID"] == "MLB"
+    assert seen[0].url.params["leagueID"] == "NBA,MLB,NFL"  # one call for every league
+    assert r.objects_used == 1  # an empty response still bills one object
 
 
 def test_retries_429_then_succeeds(tmp_path):
@@ -92,7 +94,7 @@ def test_retries_429_then_succeeds(tmp_path):
         return httpx.Response(200, json={"success": True, "data": []})
 
     p, clock = make_provider(tmp_path, handler)
-    r = p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+    r = p.fetch_slate(NBA, START, END, ALL_BOOKS)
     assert calls["n"] == 2 and r.events == []
     assert 3.0 in clock.sleeps
     # both attempts were logged to disk
@@ -102,7 +104,7 @@ def test_retries_429_then_succeeds(tmp_path):
 def test_gives_up_after_max_retries(tmp_path):
     p, _ = make_provider(tmp_path, lambda req: httpx.Response(503, text="down"), max_retries=2)
     with pytest.raises(ProviderError, match="503"):
-        p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+        p.fetch_slate(NBA, START, END, ALL_BOOKS)
 
 
 def test_auth_errors_not_retried(tmp_path):
@@ -114,7 +116,7 @@ def test_auth_errors_not_retried(tmp_path):
 
     p, _ = make_provider(tmp_path, handler)
     with pytest.raises(ProviderAuthError, match="Invalid API key"):
-        p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+        p.fetch_slate(NBA, START, END, ALL_BOOKS)
     assert calls["n"] == 1
 
 
@@ -124,13 +126,13 @@ def test_missing_key_fails_before_network(tmp_path):
 
     p, _ = make_provider(tmp_path, handler, key=None)
     with pytest.raises(ProviderAuthError, match="SPORTSGAMEODDS_API_KEY"):
-        p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+        p.fetch_slate(NBA, START, END, ALL_BOOKS)
 
 
 def test_success_false_raises(tmp_path):
     p, _ = make_provider(tmp_path, lambda req: httpx.Response(200, json={"success": False, "error": "bad leagueID"}))
     with pytest.raises(ProviderError, match="bad leagueID"):
-        p.fetch_slate(Sport.NBA, START, END, ALL_BOOKS)
+        p.fetch_slate(NBA, START, END, ALL_BOOKS)
 
 
 def test_usage_endpoint(tmp_path):
@@ -140,3 +142,18 @@ def test_usage_endpoint(tmp_path):
 
     p, _ = make_provider(tmp_path, handler)
     assert p.usage() == {"keyID": "abc", "isActive": True}
+
+
+def test_max_objects_caps_page_size_and_stops(tmp_path):
+    seen = []
+    pages = {None: load_fixture("sgo_nba_page1.json"), "n.SYNTH.page2": load_fixture("sgo_nba_page2.json")}
+
+    def handler(req):
+        seen.append(req)
+        return httpx.Response(200, json=pages[req.url.params.get("cursor")])
+
+    p, _ = make_provider(tmp_path, handler)
+    r = p.fetch_slate(NBA, START, END, ALL_BOOKS, max_objects=1)
+    assert len(seen) == 1 and seen[0].url.params["limit"] == "1"
+    assert r.truncated and r.objects_used == 1
+    assert any("quota budget" in n for n in r.notices)

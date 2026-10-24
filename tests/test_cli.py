@@ -57,3 +57,24 @@ def test_fetch_without_key_fails_cleanly(cli_env):
 def test_bad_sport(cli_env):
     res = runner.invoke(app, ["fetch", "--sport", "nhl"])
     assert res.exit_code != 0
+
+
+def test_quota_command(cli_env):
+    res = runner.invoke(app, ["quota"])
+    assert res.exit_code == 0 and "0 objects used in the last 30 days; budget 2250" in res.output
+
+
+def test_edges_and_slips_commands(cli_env):
+    assert runner.invoke(app, ["fetch", "--sport", "nba", "--replay", str(cli_env)]).exit_code == 0
+    res = runner.invoke(app, ["edges", "--as-of", "2026-10-24T18:10:00-04:00"])
+    assert res.exit_code == 0, res.output
+    assert "LeBron James over points 24.5" in res.output and "consensus(4)" in res.output
+    res = runner.invoke(app, ["slips", "--as-of", "2026-10-24T18:10:00-04:00", "--legs", "2-3"])
+    assert res.exit_code == 0 and "UNVERIFIED" in res.output
+    stale = runner.invoke(app, ["edges", "--as-of", "2026-10-24T20:00:00-04:00"])
+    assert "No plays pass the filters" in stale.output and "stale" in stale.output
+
+
+def test_edges_without_snapshot(cli_env):
+    res = runner.invoke(app, ["edges"])
+    assert res.exit_code == 1 and "betedge fetch" in res.output

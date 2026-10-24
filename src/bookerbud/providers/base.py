@@ -28,8 +28,10 @@ class FetchResult:
     rosters: dict[str, list[RosterPlayer]] = field(default_factory=dict)  # event_id -> players
     raw_paths: list[Path] = field(default_factory=list)
     notices: list[str] = field(default_factory=list)  # provider warnings, e.g. plan-filtered data
-    skipped_markets: Counter = field(default_factory=Counter)  # out-of-scope bet types, by reason
+    skipped_markets: Counter = field(default_factory=Counter)  # out-of-scope bet types/leagues, by reason
     requests_made: int = 0
+    objects_used: int = 0  # provider billing units (SGO: events returned, min 1 per response)
+    truncated: bool = False  # stopped early to stay inside the quota budget
 
     def extend(self, other: FetchResult) -> None:
         self.events += other.events
@@ -39,6 +41,8 @@ class FetchResult:
         self.notices += other.notices
         self.skipped_markets.update(other.skipped_markets)
         self.requests_made += other.requests_made
+        self.objects_used += other.objects_used
+        self.truncated = self.truncated or other.truncated
 
 
 class OddsProvider(ABC):
@@ -47,20 +51,21 @@ class OddsProvider(ABC):
     @abstractmethod
     def fetch_slate(
         self,
-        sport: Sport,
+        leagues: dict[Sport, str],
         starts_after: datetime,
         starts_before: datetime,
         bookmakers: list[str],
         *,
         include_started: bool = False,
-        league_id: str | None = None,
+        max_objects: int | None = None,
     ) -> FetchResult:
-        """Fetch every event for `sport` starting in [starts_after, starts_before)
-        with game lines and player props for `bookmakers` (canonical IDs).
-        `league_id` overrides the provider's default league for the sport."""
+        """Fetch every event in `leagues` (sport -> provider league ID) starting in
+        [starts_after, starts_before), with game lines and player props for
+        `bookmakers` (canonical IDs). Stop before exceeding `max_objects` billing
+        units and set `truncated`."""
 
     @abstractmethod
-    def parse_payload(self, payload: dict[str, Any], sport: Sport, bookmakers: list[str]) -> FetchResult:
+    def parse_payload(self, payload: dict[str, Any], leagues: dict[Sport, str], bookmakers: list[str]) -> FetchResult:
         """Parse one raw response body (as logged to data/raw). Used for replays."""
 
     def usage(self) -> dict[str, Any] | None:

@@ -136,3 +136,112 @@ See the open question in the README.
 
 ### Scraping
 - Nothing in Phase 1 needed scraping, and nothing scrapes.
+
+## Phase 1 follow-up — your answers (2026-10-24)
+
+You chose: **free SGO tier**, ET + pre-game only, states **NY and WI**, and
+"stay under the free limit".
+
+### Quota guard
+- SGO's free allowance is 2,500 objects per **rolling 30 days from first use**
+  (pricing FAQ), not per calendar month. One event = one object, and every
+  response costs at least 1.
+- Every live fetch records `objects_used`. Before fetching we sum the trailing
+  30 days. Fetches stop at **90% (2,250)**, configurable in
+  `settings.yaml → quota`. The remaining budget is passed down as a page-size
+  cap, so a single fetch can't overshoot. `--force` spends up to the real
+  2,500, never past it. Replays cost nothing. `betedge quota` shows the local
+  count; `betedge usage` asks SGO.
+- `fetch` now makes **one request for all leagues** (`leagueID=NBA,MLB,NFL`).
+  This avoids paying the 1-object minimum three times on days when a league
+  has no games.
+- Corrected estimate: one fetch per day is roughly 300–700 objects / 30 days,
+  depending on which seasons overlap. My earlier 1,000–1,400 figure assumed
+  full slates in all three sports every day, which doesn't happen. That leaves
+  room for about 2–3 fetches a day, which matters for Phase 5's closing-line
+  snapshots.
+
+### What the free tier means in practice
+- Free-tier books: DraftKings, FanDuel, BetMGM, Caesars, ESPN BET, Bovada,
+  Unibet, PointsBet, William Hill. **No Pinnacle, PrizePicks, Underdog or Sleeper.**
+- So fair odds come from the **consensus** path (low confidence). The pick'em
+  and slip sections stay empty until a pick'em line source exists. That code is
+  built and tested on fixtures so it works the day data shows up. Getting
+  pick'em lines by scraping is **not** something I'll build: the apps' terms
+  prohibit it.
+- The 7 non-target free books are configured as `bookmakers.consensus`. They
+  are used for fair odds and never shown as bets.
+
+### State availability (config/availability.yaml)
+| | DK / FD sportsbook | PrizePicks | Underdog Pick'em | Sleeper Picks |
+|---|---|---|---|---|
+| NY | ✅ | ✅ Player Picks (no college) | ❌ | ❌ |
+| WI | ❌ not live yet (AB 601 signed 2026-04-09, compacts pending) | ✅ | ✅ | ✅ |
+
+Sources: PrizePicks where-can-I-play (updated 2026-10-19) and Sleeper
+where-can-I-play (updated 2026-08-03), both read directly. The Underdog help
+site returns 403 to automated reads, so its row comes from search snippets of
+that official page; re-check it in the app. Plays are tagged with the states
+where they're usable, and plays usable in none of your states are hidden
+unless you pass `--all-books`.
+
+## Phase 2 — edge engine
+
+### Fair probability (src/bookerbud/edge/engine.py)
+1. **Sharp:** Pinnacle's two-sided price closest to the target line (main
+   line preferred), de-vigged, then moved to the target line if needed.
+   Confidence is `high` at the same line and `medium` if moved.
+2. **Consensus fallback:** every other priced book's two-sided pair, excluding
+   the book being evaluated and pick'em apps. Each book is de-vigged and moved
+   on its own, then the probabilities are **averaged**. Needs at least
+   `min_consensus_books` (2) books. Confidence is always `low`.
+- Spreads, totals and props are all reduced to "over/under a threshold" (home
+  −4.5 = home margin over 4.5; away +4.5 = under 4.5), so one code path
+  handles them. Moneylines and yes/no markets require exact pairing.
+- **Devig default: power.** It shades longshots more than multiplicative does,
+  which suits props and lopsided lines. Switch in `config/edge.yaml`.
+
+### Mismatched lines (src/bookerbud/edge/lines.py)
+- Fit a one-parameter distribution to the fair price at the source line, then
+  read the probability at the target line.
+- **Poisson** for low-count stats (threes, steals, HR, Ks, receptions, TDs).
+- **Normal** for volume stats (σ = cv × line) and game margins/totals (fixed σ),
+  with a continuity correction.
+- Whole-number lines get a real push probability, and the fit uses the no-push
+  conditional probability.
+- Each stat has a `max_gap`; beyond it the play is skipped (`line_gap_too_large`).
+  NFL spreads cap at 0.5 because key numbers (3, 7) break the normal model.
+- The cv/sd values in `edge.yaml` are **starting assumptions** (typical
+  game-to-game spread), to be checked against Phase 5 calibration.
+
+### EV, pick'em, Kelly
+- **Sportsbook EV** per unit = P(win)·(decimal−1) − P(lose); a push refunds the stake.
+- **Pick'em leg edge** % = fair / break-even − 1, where break-even is the app's
+  most generous per-leg break-even across its slip types (named in the output,
+  e.g. `vs standard-2`). Pick'em ties void the leg, so the no-push probability
+  is used.
+- **Slips:** Poisson-binomial over leg probabilities against the payout table.
+  Rules enforced: legs from at least 2 teams, one leg per player, and only one
+  side per market. Same-game legs are **excluded** by default; `penalize`
+  instead multiplies each same-game leg's probability by 0.97. That's a blunt
+  haircut, not a correlation model.
+- **Payout tables (config/payouts.yaml):**
+  - PrizePicks: **verified** from its payouts page (updated 2026-10-19).
+  - Underdog: **unverified** (403 on direct read, and third-party sites
+    disagree), so its slips are labelled UNVERIFIED.
+  - Sleeper: no fixed table (payout = entry × VS Score), so no slip EV.
+  - Demons/goblins and other non-standard picks change the payout, and SGO data
+    doesn't tell us which picks they are. Treat every pick'em number as
+    standard-line only.
+- **Kelly:** binary f* = (b·p − q)/(b·(p+q)) with push. Slips use a
+  multi-outcome Kelly (bisection on the log-growth derivative). Both are scaled
+  by 0.25 and capped at 2% of a $1,000 bankroll (all configurable).
+- **Filters (config/edge.yaml):**
+  - `min_edge_pct` 2%.
+  - `max_line_age_minutes` 30, measured from **our fetch time**, because SGO's
+    `lastUpdatedAt` may mean "last price change", which would wrongly flag a
+    stable line as stale.
+  - `max_ev_pct` 25%: anything above this is treated as bad data and skipped.
+  - `require_sharp`, `min_consensus_books`, and `bet_books`.
+- Alt lines are valid bet candidates. They're also where the biggest model
+  error lives, so watch the `gap` column.

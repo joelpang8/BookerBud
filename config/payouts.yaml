@@ -1,0 +1,58 @@
+# Pick'em payout tables: total return multiple (entry included) by number of
+# correct picks. They change often, so re-verify against the source before
+# trusting a slip, and update `checked`.
+#
+# verified: true  = read directly from the operator's rules page on `checked`.
+# verified: false = the page blocked automated reads; numbers come from search
+#                   snippets of that official page, which conflicted with
+#                   third-party sites. The engine labels these slips "unverified".
+# variable_multipliers: true = per-pick multipliers vary (demons/goblins,
+#                   Underdog/Sleeper pick multipliers). Tables assume the
+#                   standard 1.0x line; a non-standard pick changes the payout.
+
+prizepicks:
+  source: https://www.prizepicks.com/help-center/payouts
+  checked: 2026-10-24   # page shows "last updated October 19, 2026"
+  verified: true
+  variable_multipliers: true   # demons/goblins "carry altered standard payout rates"
+  slips:
+    power:
+      2: {2: 3.0}
+      3: {3: 6.0}
+      4: {4: 10.0}
+      5: {5: 20.0}
+      6: {6: 37.5}
+    flex:
+      2: {2: 2.0, 1: 0.5}
+      3: {3: 3.0, 2: 1.0}
+      4: {4: 6.0, 3: 1.5}
+      5: {5: 10.0, 4: 2.0, 3: 0.4}
+      6: {6: 25.0, 5: 2.0, 4: 0.4}
+
+underdog:
+  source: https://help.underdogsports.com/en/articles/13780101-pick-em-standard-flex-entry-payouts
+  checked: 2026-10-24
+  verified: false        # 403 to automated fetch; confirm in-app
+  variable_multipliers: true
+  slips:
+    standard:
+      2: {2: 3.5}
+      3: {3: 6.5}
+      4: {4: 12.0}
+      5: {5: 20.0}
+      6: {6: 35.0}
+    flex:
+      3: {3: 3.25, 2: 1.09}
+      4: {4: 6.0, 3: 1.4}
+      5: {5: 10.0, 4: 2.5}
+      # 6-pick flex partial payouts not confirmed -> omitted (engine won't build it)
+
+sleeper:
+  source: https://support.sleeper.com/en/articles/9047931-sleeper-player-picks-rules
+  checked: 2026-10-24
+  verified: true
+  # Sleeper pays entry x "VS Score", which depends on the specific picks. There
+  # is no fixed table, so slip EV can't be computed from lines alone. Legs
+  # still get fair probabilities.
+  variable_multipliers: true
+  slips: {}

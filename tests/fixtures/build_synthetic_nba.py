@@ -53,11 +53,13 @@ def event1():
     # LeBron points: Pinnacle 24.5, DK 24.5, FD 25.5, PrizePicks 25.5, Underdog 24.5, Sleeper 25.5
     L = "LEBRON_JAMES_1_NBA"
     odds += ou_pair("points", L, "LeBron James Points",
-        {"pinnacle": bk("-112", ou="24.5", ts=1, alts=[bk("+130", ou="26.5", ts=1)]), "draftkings": bk("-115", ou="24.5", ts=2, main=True,
+        {"pinnacle": bk("-140", ou="24.5", ts=1, alts=[bk("+130", ou="26.5", ts=1)]), "betmgm": bk("-135", ou="24.5", ts=5), "caesars": bk("-130", ou="24.5", ts=5),
+         "draftkings": bk("-115", ou="24.5", ts=2, main=True,
              alts=[bk("+120", ou="25.5", main=False, ts=2), bk("-160", ou="23.5", main=False, ts=2)]),
          "fanduel": bk("+102", ou="25.5", ts=3), "prizepicks": bk(ou="25.5", ts=4, link="https://app.prizepicks.com/?projections=1-o-25.5"),
          "underdog": bk("+100", ou="24.5", ts=4), "sleeper": bk(ou="25.5", ts=4)},
-        {"pinnacle": bk("-108", ou="24.5", ts=1, alts=[bk("-165", ou="26.5", ts=1)]), "draftkings": bk("-105", ou="24.5", ts=2, main=True),
+        {"pinnacle": bk("+120", ou="24.5", ts=1, alts=[bk("-165", ou="26.5", ts=1)]), "betmgm": bk("+105", ou="24.5", ts=5), "caesars": bk("+100", ou="24.5", ts=5),
+         "draftkings": bk("-105", ou="24.5", ts=2, main=True),
          "fanduel": bk("-130", ou="25.5", ts=3), "prizepicks": bk(ou="25.5", ts=4), "underdog": bk("+100", ou="24.5", ts=4), "sleeper": bk(ou="25.5", ts=4)})
     odds += ou_pair("rebounds", L, "LeBron James Rebounds",
         {"pinnacle": bk("+105", ou="7.5", ts=1), "draftkings": bk("+100", ou="7.5", ts=2), "prizepicks": bk(ou="7.5", ts=4)},
@@ -90,15 +92,22 @@ def event1():
             "players": players, "odds": dict(odds)}
 
 def event2():
+    """Free-tier shaped game: no Pinnacle, only DK/FD + the other free books."""
     odds = []
+    odds += [odd("points", "home", "ml", "home", "away", {"draftkings": bk("-150", ts=2), "fanduel": bk("-135", ts=3), "betmgm": bk("-155", ts=5), "caesars": bk("-150", ts=5), "espnbet": bk("-152", ts=5)}, name="Moneyline"),
+             odd("points", "away", "ml", "away", "home", {"draftkings": bk("+128", ts=2), "fanduel": bk("+114", ts=3), "betmgm": bk("+130", ts=5), "caesars": bk("+126", ts=5), "espnbet": bk("+128", ts=5)}, name="Moneyline"),
+             odd("points", "all", "ou", "over", "under", {"draftkings": bk("-110", ou="226.5", ts=2), "fanduel": bk("-110", ou="226.5", ts=3), "betmgm": bk("-110", ou="227.5", ts=5), "bovada": bk("-115", ou="227", ts=5)}, name="Over/Under"),
+             odd("points", "all", "ou", "under", "over", {"draftkings": bk("-110", ou="226.5", ts=2), "fanduel": bk("-110", ou="226.5", ts=3), "betmgm": bk("-110", ou="227.5", ts=5), "bovada": bk("-105", ou="227", ts=5)}, name="Over/Under")]
     C = "STEPHEN_CURRY_1_NBA"
     odds += ou_pair("threePointersMade", C, "Stephen Curry Threes",
-        {"pinnacle": bk("-120", ou="4.5", ts=1), "draftkings": bk("-125", ou="4.5", ts=2), "prizepicks": bk(ou="4.5", ts=4), "underdog": bk(ou="4.5", ts=4)},
-        {"pinnacle": bk("+100", ou="4.5", ts=1), "draftkings": bk("-105", ou="4.5", ts=2), "prizepicks": bk(ou="4.5", ts=4), "underdog": bk(ou="4.5", ts=4)})
+        {"draftkings": bk("-125", ou="4.5", ts=2), "fanduel": bk("+105", ou="4.5", ts=3), "betmgm": bk("-130", ou="4.5", ts=5), "caesars": bk("-128", ou="4.5", ts=5), "williamhill": bk("-125", ou="4.5", ts=5),
+         "prizepicks": bk(ou="4.5", ts=4), "underdog": bk(ou="4.5", ts=4)},
+        {"draftkings": bk("-105", ou="4.5", ts=2), "fanduel": bk("-135", ou="4.5", ts=3), "betmgm": bk("+100", ou="4.5", ts=5), "caesars": bk("-102", ou="4.5", ts=5), "williamhill": bk("-105", ou="4.5", ts=5),
+         "prizepicks": bk(ou="4.5", ts=4), "underdog": bk(ou="4.5", ts=4)})
     B = "DEVIN_BOOKER_1_NBA"
     odds += ou_pair("points", B, "Devin Booker Points",
-        {"fanduel": bk("-110", ou="26.5", ts=3, avail=False), "sleeper": bk(ou="26.5", ts=4)},
-        {"fanduel": bk("-110", ou="26.5", ts=3, avail=False), "sleeper": bk(ou="26.5", ts=4)})
+        {"fanduel": bk("-110", ou="26.5", ts=3, avail=False), "draftkings": bk("-120", ou="27.5", ts=2), "betmgm": bk("-115", ou="27.5", ts=5), "espnbet": bk("-118", ou="27.5", ts=5), "sleeper": bk(ou="26.5", ts=4), "prizepicks": bk(ou="26.5", ts=4)},
+        {"fanduel": bk("-110", ou="26.5", ts=3, avail=False), "draftkings": bk("-110", ou="27.5", ts=2), "betmgm": bk("-115", ou="27.5", ts=5), "espnbet": bk("-112", ou="27.5", ts=5), "sleeper": bk(ou="26.5", ts=4), "prizepicks": bk(ou="26.5", ts=4)})
     players = {C: {"playerID": C, "teamID": "GOLDEN_STATE_WARRIORS_NBA", "name": "Stephen Curry"},
                B: {"playerID": B, "teamID": "PHOENIX_SUNS_NBA", "name": "Devin Booker"}}
     return {"eventID": "SYNTH_NBA_GSW_PHX", "sportID": "BASKETBALL", "leagueID": "NBA", "type": "match",

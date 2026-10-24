@@ -11,12 +11,12 @@ def norm(result):
     return normalize_props(result.props, result.rosters, fetched_at=NOW, pickem_books=PICKEM)
 
 
-def test_lebron_points_lines_up_across_all_six_books(nba_result):
+def test_lebron_points_lines_up_across_all_books(nba_result):
     props, _ = norm(nba_result)
     groups = group_markets(props)
     key = next(k for k in groups if k[4] == "nba:lebron_james" and k[5] == "points" and k[6] == "game")
     rows = groups[key]
-    assert {p.bookmaker for p in rows} == {"pinnacle", "draftkings", "fanduel", "prizepicks", "underdog", "sleeper"}
+    assert {p.bookmaker for p in rows} == {"pinnacle", "draftkings", "fanduel", "prizepicks", "underdog", "sleeper", "betmgm", "caesars"}
     assert {p.side for p in rows} == {"over", "under"}
     p = next(r for r in rows if r.bookmaker == "prizepicks")
     assert p.payout_type is PayoutType.PICKEM
@@ -51,7 +51,7 @@ def test_player_not_in_roster_flagged(nba_result):
 
 def test_game_total_and_team_total_are_different_markets(nba_result):
     props, _ = norm(nba_result)
-    totals = [p for p in props if p.market_kind is MarketKind.GAME_LINE and p.bet_type == "ou"]
+    totals = [p for p in props if p.market_kind is MarketKind.GAME_LINE and p.bet_type == "ou" and p.event_id == "SYNTH_NBA_LAL_DEN"]
     keys = {p.market_key for p in totals}
     assert len(keys) == 2
     team_total = next(p for p in totals if p.entity == "home")

@@ -1,5 +1,31 @@
 # Changelog
 
+## Phase 2 — Edge engine (2026-10-24)
+
+### Added
+- `edge/odds.py` (price conversions) and `edge/devig.py` (multiplicative and
+  power devig).
+- `edge/lines.py`: Poisson/normal line adjustment with push handling and a
+  per-stat max gap.
+- `edge/ev.py`: sportsbook EV, Poisson-binomial slip EV and per-leg break-even.
+- `edge/kelly.py`: binary and multi-outcome Kelly, plus fractional stake with a cap.
+- `edge/engine.py`: fair probability from Pinnacle, else a consensus of other
+  books (target excluded), with confidence tags, state availability and every
+  filter from config.
+- `edge/slips.py`: 2–6 leg pick'em optimizer. Same-game legs are excluded or
+  penalised; 2+ teams and one leg per player are enforced.
+- New config files: `config/edge.yaml` (thresholds, bankroll, stat models),
+  `config/payouts.yaml` (PrizePicks verified, Underdog unverified, Sleeper
+  variable) and `config/availability.yaml` (NY/WI).
+- CLI: `betedge edges` and `betedge slips` (`--as-of` for replays).
+
+### Changed (Phase 1, after review)
+- Free-tier setup: the other 7 free SGO books are added as consensus books.
+- A single combined API call covers all leagues, with a rolling 30-day object
+  budget guard (`quota` config, `betedge quota`, `fetch --force`).
+- Settings gain `plan` and `states`.
+
+
 ## Phase 1 — Data layer (2026-10-24)
 
 ### Added

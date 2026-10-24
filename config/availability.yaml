@@ -1,0 +1,24 @@
+# Where each book can actually be used, per state. Sources (checked 2026-10-24):
+#   PrizePicks: prizepicks.com/help-center/where-can-i-play (updated 2026-10-19)
+#   Sleeper:    support.sleeper.com/en/articles/5556045-where-can-i-play (updated 2026-08-03)
+#   Underdog:   help.underdogsports.com state-eligibility article. It blocks
+#               automated reads (403), so this comes from search snippets of that
+#               page. Re-check in the app.
+#   Sportsbooks: NY mobile betting is live. WI signed AB 601 on 2026-04-09, but
+#               no online sportsbook is live until the tribal compacts are amended.
+#
+# Value = product you can use there; null = not available. Re-check when you
+# travel or rules change. `betedge edges` hides plays not usable in your states
+# unless --all-books.
+NY:
+  draftkings: sportsbook
+  fanduel: sportsbook
+  prizepicks: pickem      # Player Picks; no college sports in NY
+  underdog: null          # Pick'em not offered in NY (Drafts only)
+  sleeper: null           # NY is on Sleeper's excluded list
+WI:
+  draftkings: null        # online sportsbook not live yet (DFS only)
+  fanduel: null
+  prizepicks: pickem
+  underdog: pickem
+  sleeper: pickem

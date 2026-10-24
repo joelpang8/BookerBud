@@ -1,0 +1,81 @@
+# Edge-engine settings (Phase 2). Every threshold lives here, not in code.
+
+devig_method: power          # power | multiplicative (see src/bookerbud/edge/devig.py)
+
+fair:
+  # Pinnacle is preferred when present (Pro plan only on SGO). Otherwise we use
+  # a consensus of every other priced book's de-vigged line, tagged low confidence.
+  min_consensus_books: 2       # need at least this many books in the consensus
+  require_sharp: false         # true = skip anything without a Pinnacle price
+
+filters:
+  min_edge_pct: 2.0            # minimum EV % (sportsbook) / leg edge % (pick'em)
+  max_line_age_minutes: 30     # SGO free tier refreshes every ~10 min
+  max_ev_pct: 25.0             # anything above this is almost surely bad data -> flagged, not shown
+  bet_books: [draftkings, fanduel, prizepicks, underdog, sleeper]
+
+bankroll:
+  amount: 1000                 # dollars
+  kelly_fraction: 0.25
+  max_bet_pct: 2.0             # hard cap per bet / slip, % of bankroll
+
+slips:
+  min_legs: 2
+  max_legs: 6
+  candidate_legs: 15           # best N legs per app feed the optimizer
+  same_game: exclude           # exclude | penalize
+  # penalize: each same-game leg's probability is multiplied by this factor.
+  # A blunt, conservative haircut, NOT a correlation model.
+  same_game_penalty: 0.97
+  min_teams: 2                 # PrizePicks/Underdog require 2+ teams per entry
+
+# Line-adjustment models (src/bookerbud/edge/lines.py). max_gap = the most
+# we'll move a line before skipping the play. sigma = cv * line for player stats;
+# fixed sd for game margins/totals. These sds/cvs are starting assumptions
+# (roughly typical game-to-game spread), to be checked against Phase 5 calibration.
+stat_models:
+  default: {kind: normal, cv: 0.35, max_gap: 1.0}
+  nba:
+    points:      {kind: normal, cv: 0.30, max_gap: 2.0}
+    rebounds:    {kind: normal, cv: 0.40, max_gap: 1.0}
+    assists:     {kind: normal, cv: 0.45, max_gap: 1.0}
+    pts_reb_ast: {kind: normal, cv: 0.25, max_gap: 2.0}
+    pts_reb:     {kind: normal, cv: 0.28, max_gap: 2.0}
+    pts_ast:     {kind: normal, cv: 0.28, max_gap: 2.0}
+    reb_ast:     {kind: normal, cv: 0.35, max_gap: 1.0}
+    threes_made: {kind: poisson, max_gap: 1.0}
+    steals:      {kind: poisson, max_gap: 0.5}
+    blocks:      {kind: poisson, max_gap: 0.5}
+    blk_stl:     {kind: poisson, max_gap: 0.5}
+    turnovers:   {kind: poisson, max_gap: 0.5}
+    game_spread: {kind: normal, sd: 12.0, max_gap: 1.5}
+    game_total:  {kind: normal, sd: 18.0, max_gap: 2.0}
+    team_total:  {kind: normal, sd: 11.0, max_gap: 1.5}
+  mlb:
+    total_bases:        {kind: poisson, max_gap: 1.0}
+    home_runs:          {kind: poisson, max_gap: 0.0}
+    hits:               {kind: poisson, max_gap: 1.0}
+    rbi:                {kind: poisson, max_gap: 0.5}
+    hits_runs_rbis:     {kind: poisson, max_gap: 1.0}
+    batter_strikeouts:  {kind: poisson, max_gap: 0.5}
+    pitcher_strikeouts: {kind: poisson, max_gap: 1.0}
+    pitcher_outs:       {kind: normal, cv: 0.20, max_gap: 1.0}
+    earned_runs:        {kind: poisson, max_gap: 0.5}
+    game_spread:        {kind: normal, sd: 4.3, max_gap: 0.0}   # run line is ±1.5 everywhere
+    game_total:         {kind: normal, sd: 4.4, max_gap: 0.5}
+    team_total:         {kind: normal, sd: 3.1, max_gap: 0.5}
+  nfl:
+    passing_yards:    {kind: normal, cv: 0.25, max_gap: 10.0}
+    rushing_yards:    {kind: normal, cv: 0.45, max_gap: 5.0}
+    receiving_yards:  {kind: normal, cv: 0.55, max_gap: 5.0}
+    rush_rec_yards:   {kind: normal, cv: 0.40, max_gap: 5.0}
+    receptions:       {kind: poisson, max_gap: 1.0}
+    passing_tds:      {kind: poisson, max_gap: 0.5}
+    interceptions:    {kind: poisson, max_gap: 0.0}
+    rush_attempts:    {kind: normal, cv: 0.30, max_gap: 2.0}
+    pass_completions: {kind: normal, cv: 0.20, max_gap: 2.0}
+    pass_attempts:    {kind: normal, cv: 0.18, max_gap: 2.0}
+    # NFL margins cluster on 3 and 7, which a normal ignores: keep moves tiny.
+    game_spread:      {kind: normal, sd: 13.5, max_gap: 0.5}
+    game_total:       {kind: normal, sd: 10.0, max_gap: 1.0}
+    team_total:       {kind: normal, sd: 7.5, max_gap: 1.0}

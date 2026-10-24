@@ -6,7 +6,9 @@ from bookerbud.config import CONFIG_DIR, PROJECT_ROOT, Settings, get_secret, loa
 def test_repo_settings_load():
     s = load_settings(CONFIG_DIR / "settings.yaml")
     assert s.sports == {"nba": "NBA", "mlb": "MLB", "nfl": "NFL"}
-    assert s.bookmakers.all == ["pinnacle", "draftkings", "fanduel", "prizepicks", "underdog", "sleeper"]
+    assert s.bookmakers.all[:6] == ["pinnacle", "draftkings", "fanduel", "prizepicks", "underdog", "sleeper"]
+    assert s.bookmakers.consensus == ["betmgm", "caesars", "espnbet", "bovada", "unibet", "pointsbet", "williamhill"]
+    assert s.plan == "amateur" and s.states == ["NY", "WI"] and s.quota.budget == 2250
     assert s.providers.sportsgameodds.requests_per_minute == 10
     assert s.tz.key == "America/New_York"
 

@@ -9,6 +9,20 @@ db_path: data/bookerbud.sqlite
 
 # Active odds provider (must exist in bookerbud.providers.registry).
 provider: sportsgameodds
+# SportsGameOdds plan: amateur (free) | rookie | pro. Informational; the quota
+# block below is what's enforced.
+plan: amateur
+
+# States you bet from. Plays are tagged/filtered using config/availability.yaml.
+states: [NY, WI]
+
+# Hard guard on provider billing. SGO's free tier = 2,500 objects per rolling
+# 30 days; one object per event returned (min 1 per response). Fetches stop
+# before crossing monthly_objects * budget_fraction. `betedge quota` shows usage.
+quota:
+  monthly_objects: 2500
+  window_days: 30
+  budget_fraction: 0.9
 
 # Sport key -> provider league ID.
 sports:
@@ -19,9 +33,12 @@ sports:
 # Bookmakers we care about, by role. IDs are canonical BookerBud IDs; each
 # provider maps them to its own IDs.
 bookmakers:
-  sharp: [pinnacle]
-  sportsbooks: [draftkings, fanduel]
-  pickem: [prizepicks, underdog, sleeper]
+  sharp: [pinnacle]                      # Pro plan only on SGO
+  sportsbooks: [draftkings, fanduel]     # books you bet at
+  pickem: [prizepicks, underdog, sleeper]  # not on SGO free tier
+  # Never bet, only used to build consensus fair odds when Pinnacle is
+  # missing. These are the other books on SGO's free tier.
+  consensus: [betmgm, caesars, espnbet, bovada, unibet, pointsbet, williamhill]
 
 providers:
   sportsgameodds:

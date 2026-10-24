@@ -63,11 +63,17 @@ def test_real_mlb_example_skips_3way(mlb_result):
 
 
 def test_only_requested_books_kept(offline_provider):
-    from tests.conftest import load_fixture
-    from bookerbud.models import Sport
+    from tests.conftest import MLB, NBA, load_fixture
 
-    r = offline_provider.parse_payload(load_fixture("sgo_openapi_mlb_example.json"), Sport.MLB, ["pinnacle"])
+    r = offline_provider.parse_payload(load_fixture("sgo_openapi_mlb_example.json"), MLB, ["pinnacle"])
     assert {p.bookmaker for p in r.props} == {"pinnacle"}
+
+
+def test_events_from_unrequested_leagues_are_counted_not_parsed(offline_provider):
+    from tests.conftest import NBA, load_fixture
+
+    r = offline_provider.parse_payload(load_fixture("sgo_openapi_mlb_example.json"), NBA, ["pinnacle"])
+    assert r.events == [] and r.skipped_markets == {"league:MLB": 1}
 
 
 # --- Synthetic NBA slate (documented schema, invented prices) --------------------------
@@ -81,7 +87,7 @@ def test_pickem_entries_without_odds_field(nba_result):
     assert rows["prizepicks"].price_american is None and rows["prizepicks"].line == 25.5
     assert rows["sleeper"].price_american is None
     assert rows["underdog"].price_american == 100  # placeholder kept raw; payout tables decide EV later
-    assert rows["pinnacle"].line == 24.5 and rows["pinnacle"].price_american == -112
+    assert rows["pinnacle"].line == 24.5 and rows["pinnacle"].price_american == -140
 
 
 def test_alt_lines_are_expanded_and_marked(nba_result):

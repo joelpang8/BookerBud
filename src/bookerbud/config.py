@@ -19,10 +19,29 @@ class BookmakerRoles(BaseModel):
     sharp: list[str] = Field(default_factory=lambda: ["pinnacle"])
     sportsbooks: list[str] = Field(default_factory=lambda: ["draftkings", "fanduel"])
     pickem: list[str] = Field(default_factory=lambda: ["prizepicks", "underdog", "sleeper"])
+    # Priced books we never bet but use for consensus fair odds (the rest of
+    # SportsGameOdds' free tier).
+    consensus: list[str] = Field(
+        default_factory=lambda: ["betmgm", "caesars", "espnbet", "bovada", "unibet", "pointsbet", "williamhill"]
+    )
 
     @property
     def all(self) -> list[str]:
-        return [*self.sharp, *self.sportsbooks, *self.pickem]
+        return list(dict.fromkeys([*self.sharp, *self.sportsbooks, *self.pickem, *self.consensus]))
+
+
+class QuotaSettings(BaseModel):
+    """Provider billing guard. SGO bills 'objects' (events returned, min 1 per
+    response) over a rolling 30-day window from first use."""
+
+    monthly_objects: int = 2500
+    window_days: int = 30
+    # Refuse to fetch past this share of the allowance (headroom for mistakes).
+    budget_fraction: float = 0.9
+
+    @property
+    def budget(self) -> int:
+        return int(self.monthly_objects * self.budget_fraction)
 
 
 class SportsGameOddsSettings(BaseModel):
@@ -43,6 +62,10 @@ class Settings(BaseModel):
     data_dir: Path = Path("data")
     db_path: Path = Path("data/bookerbud.sqlite")
     provider: str = "sportsgameodds"
+    plan: str = "amateur"
+    # Where you can actually place bets; drives config/availability.yaml lookups.
+    states: list[str] = Field(default_factory=lambda: ["NY", "WI"])
+    quota: QuotaSettings = Field(default_factory=QuotaSettings)
     sports: dict[str, str] = Field(default_factory=lambda: {"nba": "NBA", "mlb": "MLB", "nfl": "NFL"})
     bookmakers: BookmakerRoles = Field(default_factory=BookmakerRoles)
     providers: ProviderSettings = Field(default_factory=ProviderSettings)
@@ -75,6 +98,10 @@ def get_secret(name: str) -> str | None:
     load_dotenv(PROJECT_ROOT / ".env", override=False)
     value = os.environ.get(name)
     return value or None
+
+
+def load_yaml_config(name: str) -> dict:
+    return yaml.safe_load((CONFIG_DIR / name).read_text()) or {}
 
 
 @lru_cache

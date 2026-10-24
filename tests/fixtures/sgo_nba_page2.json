@@ -44,6 +44,172 @@
     }
    },
    "odds": {
+    "points-home-game-ml-home": {
+     "oddID": "points-home-game-ml-home",
+     "opposingOddID": "points-away-game-ml-away",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "home",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-150",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-135",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-155",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "-150",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "espnbet": {
+       "odds": "-152",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      }
+     }
+    },
+    "points-away-game-ml-away": {
+     "oddID": "points-away-game-ml-away",
+     "opposingOddID": "points-home-game-ml-home",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "away",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "+128",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "+114",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "+130",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "+126",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "espnbet": {
+       "odds": "+128",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      }
+     }
+    },
+    "points-all-game-ou-over": {
+     "oddID": "points-all-game-ou-over",
+     "opposingOddID": "points-all-game-ou-under",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-110",
+       "overUnder": "226.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-110",
+       "overUnder": "226.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-110",
+       "overUnder": "227.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "bovada": {
+       "odds": "-115",
+       "overUnder": "227",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      }
+     }
+    },
+    "points-all-game-ou-under": {
+     "oddID": "points-all-game-ou-under",
+     "opposingOddID": "points-all-game-ou-over",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-110",
+       "overUnder": "226.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-110",
+       "overUnder": "226.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-110",
+       "overUnder": "227.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "bovada": {
+       "odds": "-105",
+       "overUnder": "227",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      }
+     }
+    },
     "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-over": {
      "oddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-over",
      "opposingOddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-under",
@@ -59,17 +225,35 @@
      "bookOddsAvailable": true,
      "fairOddsAvailable": true,
      "byBookmaker": {
-      "pinnacle": {
-       "odds": "-120",
-       "overUnder": "4.5",
-       "available": true,
-       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
-      },
       "draftkings": {
        "odds": "-125",
        "overUnder": "4.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "+105",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-130",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "-128",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "williamhill": {
+       "odds": "-125",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
       },
       "prizepicks": {
        "overUnder": "4.5",
@@ -99,17 +283,35 @@
      "bookOddsAvailable": true,
      "fairOddsAvailable": true,
      "byBookmaker": {
-      "pinnacle": {
-       "odds": "+100",
-       "overUnder": "4.5",
-       "available": true,
-       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
-      },
       "draftkings": {
        "odds": "-105",
        "overUnder": "4.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-135",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "betmgm": {
+       "odds": "+100",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "-102",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "williamhill": {
+       "odds": "-105",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
       },
       "prizepicks": {
        "overUnder": "4.5",
@@ -145,7 +347,30 @@
        "available": false,
        "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
       },
+      "draftkings": {
+       "odds": "-120",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-115",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "espnbet": {
+       "odds": "-118",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
       "sleeper": {
+       "overUnder": "26.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "prizepicks": {
        "overUnder": "26.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
@@ -174,7 +399,30 @@
        "available": false,
        "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
       },
+      "draftkings": {
+       "odds": "-110",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "betmgm": {
+       "odds": "-115",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "espnbet": {
+       "odds": "-112",
+       "overUnder": "27.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
       "sleeper": {
+       "overUnder": "26.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "prizepicks": {
        "overUnder": "26.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:54:00.000Z"

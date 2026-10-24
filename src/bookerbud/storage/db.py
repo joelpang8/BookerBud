@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from bookerbud.models import EventInfo, Prop
+from bookerbud.models import EventInfo, Flag, MarketKind, PayoutType, Prop, Sport
 from bookerbud.normalize.names import normalize_name
 
 SCHEMA = """
@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS fetch_runs (
     finished_at   TEXT,
     source        TEXT NOT NULL,           -- 'api' or 'replay'
     requests_made INTEGER DEFAULT 0,
+    objects_used  INTEGER DEFAULT 0,           -- provider billing units
     n_events      INTEGER DEFAULT 0,
     n_props       INTEGER DEFAULT 0,
     n_flagged     INTEGER DEFAULT 0,
@@ -97,7 +98,26 @@ def connect(path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     return conn
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a DB was first created."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(fetch_runs)")}
+    if "objects_used" not in cols:
+        conn.execute("ALTER TABLE fetch_runs ADD COLUMN objects_used INTEGER DEFAULT 0")
+        conn.commit()
+
+
+def objects_used_since(conn: sqlite3.Connection, since: datetime, provider: str | None = None) -> int:
+    """Billing units spent on live API calls since `since` (replays cost nothing)."""
+    sql = "SELECT COALESCE(SUM(objects_used), 0) FROM fetch_runs WHERE source = 'api' AND started_at >= ?"
+    args: list = [_ts(since)]
+    if provider:
+        sql += " AND provider = ?"
+        args.append(provider)
+    return int(conn.execute(sql, args).fetchone()[0])
 
 
 def start_run(conn: sqlite3.Connection, provider: str, sport: str, source: str, started_at: datetime) -> int:
@@ -115,6 +135,7 @@ def finish_run(
     *,
     finished_at: datetime,
     requests_made: int,
+    objects_used: int = 0,
     n_events: int,
     n_props: int,
     n_flagged: int,
@@ -123,10 +144,10 @@ def finish_run(
     raw_paths: list[Path],
 ) -> None:
     conn.execute(
-        """UPDATE fetch_runs SET finished_at=?, requests_made=?, n_events=?, n_props=?, n_flagged=?,
+        """UPDATE fetch_runs SET finished_at=?, requests_made=?, objects_used=?, n_events=?, n_props=?, n_flagged=?,
            notices=?, skipped=?, raw_paths=? WHERE run_id=?""",
         (
-            _ts(finished_at), requests_made, n_events, n_props, n_flagged,
+            _ts(finished_at), requests_made, objects_used, n_events, n_props, n_flagged,
             json.dumps(notices), json.dumps(skipped), json.dumps([str(p) for p in raw_paths]), run_id,
         ),
     )
@@ -230,3 +251,44 @@ def flagged_summary(conn: sqlite3.Connection, run_id: int | None = None) -> pd.D
             GROUP BY run_id, sport, flags, stat_label_raw, player ORDER BY n_rows DESC""",
         conn, params=run_ids,
     )
+
+
+def _dt(v: str | None) -> datetime | None:
+    return datetime.fromisoformat(v) if v else None
+
+
+def row_to_prop(r: sqlite3.Row) -> Prop:
+    return Prop(
+        sport=Sport(r["sport"]), league=r["league"], provider=r["provider"], event_id=r["event_id"],
+        start_time=_dt(r["start_time"]), market_kind=MarketKind(r["market_kind"]), entity=r["entity"],
+        player=r["player"], player_key=r["player_key"], provider_player_id=r["provider_player_id"],
+        player_status=r["player_status"], team=r["team"], opponent=r["opponent"], stat_type=r["stat_type"],
+        stat_label_raw=r["stat_label_raw"], period=r["period"], bet_type=r["bet_type"], side=r["side"],
+        line=r["line"], price_american=r["price_american"], payout_type=PayoutType(r["payout_type"]),
+        bookmaker=r["bookmaker"], available=bool(r["available"]),
+        is_main_line=None if r["is_main_line"] is None else bool(r["is_main_line"]),
+        is_alt_line=bool(r["is_alt_line"]), book_updated_at=_dt(r["book_updated_at"]),
+        fetched_at=_dt(r["fetched_at"]), provider_market_id=r["provider_market_id"], deeplink=r["deeplink"],
+        flags=[Flag(f) for f in r["flags"].split(",") if f],
+    )
+
+
+def latest_run_ids(conn: sqlite3.Connection, sports: list[str]) -> dict[str, int]:
+    """Most recent run that covered each sport (runs may cover several, e.g. 'nba,mlb,nfl')."""
+    out: dict[str, int] = {}
+    for sport in sports:
+        row = conn.execute(
+            "SELECT MAX(run_id) FROM fetch_runs WHERE ',' || sport || ',' LIKE ?", (f"%,{sport},%",)
+        ).fetchone()
+        if row and row[0] is not None:
+            out[sport] = row[0]
+    return out
+
+
+def load_latest_props(conn: sqlite3.Connection, sports: list[str]) -> list[Prop]:
+    """Every row from the latest snapshot of each sport."""
+    props: list[Prop] = []
+    for sport, run_id in latest_run_ids(conn, sports).items():
+        rows = conn.execute("SELECT * FROM prop_snapshots WHERE run_id = ? AND sport = ?", (run_id, sport))
+        props += [row_to_prop(r) for r in rows]
+    return props

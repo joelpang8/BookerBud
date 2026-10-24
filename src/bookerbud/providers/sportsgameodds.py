@@ -33,7 +33,8 @@ from bookerbud.raw_log import RawLogger
 API_KEY_ENV = "SPORTSGAMEODDS_API_KEY"
 
 # Canonical BookerBud bookmaker ID -> SGO bookmakerID. Identical today, kept
-# explicit so a rename on their side is a one-line fix.
+# explicit so a rename on their side is a one-line fix. The last seven are the
+# remaining free (Amateur) tier books, used for consensus fair odds.
 BOOKMAKER_IDS = {
     "pinnacle": "pinnacle",
     "draftkings": "draftkings",
@@ -41,6 +42,13 @@ BOOKMAKER_IDS = {
     "prizepicks": "prizepicks",
     "underdog": "underdog",
     "sleeper": "sleeper",
+    "betmgm": "betmgm",
+    "caesars": "caesars",
+    "espnbet": "espnbet",
+    "bovada": "bovada",
+    "unibet": "unibet",
+    "pointsbet": "pointsbet",
+    "williamhill": "williamhill",
 }
 _SGO_TO_CANON = {v: k for k, v in BOOKMAKER_IDS.items()}
 
@@ -167,23 +175,24 @@ class SportsGameOddsProvider(OddsProvider):
 
     def fetch_slate(
         self,
-        sport: Sport,
+        leagues: dict[Sport, str],
         starts_after: datetime,
         starts_before: datetime,
         bookmakers: list[str],
         *,
         include_started: bool = False,
-        league_id: str | None = None,
+        max_objects: int | None = None,
     ) -> FetchResult:
-        league_id = league_id or sport.value.upper()
+        # One request for all leagues: SGO bills >= 1 object per response, so
+        # separate per-league calls would waste objects on empty slates.
+        league_param = ",".join(leagues.values())
         params: dict[str, Any] = {
-            "leagueID": league_id,
+            "leagueID": league_param,
             "startsAfter": _iso_z(starts_after),
             "startsBefore": _iso_z(starts_before),
             "bookmakerID": ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS),
             "includeAltLines": str(self.cfg.include_alt_lines).lower(),
             "oddsAvailable": "true",
-            "limit": self.cfg.page_limit,
         }
         if not include_started:
             params["started"] = "false"
@@ -192,11 +201,23 @@ class SportsGameOddsProvider(OddsProvider):
         cursor: str | None = None
         page = 0
         while True:
-            page_params = dict(params, cursor=cursor) if cursor else params
-            body, raw_path = self._get("/events", page_params, f"events_{league_id}_p{page}")
+            limit = self.cfg.page_limit
+            if max_objects is not None:
+                remaining = max_objects - result.objects_used
+                if remaining <= 0:
+                    result.truncated = True
+                    result.notices.append(
+                        f"Stopped paginating after {result.objects_used} objects: quota budget reached. "
+                        "Some events were not fetched."
+                    )
+                    break
+                limit = min(limit, remaining)
+            page_params = dict(params, limit=limit, **({"cursor": cursor} if cursor else {}))
+            body, raw_path = self._get("/events", page_params, f"events_{league_param}_p{page}")
             result.requests_made += 1
+            result.objects_used += max(1, len(body.get("data") or []))
             result.raw_paths.append(raw_path)
-            result.extend(self.parse_payload(body, sport, bookmakers))
+            result.extend(self.parse_payload(body, leagues, bookmakers))
             cursor = body.get("nextCursor")
             page += 1
             if not cursor or not body.get("data"):
@@ -212,12 +233,17 @@ class SportsGameOddsProvider(OddsProvider):
 
     # --------------------------------------------------------------- Parsing
 
-    def parse_payload(self, payload: dict[str, Any], sport: Sport, bookmakers: list[str]) -> FetchResult:
+    def parse_payload(self, payload: dict[str, Any], leagues: dict[Sport, str], bookmakers: list[str]) -> FetchResult:
         wanted = {BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS}
+        league_to_sport = {v: k for k, v in leagues.items()}
         result = FetchResult()
         if payload.get("notice"):
             result.notices.append(str(payload["notice"]))
         for raw_event in payload.get("data") or []:
+            sport = league_to_sport.get(raw_event.get("leagueID", ""))
+            if sport is None:
+                result.skipped_markets[f"league:{raw_event.get('leagueID')}"] += 1
+                continue
             event, roster = self._parse_event(raw_event, sport)
             result.events.append(event)
             result.rosters[event.event_id] = list(roster.values())

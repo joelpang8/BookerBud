@@ -351,7 +351,7 @@
      "fairOddsAvailable": true,
      "byBookmaker": {
       "pinnacle": {
-       "odds": "-112",
+       "odds": "-140",
        "overUnder": "24.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:51:00.000Z",
@@ -363,6 +363,18 @@
          "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
         }
        ]
+      },
+      "betmgm": {
+       "odds": "-135",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "-130",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
       },
       "draftkings": {
        "odds": "-115",
@@ -429,7 +441,7 @@
      "fairOddsAvailable": true,
      "byBookmaker": {
       "pinnacle": {
-       "odds": "-108",
+       "odds": "+120",
        "overUnder": "24.5",
        "available": true,
        "lastUpdatedAt": "2026-10-24T21:51:00.000Z",
@@ -441,6 +453,18 @@
          "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
         }
        ]
+      },
+      "betmgm": {
+       "odds": "+105",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
+      },
+      "caesars": {
+       "odds": "+100",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:55:00.000Z"
       },
       "draftkings": {
        "odds": "-105",
