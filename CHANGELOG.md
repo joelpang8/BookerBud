@@ -1,5 +1,16 @@
 # Changelog
 
+## Follow-up (2026-10-24)
+
+### Changed
+- Closing odds are off by default (`config/tracking.yaml`). `settle` fetches
+  results only, and CLV comes from a snapshot taken after the play was priced
+  and before the start. It is never taken from the play's own snapshot.
+- SportsGameOdds player status is ignored (`use_provider_status: false`). The
+  MLB roster/injured-list check stays on. The footer states the injury filter
+  in effect.
+
+
 ## Phase 5 — Tracking (2026-10-24)
 
 ### Added

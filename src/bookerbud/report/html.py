@@ -415,6 +415,9 @@ def _perf_panel(perf: dict | None) -> str:
                 'watch first: it says whether the model beats the market long before win/loss records mean anything.</p>')
     note = ('<p class="note">Fewer than 100 graded plays: treat these as noise for now. CLV stabilises much faster than ROI.</p>'
             if r["graded"] < 100 else "")
+    if r["graded"] and not r["clv_n"]:
+        note += ('<p class="note">CLV is blank because closing odds are off. It fills in when you run '
+                 '<code>betedge fetch</code> again after a play shows up and before the game starts.</p>')
 
     def table(rows: list[dict], first: str, bets_rows: list[dict]) -> str:
         bmap = {x["key"]: x for x in bets_rows}
@@ -564,7 +567,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 {_perf_panel(r.performance)}
 </section>
 <footer class="wrap">
-<span>Stakes are {s["kelly_fraction"]:g}× Kelly on a ${bankroll:,.0f} bankroll, capped at {s["max_bet_pct"]:g}% per bet. States: {_e(", ".join(s["states"]))}. Data plan: {_e(s["plan"])}.</span>
+<span>Stakes are {s["kelly_fraction"]:g}× Kelly on a ${bankroll:,.0f} bankroll, capped at {s["max_bet_pct"]:g}% per bet. States: {_e(", ".join(s["states"]))}. Data plan: {_e(s["plan"])}. Injury filter: {_e(s.get("injury_filter", ""))}.</span>
 <span>Generated {gen.strftime("%I:%M %p").lstrip("0")} {_e(gen.tzname())} from the latest snapshot. Weather data by Open-Meteo.com (CC BY 4.0). MLB data © MLB Advanced Media, individual non-commercial use.</span>
 </footer>
 </div>"""

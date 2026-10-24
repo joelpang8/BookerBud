@@ -267,17 +267,19 @@ class SportsGameOddsProvider(OddsProvider):
         return result
 
     def fetch_settlement(
-        self, event_ids: list[str], bookmakers: list[str]
+        self, event_ids: list[str], bookmakers: list[str], *, include_close: bool = True
     ) -> tuple[dict[str, EventSettlement], FetchResult]:
-        """GET /events?eventIDs=...&includeOpenCloseOdds=true. One object per event.
-        closeOdds/closeOverUnder/closeSpread = each book's price at event start."""
+        """GET /events?eventIDs=... One object per event either way. With
+        include_close, adds includeOpenCloseOdds=true: closeOdds/closeOverUnder/
+        closeSpread = each book's price at event start."""
         out: dict[str, EventSettlement] = {}
         meta = FetchResult()
         books = ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS)
         for i in range(0, len(event_ids), self.cfg.page_limit):
             chunk = event_ids[i : i + self.cfg.page_limit]
-            params = {"eventIDs": ",".join(chunk), "includeOpenCloseOdds": "true", "bookmakerID": books,
-                      "limit": len(chunk)}
+            params = {"eventIDs": ",".join(chunk), "bookmakerID": books, "limit": len(chunk)}
+            if include_close:
+                params["includeOpenCloseOdds"] = "true"
             body, raw_path = self._get("/events", params, f"settle_{i // self.cfg.page_limit}")
             meta.requests_made += 1
             meta.objects_used += max(1, len(body.get("data") or []))

@@ -402,3 +402,24 @@ for this use.
 
 That leaves room for a second fetch closer to game time on busy days.
 `betedge quota` shows where you stand.
+
+## Follow-up — your calls on injuries and closing odds (2026-10-24)
+
+- **Injury status: provider field off** (`config/context.yaml →
+  use_provider_status: false`). SportsGameOdds isn't sending
+  `players[].status`. NBA and NFL plays are therefore **not** filtered for
+  injuries, and the dashboard footer says so ("Injury filter: MLB injured list
+  only"). The repeated per-sport warning is gone. The MLB 40-man roster check
+  (injured list / not active) is a different free source and still runs.
+  Flip the setting back on if SGO starts sending statuses.
+- **Closing odds: off** (`config/tracking.yaml → closing_odds: false`).
+  `settle` no longer asks for `includeOpenCloseOdds`. It still makes one call
+  per batch of finished games to get **results** for grading. That costs the
+  same quota (about 1 object per game with a play), so turning closing odds
+  off doesn't save quota; it only changes where CLV comes from.
+- **CLV without closing odds** uses the latest snapshot stored **after** the
+  play was priced and **before** the game started. The snapshot the play came
+  from is deliberately excluded: comparing a play to its own snapshot just
+  repeats the predicted edge and looks like CLV without measuring anything.
+  With one fetch a day, CLV stays blank. A second `betedge fetch` close to
+  game time fills it in, at about 1 quota object per game in that fetch.

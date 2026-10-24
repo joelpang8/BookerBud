@@ -40,7 +40,8 @@ def render_markdown(r: Report) -> str:
         out.append("")
     s = r.settings
     out.append(f"Stakes: {s['kelly_fraction']:g}× Kelly on a ${s['bankroll']:,.0f} bankroll, max {s['max_bet_pct']:g}% per bet. "
-               f"Minimum edge {s['min_edge_pct']:g}%. States: {', '.join(s['states'])}.")
+               f"Minimum edge {s['min_edge_pct']:g}%. States: {', '.join(s['states'])}. "
+               f"Injury filter: {s.get('injury_filter', '')}.")
     out.append("")
     for sport, plays in r.plays.items():
         out.append(f"## {SPORT.get(sport, sport)} — top plays")

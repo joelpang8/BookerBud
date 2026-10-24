@@ -86,10 +86,8 @@ def test_context_command_and_notes_in_edges(cli_env):
     assert res.exit_code == 0, res.output
     assert "rest unknown" in res.output  # no yesterday data and backfill disabled
     res = runner.invoke(app, ["edges", "--as-of", "2026-10-24T18:10:00-04:00"])
-    assert "status: probable" in res.output  # LeBron's SGO status flows into notes
-    assert "status: probable; status: probable" not in res.output  # applied once per play
-    bare = runner.invoke(app, ["edges", "--as-of", "2026-10-24T18:10:00-04:00", "--no-context"])
-    assert "status: probable" not in bare.output
+    assert res.exit_code == 0
+    assert "status: probable" not in res.output  # SGO player status is switched off in config/context.yaml
 
 
 def test_report_command_writes_files(cli_env, tmp_path):

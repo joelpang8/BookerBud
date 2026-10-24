@@ -103,9 +103,9 @@ class OddsProvider(ABC):
         raise NotImplementedError(f"{self.name} has no schedule endpoint")
 
     def fetch_settlement(
-        self, event_ids: list[str], bookmakers: list[str]
+        self, event_ids: list[str], bookmakers: list[str], *, include_close: bool = True
     ) -> tuple[dict[str, EventSettlement], FetchResult]:
-        """Closing odds + results for specific (usually finished) events."""
+        """Results (and optionally closing odds) for specific, usually finished, events."""
         raise NotImplementedError(f"{self.name} has no settlement endpoint")
 
     def usage(self) -> dict[str, Any] | None:

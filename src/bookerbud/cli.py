@@ -596,6 +596,9 @@ def performance(
         typer.echo(pd.DataFrame([{"fair prob": f"{x['lo'] * 100:.0f}–{x['hi'] * 100:.0f}%", "n": x["n"],
                                   "predicted": _fmt_pct(x["predicted"]), "actual": _fmt_pct(x["actual"])}
                                  for x in p["calibration"]]).to_string(index=False))
+    if r["graded"] and not r["clv_n"]:
+        typer.secho("\nCLV is blank: closing odds are off, so it needs a second `betedge fetch` before game time.",
+                    fg=typer.colors.YELLOW)
     if r["graded"] < 100:
         typer.secho(f"\nOnly {r['graded']} graded plays: treat these numbers as noise until there are a few hundred.",
                     fg=typer.colors.YELLOW)

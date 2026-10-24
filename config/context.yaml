@@ -2,6 +2,12 @@
 # weather and rest information. Actions: drop | downgrade (confidence one
 # level: high -> medium -> low) | note (annotate only).
 
+# SportsGameOdds' own player status field. Off: it isn't being sent on your
+# plan, so NBA/NFL plays are NOT filtered for injuries. The MLB injured-list /
+# active-roster check (MLB Stats API) below still runs. Turn on if SGO starts
+# sending statuses.
+use_provider_status: false
+
 status:
   # Normalised statuses. Sources: SportsGameOdds player status (all sports,
   # free with the odds) and the MLB Stats API 40-man roster (IL / not active).

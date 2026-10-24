@@ -71,6 +71,15 @@ SETTLED_EVENT = {
 }
 
 
+def strip_close(ev):
+    """What the provider returns without includeOpenCloseOdds: no close* fields."""
+    odds = {}
+    for k, o in ev["odds"].items():
+        books = {b: {kk: vv for kk, vv in e.items() if not kk.startswith("close")} for b, e in o["byBookmaker"].items()}
+        odds[k] = {**o, "byBookmaker": books}
+    return {**ev, "odds": odds}
+
+
 class FakeSettleProvider:
     name = "sportsgameodds"
 
@@ -78,9 +87,11 @@ class FakeSettleProvider:
         self.events = events
         self.calls = []
 
-    def fetch_settlement(self, event_ids, bookmakers):
+    def fetch_settlement(self, event_ids, bookmakers, *, include_close=True):
         self.calls.append(list(event_ids))
-        data = {e["eventID"]: parse_settlement(e) for e in self.events if e["eventID"] in event_ids}
+        self.include_close = include_close
+        events = self.events if include_close else [strip_close(e) for e in self.events]
+        data = {e["eventID"]: parse_settlement(e) for e in events if e["eventID"] in event_ids}
         return data, FetchResult(requests_made=1, objects_used=len(event_ids))
 
 
@@ -119,7 +130,8 @@ def test_settle_grades_and_computes_clv(db, settings):
         "stat_type", "period", "bet_type", "side", "bookmaker", "payout_type", "provider_market_id", "is_alt_line")},
         "line": 24.5, "price_american": -115, "stake": 20.0})
     p = FakeSettleProvider([SETTLED_EVENT])
-    s = settle(db, settings, p, now=AFTER, cfg=mcfg())
+    s = settle(db, settings, p, now=AFTER, cfg=mcfg(), closing_odds=True)
+    assert p.include_close is True
     assert p.calls == [["SYNTH_NBA_GSW_PHX", "SYNTH_NBA_LAL_DEN"]] and s.objects_used == 2  # both games had recs
 
     r = rec(db, "draftkings", f"points-{L}-game-ou-over", 24.5)
@@ -137,7 +149,7 @@ def test_settle_grades_and_computes_clv(db, settings):
 
 
 def test_settle_game_lines(db, settings):
-    settle(db, settings, FakeSettleProvider([SETTLED_EVENT]), now=AFTER, cfg=mcfg())
+    settle(db, settings, FakeSettleProvider([SETTLED_EVENT]), now=AFTER, cfg=mcfg(), closing_odds=True)
     ml = rec(db, "fanduel", "points-home-game-ml-home", None)
     assert ml["result"] == "win"  # 112-108
     # Pinnacle close -180/+160: 0.642857 / (0.642857 + 0.384615) = 0.625668; FanDuel -178 bet:
@@ -163,13 +175,34 @@ def test_grade_rules():
     assert profit("win", 10, +150, "american_odds") == approx(15)
 
 
-def test_snapshot_fallback_when_no_close_odds(db, settings):
-    no_close = {**SETTLED_EVENT, "odds": {k: {**v, "byBookmaker": {}} for k, v in SETTLED_EVENT["odds"].items()}}
-    settle(db, settings, FakeSettleProvider([no_close]), now=AFTER, cfg=mcfg())
+def test_default_is_results_only_and_no_fake_clv(db, settings):
+    """closing_odds is off by default: results still graded, and with no snapshot
+    after the recommendation, CLV stays blank instead of echoing the predicted edge."""
+    p = FakeSettleProvider([SETTLED_EVENT])
+    settle(db, settings, p, now=AFTER, cfg=mcfg())
+    assert p.include_close is False
     r = rec(db, "draftkings", f"points-{L}-game-ou-over", 24.5)
-    # last pre-game snapshot = the one we recommended from, so CLV equals the original edge
-    assert r["close_source"] == "last_snapshot"
-    assert r["clv_pct"] == approx(r["ev_pct"], abs=1e-6)
+    assert r["result"] == "win" and r["stat_value"] == 27
+    assert r["clv_pct"] is None and r["close_source"] is None
+
+
+def test_clv_from_a_later_snapshot(db, settings, nba_result):
+    """A second fetch before tip-off (Pinnacle moved to -150/+130) gives real CLV."""
+    later = T + timedelta(hours=2)  # 00:00Z, before the 01:00Z start
+    props, _ = normalize_props(nba_result.props, nba_result.rosters, fetched_at=later, pickem_books=PICKEM)
+    moved = []
+    for p in props:
+        if p.bookmaker == "pinnacle" and p.player == "LeBron James" and p.stat_type == "points" and p.line == 24.5:
+            p = p.model_copy(update={"price_american": -150 if p.side == "over" else 130})
+        moved.append(p)
+    run = start_run(db, "sportsgameodds", "nba", "replay", later)
+    insert_props(db, run, moved)
+    settle(db, settings, FakeSettleProvider([SETTLED_EVENT]), now=AFTER, cfg=mcfg())
+    r = rec(db, "draftkings", f"points-{L}-game-ou-over", 24.5)
+    assert r["close_source"] == "last_snapshot" and r["close_at"].startswith("2026-10-25T00:00")
+    # same hand calculation as the provider-close case: +8.403%
+    assert r["clv_pct"] == approx(8.4034, abs=1e-3)
+    assert (r["close_line"], r["close_price"]) == (24.5, -115)  # DK itself didn't move
 
 
 def test_unfinished_games_retry_then_ungradable(db, settings):

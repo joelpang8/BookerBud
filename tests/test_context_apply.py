@@ -38,8 +38,16 @@ def test_normalise_status():
     assert normalise_status(None) is None
 
 
+def test_provider_status_ignored_by_default():
+    assert RULES.use_provider_status is False
+    kept, dropped = run([edge(status="out")])
+    assert len(kept) == 1 and not dropped and kept[0].context_notes == []
+
+
 def test_status_rules_from_sgo():
-    kept, dropped = run([edge(status="out"), edge(status="doubtful"), edge(status="questionable"), edge(status="probable")])
+    on = RULES.model_copy(update={"use_provider_status": True})
+    kept, dropped = run([edge(status="out"), edge(status="doubtful"), edge(status="questionable"), edge(status="probable")],
+                        rules=on)
     assert dropped == {"status:out": 1, "status:doubtful": 1}
     q, p = kept
     assert q.confidence == "medium" and "status: questionable (confidence lowered)" in q.context_notes

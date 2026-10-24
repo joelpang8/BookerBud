@@ -173,3 +173,19 @@ def test_fetch_schedule_is_events_only_and_capped(tmp_path):
     assert q["oddID"] == "points-home-game-ml-home" and q["limit"] == "5"
     assert [e.event_id for e in r.events] == ["SYNTH_NBA_GSW_PHX"] and r.props == []
     assert r.objects_used == 1
+
+
+@pytest.mark.parametrize("include_close", [True, False])
+def test_fetch_settlement_close_param(tmp_path, include_close):
+    seen = []
+
+    def handler(req):
+        seen.append(req)
+        return httpx.Response(200, json={"success": True, "data": [load_fixture("sgo_openapi_mlb_example.json")["data"][0]]})
+
+    p, _ = make_provider(tmp_path, handler)
+    data, meta = p.fetch_settlement(["mg55OPFOORFcu5v3FvfO"], ALL_BOOKS, include_close=include_close)
+    q = seen[0].url.params
+    assert q["eventIDs"] == "mg55OPFOORFcu5v3FvfO"
+    assert ("includeOpenCloseOdds" in q) is include_close
+    assert data["mg55OPFOORFcu5v3FvfO"].finalized and meta.objects_used == 1

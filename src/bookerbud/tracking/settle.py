@@ -12,8 +12,10 @@ the closing fair price:
     CLV% = P_close(win) x (decimal - 1) - P_close(lose)     (sportsbook)
     CLV% = P_close(win) / per-pick break-even - 1           (pick'em)
 
-If closing odds aren't available, the last snapshot we stored before the
-start is used instead (close_source = "last_snapshot").
+Closing odds are optional (config/tracking.yaml `closing_odds`, off by
+default). Without them, or when a market has none, the latest snapshot we
+stored after the play was priced and before the start is used instead
+(close_source = "last_snapshot"); with no such snapshot, CLV stays blank.
 """
 
 from __future__ import annotations
@@ -24,7 +26,12 @@ from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
-from bookerbud.config import Settings
+from pathlib import Path
+
+import yaml
+from pydantic import BaseModel
+
+from bookerbud.config import CONFIG_DIR, Settings
 from bookerbud.edge.config import EdgeConfig, load_edge_config, load_payouts
 from bookerbud.edge.engine import book_pairs, fair_for, pickem_breakeven, to_threshold
 from bookerbud.edge.odds import american_to_decimal
@@ -35,8 +42,15 @@ from bookerbud.storage import finish_run, start_run
 from bookerbud.storage.db import row_to_prop
 from bookerbud.storage.tracking import pending, save_settlement
 
-SETTLE_AFTER_HOURS = 4  # long enough for any NBA/MLB/NFL game to finish
-MAX_ATTEMPTS = 6  # then the row is marked "ungradable"
+class TrackingCfg(BaseModel):
+    closing_odds: bool = False  # ask the provider for closing lines (same quota cost; results are fetched anyway)
+    settle_after_hours: float = 4  # long enough for any NBA/MLB/NFL game to finish
+    max_attempts: int = 6  # then the row is marked "ungradable"
+
+
+def load_tracking_config(path: Path | None = None) -> TrackingCfg:
+    p = path or CONFIG_DIR / "tracking.yaml"
+    return TrackingCfg.model_validate(yaml.safe_load(p.read_text()) or {} if p.exists() else {})
 
 
 @dataclass
@@ -142,14 +156,23 @@ def _close_from_provider(row, ev: EventSettlement, pickem: set[str]) -> list[Pro
     return props
 
 
+def _priced_at(row) -> str:
+    """When the play's price was taken: first sighting for a recommendation, logging time for a bet."""
+    keys = row.keys()
+    return row["first_seen_at"] if "first_seen_at" in keys else row["created_at"]
+
+
 def _close_from_snapshots(conn: sqlite3.Connection, row) -> tuple[list[Prop], datetime | None]:
-    """Latest stored snapshot of this market (both sides) taken before the start."""
+    """Latest stored snapshot of this market (both sides) taken before the start
+    AND after the play was priced. The snapshot the play came from can't measure
+    line movement (its CLV would just repeat the predicted edge), so it's excluded."""
     rows = conn.execute(
         """SELECT * FROM prop_snapshots WHERE event_id = ? AND market_kind = ? AND entity IS ? AND player_key IS ?
-           AND stat_type = ? AND period = ? AND bet_type = ? AND fetched_at < ? AND available = 1
-           AND fetched_at = (SELECT MAX(fetched_at) FROM prop_snapshots WHERE event_id = ? AND fetched_at < ?)""",
+           AND stat_type = ? AND period = ? AND bet_type = ? AND available = 1
+           AND fetched_at = (SELECT MAX(fetched_at) FROM prop_snapshots
+                             WHERE event_id = ? AND fetched_at < ? AND fetched_at > ?)""",
         (row["event_id"], row["market_kind"], row["entity"], row["player_key"], row["stat_type"], row["period"],
-         row["bet_type"], row["start_time"], row["event_id"], row["start_time"]),
+         row["bet_type"], row["event_id"], row["start_time"], _priced_at(row)),
     ).fetchall()
     props = [row_to_prop(r) for r in rows]
     return props, (props[0].fetched_at if props else None)
@@ -204,10 +227,15 @@ def settle(
     provider: OddsProvider,
     *,
     now: datetime | None = None,
-    after_hours: float = SETTLE_AFTER_HOURS,
-    max_attempts: int = MAX_ATTEMPTS,
+    after_hours: float | None = None,
+    max_attempts: int | None = None,
+    closing_odds: bool | None = None,
     cfg: EdgeConfig | None = None,
 ) -> SettleSummary:
+    tc = load_tracking_config()
+    after_hours = tc.settle_after_hours if after_hours is None else after_hours
+    max_attempts = tc.max_attempts if max_attempts is None else max_attempts
+    closing_odds = tc.closing_odds if closing_odds is None else closing_odds
     now = now or datetime.now(UTC)
     cfg = cfg or load_edge_config()
     payouts = load_payouts()
@@ -231,7 +259,7 @@ def settle(
     data: dict[str, EventSettlement] = {}
     if event_ids:
         run_id = start_run(conn, provider.name, "settle", "api", now)
-        data, meta = provider.fetch_settlement(event_ids, settings.bookmakers.all)
+        data, meta = provider.fetch_settlement(event_ids, settings.bookmakers.all, include_close=closing_odds)
         finish_run(conn, run_id, finished_at=datetime.now(UTC), requests_made=meta.requests_made,
                    objects_used=meta.objects_used, n_events=len(data), n_props=0, n_flagged=0,
                    notices=["settlement"], skipped={}, raw_paths=meta.raw_paths)
@@ -246,7 +274,7 @@ def settle(
             result, value = grade(row, ev)
             if result is not None:
                 fields.update(result=result, stat_value=value, settled_at=now.isoformat())
-            close = closing_value(row, _close_from_provider(row, ev, pickem), cfg, settings, payouts)
+            close = closing_value(row, _close_from_provider(row, ev, pickem), cfg, settings, payouts) if closing_odds else None
             if close is not None:
                 fields.update(close, close_source="provider_close", close_at=row["start_time"])
         if "clv_pct" not in fields and row["close_source"] is None:

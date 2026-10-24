@@ -36,6 +36,7 @@ class NBARules(BaseModel):
 
 
 class ContextRules(BaseModel):
+    use_provider_status: bool = False  # SGO players[].status; MLB roster status is separate and always used
     status: dict[str, str] = Field(default_factory=dict)
     mlb: MLBRules = Field(default_factory=MLBRules)
     nba: NBARules = Field(default_factory=NBARules)
@@ -84,7 +85,8 @@ def apply_context(
         if e.player:
             # Worst of the statuses we know (odds-provider status, league roster status).
             pc = players.get(player_key(e.sport, e.player))
-            statuses = [s for s in (normalise_status(e.player_status), pc.status if pc else None) if s]
+            provider_status = normalise_status(e.player_status) if rules.use_provider_status else None
+            statuses = [s for s in (provider_status, pc.status if pc else None) if s]
             for st in statuses:
                 action = rules.status.get(st)
                 if action:

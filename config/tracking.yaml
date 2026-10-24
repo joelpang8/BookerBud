@@ -1,0 +1,12 @@
+# Phase 5 settlement (`betedge settle`, run first by `betedge daily`).
+
+# Ask SportsGameOdds for each book's odds at game start. Off by your choice.
+# Note: the settle call is still made to fetch *results* for grading, and it
+# costs the same quota either way (about 1 object per game with a play).
+# With this off, CLV is measured against your own snapshots: only a fetch taken
+# AFTER a play was recommended (or bet) and before the game starts counts. Run
+# `betedge fetch` again close to game time to get CLV; otherwise CLV stays blank.
+closing_odds: false
+
+settle_after_hours: 4   # games settle this long after they start
+max_attempts: 6         # then a row is marked "ungradable"

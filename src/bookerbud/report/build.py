@@ -163,6 +163,9 @@ def build_report(
     event_ids = sorted({p.event_id for p in a.props})
     events = events_by_id(conn, event_ids)
     warnings: list[dict] = []
+    from bookerbud.context.apply import load_context_rules
+
+    use_status = load_context_rules().use_provider_status
 
     # Freshness per sport
     runs = latest_run_ids(conn, [s.value for s in sports])
@@ -194,7 +197,7 @@ def build_report(
         if n_events and use_context and ctx_at is None:
             warnings.append({"level": "warn", "text": f"No injury/lineup context for {sp.value.upper()} yet. Run `betedge context`."})
         sp_props = [p for p in a.props if p.sport is sp and p.market_kind.value == "player_prop"]
-        if sp_props and not any(p.player_status for p in sp_props):
+        if use_status and sp_props and not any(p.player_status for p in sp_props):
             warnings.append({"level": "info", "text": (
                 f"SportsGameOdds sent no player injury statuses for {sp.value.upper()}"
                 + (", so only the MLB roster check filters injuries." if sp is Sport.MLB else
@@ -272,5 +275,6 @@ def build_report(
         skipped=dict(res.skipped), totals=totals, recommended=recommended, performance=performance,
         settings={"bankroll": bankroll, "kelly_fraction": cfg.bankroll.kelly_fraction,
                   "max_bet_pct": cfg.bankroll.max_bet_pct, "min_edge_pct": cfg.filters.min_edge_pct,
-                  "states": settings.states, "plan": settings.plan, "max_line_age": max_age},
+                  "states": settings.states, "plan": settings.plan, "max_line_age": max_age,
+                  "injury_filter": "all sports" if use_status else "MLB injured list only (NBA/NFL off)"},
     )

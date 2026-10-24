@@ -47,10 +47,13 @@ uv run betedge performance --by stat   # ROI, CLV, hit rate, edge buckets, calib
 
 Every play the report shows is recorded automatically, whether or not you
 bet it. About 4 hours after a game starts, `betedge settle` (run by `daily`)
-records each book's closing line, the closing fair probability at **your**
-line, the CLV, and the result. It costs about 1 quota object per game that
-had a recommendation. The dashboard's **Performance** tab shows the same
-numbers.
+grades it from the final stats. That costs about 1 quota object per game that
+had a play. The dashboard's **Performance** tab shows the same numbers.
+
+**CLV (closing-line value):** closing odds are off (`config/tracking.yaml`),
+so CLV is measured against your own later snapshot. Run `betedge fetch`
+again shortly before games start and CLV fills in for those plays; with one
+fetch a day it stays blank.
 
 `daily` writes `data/reports/YYYY-MM-DD.html` (the dashboard), a `.md` copy,
 a `.json` copy, and `latest.html`. The dashboard is one self-contained file
