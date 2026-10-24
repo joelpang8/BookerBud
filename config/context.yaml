@@ -27,7 +27,7 @@ mlb:
   not_probable_starter: drop
   # No probable starter announced yet.
   starter_unknown: downgrade
-  pitcher_stats: [pitcher_strikeouts, pitcher_outs, earned_runs]
+  pitcher_stats: [pitcher_strikeouts, pitcher_outs, earned_runs, pitcher_walks, hits_allowed, pitcher_win]
   rain_risk_pct: 50           # precip probability at first pitch -> rain_risk action
   rain_risk: downgrade
   wind_note_mph: 8            # note when the in/out wind component is at least this

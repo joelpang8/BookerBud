@@ -256,6 +256,9 @@ def find_edges(
             if not r.available:
                 skipped["closed"] += 1
                 continue
+            if r.start_time <= now:
+                skipped["game_started"] += 1
+                continue
             if (now - r.fetched_at).total_seconds() > max_age:
                 skipped["stale"] += 1
                 continue

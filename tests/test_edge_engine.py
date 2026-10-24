@@ -219,3 +219,9 @@ def test_slips_from_engine_flags_unverified_tables(props):
     assert slips and all(s.ev_pct > 0 for s in slips)
     assert all(not s.verified_table for s in slips if s.app == "underdog")
     assert not [s for s in slips if s.app == "sleeper"]  # no fixed payout table
+
+
+def test_started_games_never_recommended(props):
+    late = run(props, now=datetime(2026, 10, 25, 1, 5, tzinfo=UTC))  # LAL@DEN tipped at 01:00Z
+    assert not [e for e in late.edges if e.event_id == "SYNTH_NBA_LAL_DEN"]
+    assert late.skipped["game_started"] > 0

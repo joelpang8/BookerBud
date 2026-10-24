@@ -2,7 +2,18 @@
 
 ## Follow-up (2026-10-24)
 
+### Added (from the first live run)
+- Mapped 14 SportsGameOdds statIDs seen live:
+  - MLB: hits+runs+RBIs, runs+RBIs, singles, doubles, triples, stolen bases,
+    batter walks, walks allowed, hits allowed, pitcher win.
+  - NBA: double-double, triple-double, first basket, first to score.
+- `betedge unmatched` shows one line per stat label; `--detail` shows one
+  line per player.
+
 ### Fixed
+- Plays on games that have already started are never recommended.
+- `fetch --replay <folder>` replays only odds snapshots (`*_events_*`),
+  not schedule or settle responses.
 - The first live run failed with HTTP 400 because the free plan rejects
   requests that name Pinnacle (the SGO docs said it would just return empty).
   Books not on the plan are now excluded in config, and any book the API

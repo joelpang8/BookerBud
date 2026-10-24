@@ -283,6 +283,16 @@ def latest_runs(conn: sqlite3.Connection, limit: int = 10) -> pd.DataFrame:
     return pd.read_sql_query("SELECT * FROM fetch_runs ORDER BY run_id DESC LIMIT ?", conn, params=[limit])
 
 
+def flagged_by_label(conn: sqlite3.Connection, run_id: int | None = None) -> pd.DataFrame:
+    """One line per (sport, flag, raw label): how many rows and players it affects."""
+    df = flagged_summary(conn, run_id)
+    if df.empty:
+        return df
+    out = (df.groupby(["sport", "flags", "stat_label_raw"], as_index=False)
+             .agg(n_rows=("n_rows", "sum"), players=("player", lambda s: int((s != "").sum()))))
+    return out.sort_values("n_rows", ascending=False)
+
+
 def flagged_summary(conn: sqlite3.Connection, run_id: int | None = None) -> pd.DataFrame:
     """Flagged rows grouped by reason. Default: the latest run of each sport."""
     if run_id is None:

@@ -61,6 +61,14 @@ stat_models:
     pitcher_strikeouts: {kind: poisson, max_gap: 1.0}
     pitcher_outs:       {kind: normal, cv: 0.20, max_gap: 1.0}
     earned_runs:        {kind: poisson, max_gap: 0.5}
+    runs_rbis:          {kind: poisson, max_gap: 1.0}
+    singles:            {kind: poisson, max_gap: 0.5}
+    doubles:            {kind: poisson, max_gap: 0.0}
+    triples:            {kind: poisson, max_gap: 0.0}
+    stolen_bases:       {kind: poisson, max_gap: 0.0}
+    batter_walks:       {kind: poisson, max_gap: 0.5}
+    pitcher_walks:      {kind: poisson, max_gap: 0.5}
+    hits_allowed:       {kind: poisson, max_gap: 1.0}
     game_spread:        {kind: normal, sd: 4.3, max_gap: 0.0}   # run line is ±1.5 everywhere
     game_total:         {kind: normal, sd: 4.4, max_gap: 0.5}
     team_total:         {kind: normal, sd: 3.1, max_gap: 0.5}

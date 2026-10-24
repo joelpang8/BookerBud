@@ -32,7 +32,7 @@ from bookerbud.pipeline import (
 )
 from bookerbud.raw_log import RawLogger
 from bookerbud.providers import ProviderError, get_provider
-from bookerbud.storage import connect, flagged_summary, latest_runs, load_latest_props, query_player_props
+from bookerbud.storage import connect, flagged_by_label, flagged_summary, latest_runs, load_latest_props, query_player_props
 from bookerbud.storage.tracking import get_recommendation, insert_bet, record_recommendations, recommendations_for_day
 
 app = typer.Typer(help="BookerBud: daily +EV research. Never places bets.", no_args_is_help=True)
@@ -91,7 +91,8 @@ def fetch(
     conn = connect(settings.db_file)
     try:
         if replay:
-            files = sorted(f for p in replay for f in ([p] if p.is_file() else p.rglob("*.json")))
+            # A folder holds odds, schedule and settle responses; only odds snapshots replay.
+            files = sorted(f for p in replay for f in ([p] if p.is_file() else p.rglob("*_events_*.json")))
             _print_summary(replay_and_store(conn, settings, provider, sports, files))
             return
         target = date.fromisoformat(day) if day else datetime.now(settings.tz).date()
@@ -226,11 +227,14 @@ def show_props(
 
 
 @app.command()
-def unmatched(run_id: Annotated[int | None, typer.Option(help="Fetch run (default: latest run of each sport)")] = None) -> None:
+def unmatched(
+    run_id: Annotated[int | None, typer.Option(help="Fetch run (default: latest run of each sport)")] = None,
+    detail: Annotated[bool, typer.Option(help="One line per player instead of per stat label")] = False,
+) -> None:
     """List rows the matcher flagged (unknown stat labels, unresolved players, ...)."""
     settings = load_settings()
     conn = connect(settings.db_file)
-    df = flagged_summary(conn, run_id)
+    df = flagged_summary(conn, run_id) if detail else flagged_by_label(conn, run_id)
     conn.close()
     typer.echo("Nothing flagged." if df.empty else df.to_string(index=False))
 

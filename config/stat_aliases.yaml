@@ -18,6 +18,10 @@ nba:
   pts_ast:      {label: Pts+Asts, aliases: [points+assists, pts+asts]}
   reb_ast:      {label: Rebs+Asts, aliases: [rebounds+assists, rebs+asts]}
   blk_stl:      {label: Blks+Stls, aliases: [blocks+steals, blks+stls, steals+blocks]}
+  double_double: {label: Double-Double, aliases: [doubleDouble, double double]}   # verified (live)
+  triple_double: {label: Triple-Double, aliases: [tripleDouble, triple double]}   # verified (live)
+  first_basket:  {label: First Basket, aliases: [firstBasket, first basket]}      # verified (live)
+  first_to_score: {label: First to Score, aliases: [firstToScore]}                # verified (live)
 mlb:
   runs:              {label: Runs (team/game), aliases: [points]}                 # verified (SGO uses `points` for runs)
   total_bases:       {label: Total Bases, aliases: [batting_totalbases, total bases, tb]}   # verified
@@ -26,7 +30,16 @@ mlb:
   pitcher_strikeouts: {label: Pitcher Strikeouts, aliases: [pitching_strikeouts, pitcher strikeouts, strikeouts, ks]}  # verified
   hits:              {label: Hits, aliases: [batting_hits, hits]}
   rbi:               {label: RBIs, aliases: [batting_rbi, rbis, rbi]}
-  hits_runs_rbis:    {label: Hits+Runs+RBIs, aliases: [hits+runs+rbis, h+r+rbi]}
+  hits_runs_rbis:    {label: Hits+Runs+RBIs, aliases: [batting_hits+runs+rbi, hits+runs+rbis, h+r+rbi]}  # verified (live)
+  runs_rbis:         {label: Runs+RBIs, aliases: [batting_runs+rbi, runs+rbis]}       # verified (live)
+  singles:           {label: Singles, aliases: [batting_singles, singles]}            # verified (live)
+  doubles:           {label: Doubles, aliases: [batting_doubles, doubles]}            # verified (live)
+  triples:           {label: Triples, aliases: [batting_triples, triples]}            # verified (live)
+  stolen_bases:      {label: Stolen Bases, aliases: [batting_stolenBases, stolen bases]}  # verified (live)
+  batter_walks:      {label: Walks (batter), aliases: [batting_basesOnBalls]}         # verified (live)
+  pitcher_walks:     {label: Walks Allowed, aliases: [pitching_basesOnBalls]}         # verified (live)
+  hits_allowed:      {label: Hits Allowed, aliases: [pitching_hits]}                  # verified (live)
+  pitcher_win:       {label: Pitcher Win, aliases: [pitching_win]}                    # verified (live)
   pitcher_outs:      {label: Pitching Outs, aliases: [pitching_outs, outs recorded, pitching outs]}
   earned_runs:       {label: Earned Runs Allowed, aliases: [pitching_earnedruns, earned runs allowed, earned runs]}
 nfl:

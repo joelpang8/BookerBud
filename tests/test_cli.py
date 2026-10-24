@@ -21,7 +21,7 @@ def cli_env(tmp_path, monkeypatch):
     raw = tmp_path / "raw"
     raw.mkdir()
     for i, name in enumerate(["sgo_nba_page1.json", "sgo_nba_page2.json"]):
-        (raw / f"p{i}.json").write_text(json.dumps({"fetched_at": "2026-10-24T22:00:00+00:00", "body": load_fixture(name)}))
+        (raw / f"220000_00000{i}_events_NBA_p{i}.json").write_text(json.dumps({"fetched_at": "2026-10-24T22:00:00+00:00", "body": load_fixture(name)}))
     return raw
 
 
@@ -37,7 +37,9 @@ def test_fetch_replay_then_show_props(cli_env):
     assert "pick'em" in res.output and "Los Angeles Lakers vs Denver Nuggets" in res.output
 
     res = runner.invoke(app, ["unmatched"])
-    assert "doubleDoubles" in res.output and "player_not_in_roster" in res.output
+    assert "doubleDoubles" in res.output and "player_not_in_roster" in res.output and "players" in res.output
+    res = runner.invoke(app, ["unmatched", "--detail"])
+    assert "Jamal Murray" in res.output
 
     res = runner.invoke(app, ["runs"])
     assert "replay" in res.output
