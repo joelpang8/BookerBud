@@ -19,6 +19,7 @@ from bookerbud.edge.slips import Slip, build_slips
 from bookerbud.models import Sport
 from bookerbud.pipeline import analyze, quota_status
 from bookerbud.report import text
+from bookerbud.report.form import form_for
 from bookerbud.storage import events_by_id, latest_context_time, latest_run_ids, run_info
 
 
@@ -89,6 +90,7 @@ def play_dict(e: Edge, events: dict, tz, bankroll: float) -> dict:
         "sport": e.sport,
         "subject": text.subject(e),
         "market": text.market(e),
+        "line": e.line,
         "matchup": matchup,
         "start": start.isoformat(),
         "start_label": start.strftime("%I:%M %p").lstrip("0"),
@@ -111,6 +113,7 @@ def play_dict(e: Edge, events: dict, tz, bankroll: float) -> dict:
         "status": e.player_status,
         "breakeven_slip": e.breakeven_slip,
         "reason": text.reason(e),
+        "driver": text.key_driver(e),
         "deeplink": e.deeplink,
     }
 
@@ -245,16 +248,29 @@ def build_report(
             "(tagged low confidence).")})
 
     # Plays
+    from bookerbud.tracking.settle import load_tracking_config
+
+    form_games = load_tracking_config().history.form_games
     plays: dict[str, list[dict]] = {}
     recommended: list[Edge] = []
     for sp in sports:
         sp_edges = [e for e in res.edges if e.sport == sp.value][: rcfg.top_plays_per_sport]
         recommended += sp_edges
-        plays[sp.value] = [play_dict(e, events, tz, bankroll) for e in sp_edges]
+        sp_plays = []
+        for e in sp_edges:
+            pd_ = play_dict(e, events, tz, bankroll)
+            pd_["form"] = form_for(conn, e, events, form_games)
+            pd_["why"] = text.why(e, pd_["form"])
+            sp_plays.append(pd_)
+        plays[sp.value] = sp_plays
     for sport_plays in plays.values():
         for i, p in enumerate(sport_plays):
             p["anchor"] = f"play-{p['sport']}-{i + 1}"
     top_picks = pick_top(plays, rcfg)
+    top_anchors = {p["anchor"] for p in top_picks}
+    for sport_plays in plays.values():
+        for p in sport_plays:
+            p["is_top"] = p["anchor"] in top_anchors  # their "Why this pick" opens by default
 
     # Slips
     payouts = load_payouts()

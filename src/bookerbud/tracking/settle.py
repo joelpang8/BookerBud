@@ -36,13 +36,20 @@ from bookerbud.edge.config import EdgeConfig, load_edge_config, load_payouts
 from bookerbud.edge.engine import book_pairs, fair_for, pickem_breakeven, to_threshold
 from bookerbud.edge.odds import american_to_decimal
 from bookerbud.models import MarketKind, PayoutType, Prop, Sport
+from bookerbud.normalize.stats import stat_value_from
 from bookerbud.pipeline import quota_status
 from bookerbud.providers.base import EventSettlement, OddsProvider
 from bookerbud.storage import finish_run, start_run
 from bookerbud.storage.db import row_to_prop
 from bookerbud.storage.tracking import pending, save_settlement
 
+class HistoryCfg(BaseModel):
+    daily_sports: list[str] = ["nba", "nfl"]
+    form_games: int = 10
+
+
 class TrackingCfg(BaseModel):
+    history: HistoryCfg = HistoryCfg()
     closing_odds: bool = False  # ask the provider for closing lines (same quota cost; results are fetched anyway)
     settle_after_hours: float = 4  # long enough for any NBA/MLB/NFL game to finish
     max_attempts: int = 6  # then the row is marked "ungradable"
@@ -70,11 +77,10 @@ def _stat_from_results(results: dict, period: str, entity: str, stat_id: str) ->
     entities = ["home", "away"] if entity == "all" else [entity]
     total = 0.0
     for ent in entities:
-        vals = per.get(ent) or {}
-        for part in stat_id.split("+"):
-            if part not in vals or vals[part] is None:
-                return None
-            total += float(vals[part])
+        v = stat_value_from(per.get(ent) or {}, stat_id)
+        if v is None:
+            return None
+        total += v
     return total
 
 

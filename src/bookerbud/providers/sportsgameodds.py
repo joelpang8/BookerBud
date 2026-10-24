@@ -38,6 +38,7 @@ from bookerbud.providers.base import (
     ProviderAuthError,
     ProviderError,
 )
+from bookerbud.normalize.names import player_key, team_key
 from bookerbud.raw_log import RawLogger
 
 API_KEY_ENV = "SPORTSGAMEODDS_API_KEY"
@@ -291,6 +292,7 @@ class SportsGameOddsProvider(OddsProvider):
             result.raw_paths.append(raw_path)
             parsed = self.parse_payload(body, leagues, [])
             result.events += parsed.events
+            result.game_logs += parsed.game_logs
             cursor = body.get("nextCursor")
             page += 1
             if not cursor or not body.get("data"):
@@ -348,7 +350,36 @@ class SportsGameOddsProvider(OddsProvider):
             props, skipped = self._parse_odds(raw_event.get("odds") or {}, event, roster, wanted)
             result.props += props
             result.skipped_markets.update(skipped)
+            result.game_logs += self._game_logs(raw_event, event, roster)
         return result
+
+    def _game_logs(self, ev: dict[str, Any], event: EventInfo, roster: dict[str, RosterPlayer]) -> list[dict]:
+        """Full-game box score rows for a finished event: one per player, one per team."""
+        status = ev.get("status") or {}
+        game = (ev.get("results") or {}).get("game") or {}
+        if not (status.get("ended") or status.get("finalized")) or status.get("cancelled") or not game:
+            return []
+        base = {"sport": event.sport.value, "event_id": event.event_id, "start_time": event.start_time.isoformat(),
+                "source": self.name}
+        names = {event.home_team_id: event.home_team, event.away_team_id: event.away_team}
+        rows = []
+        for side, other in (("home", "away"), ("away", "home")):
+            stats = dict(game.get(side) or {})
+            if "points" in stats and "points" in (game.get(other) or {}):
+                stats["points_allowed"] = game[other]["points"]
+            team, opp = getattr(event, f"{side}_team"), getattr(event, f"{other}_team")
+            rows.append({**base, "entity_key": team_key(event.sport.value, team), "entity_name": team,
+                         "team": team, "opponent": opp, "stats": stats})
+        for pid, stats in game.items():
+            if pid in ("home", "away", "all") or not isinstance(stats, dict):
+                continue
+            rp = roster.get(pid)
+            name = rp.name if rp else _name_from_player_id(pid)
+            team = names.get(rp.team_id) if rp else None
+            opp = (event.away_team if team == event.home_team else event.home_team) if team else None
+            rows.append({**base, "entity_key": player_key(event.sport.value, name), "entity_name": name,
+                         "team": team, "opponent": opp, "stats": stats})
+        return rows
 
     def _parse_event(self, ev: dict[str, Any], sport: Sport) -> tuple[EventInfo, dict[str, RosterPlayer]]:
         teams = ev.get("teams") or {}

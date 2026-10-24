@@ -34,6 +34,11 @@ uv run betedge daily     # settle yesterday, fetch odds + injuries/lineups/weath
 uv run betedge serve     # open the printed http://<your-computer-ip>:8765 link on your phone
 ```
 
+### First run on a new machine
+`uv run betedge history --days 14` stores recent box scores so the
+recent-form charts have data straight away (about 1 quota object per game).
+After that, `daily` keeps them current.
+
 ## Tracking what you bet
 
 ```bash

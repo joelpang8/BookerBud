@@ -457,3 +457,42 @@ That leaves room for a second fetch closer to game time on busy days.
   - player-stat cv ÷ √f;
   - max line move × √f;
   - unknown periods never move lines.
+
+## Pick reasoning & recent-form charts (2026-10-24)
+
+- **"Why this pick"** is built from the numbers already computed, not by an
+  AI model. Each pick gets these labelled points:
+  - **Price:** what the book pays and the break-even it implies.
+  - **Fair value:** Pinnacle's no-vig price, or every consensus book's no-vig
+    number, with a note on whether they agree (within 3 points) or not.
+  - **Line shopping:** this book vs. other books at the same line.
+  - **Line:** whether the fair chance had to be moved to this line.
+  - **Recent form** (see below).
+  - **Context:** injury, lineup, weather and rest notes.
+  - **Risk:** what drives the confidence tag, plus a warning on edges of 10%
+    or more, which are often stale or mistaken prices.
+
+  Top picks also show a one-line **driver** (e.g. "FanDuel is the outlier:
+  +105 vs −125 to −130 elsewhere"), and their breakdown opens by default.
+- **Recent form charts:** the stat in each of the last 10 games vs. today's
+  line, with hits highlighted and the line dashed, on one linear scale from
+  zero. Team bets use margin (spreads/moneylines), points (team totals) or
+  combined points (game totals). The chart is **context only**: the edge
+  still comes from market prices. A player going over in 8 of 10 games
+  doesn't make a line beatable; the books see the same games.
+- **Data source:** box scores in SportsGameOdds `results` for finished games.
+  - Stored in a new `game_logs` table from the daily yesterday-backfill. That
+    now covers the sports in `config/tracking.yaml → history.daily_sports`
+    (default NBA + NFL) in one combined call: about 1 quota object per game
+    played, minimum 1.
+  - `betedge history --days N` backfills older games once (quota-capped).
+  - MLB is left out of the daily backfill (≈15 games/day in season).
+  - NBA.com is still not used, because of its gambling clause.
+- **Box-score naming quirks seen in real SGO data:** a batter's runs are
+  stored as `points`; `batting_singles` isn't reported, so it's derived as
+  hits − doubles − triples − home runs; RBI is upper-case. Later parts of a
+  combo label inherit the first part's prefix (`batting_hits+runs+rbi`). Any
+  missing part means no value for that game; nothing is guessed.
+- **Quota:** NBA + NFL daily results add roughly 250–350 objects / 30 days in
+  season, replacing the NBA-only backfill. A one-time `history --days 14` is
+  about 100 objects early in the NBA season.

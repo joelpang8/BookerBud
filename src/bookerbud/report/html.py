@@ -118,7 +118,7 @@ button { font: inherit; color: inherit; }
 
 /* Tickets */
 .rack { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 12px; }
-.ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; align-content: start; }
 .t-top { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; color: var(--muted); }
 .t-top .match { font-weight: 600; color: var(--ink); }
 .t-who h3 { margin: 0; font-size: 1.12rem; font-weight: 600; line-height: 1.2; }
@@ -183,6 +183,31 @@ tr:last-child td { border-bottom: 0; }
 .games ul { margin: 0; padding: 0 14px 12px 32px; font-size: .86rem; color: var(--muted); }
 
 .banner { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: .88rem; }
+/* Recent form chart + reasoning */
+.form { display: grid; gap: 4px; }
+.form .cap { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; color: var(--muted); }
+.form .cap b { color: var(--ink); font-weight: 600; }
+.form svg { width: 100%; height: auto; display: block; }
+svg .bar.hit { fill: var(--good); }
+svg .bar.miss { fill: var(--line); }
+svg .bar.push { fill: var(--warn); }
+svg .thr { stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 4 3; }
+svg .zero { stroke: var(--line); stroke-width: 1; }
+.form text { fill: var(--muted); font-family: var(--mono); font-size: 9px; }
+.form text.tl { fill: var(--ink); font-size: 10px; }
+.form-empty { font-size: .78rem; color: var(--muted); margin: 0; }
+.why { border-top: 1px solid var(--line); padding-top: 8px; }
+.why summary { cursor: pointer; font-weight: 600; font-size: .86rem; color: var(--accent); list-style: none; }
+.why summary::-webkit-details-marker { display: none; }
+.why summary::before { content: "+ "; }
+.why[open] summary::before { content: "\2212 "; }
+.why dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; margin: 8px 0 0; font-size: .84rem; }
+.why dt { font-weight: 600; color: var(--ink); white-space: nowrap; }
+.why dd { margin: 0; color: var(--muted); }
+.pick .driver { grid-column: 2 / 4; font-size: .82rem; color: var(--ink); }
+.pick .mini { grid-column: 2 / 4; display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--muted); }
+.pick .mini svg { width: 120px; height: 28px; flex: 0 0 auto; }
+
 /* Top picks */
 .top { margin-block: 4px 14px; }
 .top h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .02em; margin: 0 0 8px; }
@@ -318,6 +343,61 @@ def _attrs(p: dict) -> str:
             f'data-conf="{_e(p["confidence"])}" data-states="{_e(" ".join(p["states"]))}"')
 
 
+def _form_svg(form: dict, compact: bool = False) -> str:
+    """Bars = the stat in each recent game (oldest left), dashed line = today's line.
+    One linear scale that includes zero, every game and the line."""
+    games = form["games"]
+    vals = [g["value"] for g in games]
+    thr = form["threshold"]
+    lo, hi = min(0.0, *vals, thr), max(0.0, *vals, thr)
+    if hi == lo:
+        hi = lo + 1
+    W, H = (120, 28) if compact else (300, 96)
+    top, bot, left, right = (2, 2, 2, 2) if compact else (14, 16, 4, 30)
+    ph, pw = H - top - bot, W - left - right
+    span = (hi - lo) * 1.08
+
+    def y(v):
+        return top + ph - (v - lo) / span * ph
+
+    slot = pw / len(games)
+    bw = max(2.0, slot * 0.68)
+    parts = [f'<line class="zero" x1="{left}" y1="{y(0):.1f}" x2="{left + pw}" y2="{y(0):.1f}"/>'] if lo < 0 else []
+    for i, g in enumerate(games):
+        x = left + i * slot + (slot - bw) / 2
+        y0, y1 = sorted((y(0), y(g["value"])))
+        h = max(y1 - y0, 1.5)
+        tip = f'{g["date"]} {g["opp"]}: {g["value"]:g} ({g["result"]})'
+        parts.append(f'<rect class="bar {g["result"]}" x="{x:.1f}" y="{y0:.1f}" width="{bw:.1f}" height="{h:.1f}" rx="1.5"><title>{_e(tip)}</title></rect>')
+        if not compact:
+            ty = y0 - 3 if g["value"] >= 0 else y1 + 10
+            parts.append(f'<text x="{x + bw / 2:.1f}" y="{ty:.1f}" text-anchor="middle">{g["value"]:g}</text>')
+    parts.append(f'<line class="thr" x1="{left}" y1="{y(thr):.1f}" x2="{left + pw}" y2="{y(thr):.1f}"/>')
+    if not compact:
+        parts.append(f'<text class="tl" x="{left + pw + 4}" y="{y(thr) + 3.5:.1f}">{thr:g}</text>')
+        parts.append(f'<text x="{left}" y="{H - 3}">{_e(games[0]["date"])}</text>')
+        parts.append(f'<text x="{left + pw}" y="{H - 3}" text-anchor="end">{_e(games[-1]["date"])}</text>')
+    label = f'Last {form["n"]} games vs line {thr:g}: {form["hits"]} hits'
+    return f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="{_e(label)}">{"".join(parts)}</svg>'
+
+
+def _form_block(p: dict) -> str:
+    f = p.get("form")
+    if not f:
+        return '<p class="form-empty">No game log stored yet (run <code>betedge history</code> once).</p>'
+    side = {"over": "Over", "under": "Under", "yes": "Yes", "no": "No"}.get(f["side"], "Covered")
+    what = {"margin": "margin", "game total": "game total", "team points": "points"}.get(f["what"], "avg")
+    return (f'<div class="form"><div class="cap"><span>Last {f["n"]} games · {side} {f["threshold"]:g} hit '
+            f'<b>{f["hits"]}/{f["n"]}</b></span><span>{what} {f["avg"]:.1f}</span></div>{_form_svg(f)}</div>')
+
+
+def _why_block(p: dict, open_: bool) -> str:
+    items = "".join(f"<dt>{_e(w['label'])}</dt><dd>{_e(w['text'])}</dd>" for w in p.get("why") or [])
+    if not items:
+        return ""
+    return f'<details class="why"{" open" if open_ else ""}><summary>Why this pick</summary><dl>{items}</dl></details>'
+
+
 def _ticket(p: dict) -> str:
     alt = '<span class="alt">alt line</span>' if p["alt"] else ""
     stake = (f'<div class="stake"><small>Stake</small>${p["stake"]:.2f}<em>{p["stake_pct"]:.1f}% of bankroll</em></div>'
@@ -335,10 +415,12 @@ def _ticket(p: dict) -> str:
 <div class="t-who"><h3>{_e(p["subject"])}</h3><p>{_e(p["market"])}{alt}</p></div>
 <div class="t-book"><span>{_e(p["book_label"])}</span><span class="price">{_e(p["price"])}</span></div>
 {_scale(p["implied"], p["fair"])}
+{_form_block(p)}
 <div class="perf" aria-hidden="true"></div>
 <div class="t-foot"><div class="edge"><small>Edge</small>{p["edge_pct"]:+.1f}%</div>{stake}<span class="conf {p["confidence"]}">{CONF.get(p["confidence"], p["confidence"])}</span></div>
 {f'<ul class="notes">{notes}</ul>' if notes else ''}
 <p class="reason">{_e(p["reason"])}</p>
+{_why_block(p, p.get("is_top", False))}
 <div class="t-src"><span>{src}</span><span>Usable in {_e(states)}</span>{link}</div>
 </article>"""
 
@@ -359,7 +441,10 @@ def _top_picks(picks: list[dict]) -> str:
             f'<span class="ev">{p["edge_pct"]:+.1f}%</span>'
             f'<span class="meta"><span>{_e(p["book_label"])} <b>{_e(p["price"])}</b></span><span>Stake <b>{stake}</b></span>'
             f'<span class="conf {p["confidence"]}">{CONF.get(p["confidence"], p["confidence"])}</span>{notes}</span>'
-            "</a></li>"
+            f'<span class="driver">{_e(p.get("driver", ""))}</span>'
+            + (f'<span class="mini">{_form_svg(p["form"], compact=True)}<span>{p["form"]["hits"]}/{p["form"]["n"]} last games</span></span>'
+               if p.get("form") else "")
+            + "</a></li>"
         )
     return (f'<section class="top" aria-label="Top picks"><h2>Top {len(picks)} picks today</h2>'
             f'<ol>{"".join(items)}</ol></section>')

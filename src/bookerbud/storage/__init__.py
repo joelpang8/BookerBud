@@ -1,4 +1,6 @@
 from bookerbud.storage.db import (
+    recent_games,
+    upsert_game_logs,
     events_by_id,
     latest_context_time,
     run_info,
@@ -22,6 +24,8 @@ from bookerbud.storage.db import (
 )
 
 __all__ = [
+    "recent_games",
+    "upsert_game_logs",
     "events_by_id",
     "latest_context_time",
     "run_info",

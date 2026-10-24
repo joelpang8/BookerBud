@@ -50,6 +50,7 @@ class ScheduleProvider:
 
     def fetch_schedule(self, leagues, starts_after, starts_before, *, max_objects=None):
         self.calls.append((starts_after, starts_before, max_objects))
+        self.leagues = leagues
         return FetchResult(events=[YDAY], objects_used=1, requests_made=1)
 
 
@@ -61,8 +62,9 @@ def test_refresh_context_backfills_once_and_counts_quota(settings):
     s = refresh_context(conn, settings, p, [Sport.NBA], DAY, now=now)
     assert len(p.calls) == 1 and s.objects_used == 1 and s.games == 1
     after, before, cap = p.calls[0]
-    assert after.astimezone(UTC) == datetime(2026, 10, 23, 4, tzinfo=UTC) and cap == 30
-    assert schedule_covered(conn, "nba", "2026-10-23")
+    assert after.astimezone(UTC) == datetime(2026, 10, 23, 4, tzinfo=UTC) and cap == 60
+    assert set(p.leagues) == {Sport.NBA, Sport.NFL}  # one combined call (config/tracking.yaml history)
+    assert schedule_covered(conn, "nba", "2026-10-23") and schedule_covered(conn, "nfl", "2026-10-23")
     assert quota_status(conn, settings, now).used == 1
     games, _ = load_context(conn, [Sport.NBA])
     assert games["T1"].back_to_back["away"] is True

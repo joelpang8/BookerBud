@@ -32,6 +32,8 @@ class FetchResult:
     requests_made: int = 0
     objects_used: int = 0  # provider billing units (SGO: events returned, min 1 per response)
     truncated: bool = False  # stopped early to stay inside the quota budget
+    # Box scores of finished games (see bookerbud.storage.history), one dict per player/team.
+    game_logs: list[dict] = field(default_factory=list)
 
     def extend(self, other: FetchResult) -> None:
         self.events += other.events
@@ -43,6 +45,7 @@ class FetchResult:
         self.requests_made += other.requests_made
         self.objects_used += other.objects_used
         self.truncated = self.truncated or other.truncated
+        self.game_logs += other.game_logs
 
 
 @dataclass

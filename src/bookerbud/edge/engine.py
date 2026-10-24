@@ -51,6 +51,7 @@ class Fair:
     books: list[str]
     source_threshold: float | None
     confidence: str  # high | medium | low
+    by_book: dict[str, Outcome] = field(default_factory=dict)  # each source book's fair outcome at the target
 
 
 @dataclass
@@ -94,6 +95,10 @@ class Edge:
     entity: str = ""
     player_key: str | None = None
     league: str = ""
+    # Reasoning detail
+    stat_label_raw: str = ""
+    book_fair: dict[str, float] = field(default_factory=dict)  # each source book's fair P(win) for this bet
+    market_prices: list[dict] = field(default_factory=list)  # every book's price on this side: {book, line, price, alt}
 
     @property
     def edge_pp(self) -> float:
@@ -192,7 +197,7 @@ def fair_for(
             gap_hit = True
             continue
         exact = target_threshold is None or abs(pair.threshold - target_threshold) < 1e-9
-        return Fair(moved, sb, [sb], pair.threshold, "high" if exact else "medium"), None
+        return Fair(moved, sb, [sb], pair.threshold, "high" if exact else "medium", {sb: moved}), None
     if cfg.fair.require_sharp:
         return None, "line_gap_too_large" if gap_hit else "no_sharp_price"
 
@@ -214,7 +219,26 @@ def fair_for(
         return None, "line_gap_too_large" if gap_hit and outcomes == [] else "not_enough_fair_books"
     avg = Outcome(fmean(o.over for o in outcomes), fmean(o.push for o in outcomes), fmean(o.under for o in outcomes))
     src_thr = None if target_threshold is None else min(thresholds, key=lambda t: abs(t - target_threshold))
-    return Fair(avg, "consensus", sorted(books), src_thr, "low"), None
+    return Fair(avg, "consensus", sorted(books), src_thr, "low", dict(zip(books, outcomes))), None
+
+
+def prices_for(rows: list[Prop], target: Prop) -> list[dict]:
+    """Every available priced book on the target's side: its main line, plus any
+    alt line at exactly the target's line. Best price first."""
+    out = []
+    for p in rows:
+        if p.side != target.side or not p.available or p.price_american is None or p.payout_type is PayoutType.PICKEM:
+            continue
+        if p.is_alt_line and p.line != target.line:
+            continue
+        out.append({"book": p.bookmaker, "line": p.line, "price": p.price_american, "alt": p.is_alt_line})
+    seen, uniq = set(), []
+    for x in sorted(out, key=lambda x: (x["line"] != target.line, -american_to_decimal(x["price"]))):
+        k = (x["book"], x["line"])
+        if k not in seen:
+            seen.add(k)
+            uniq.append(x)
+    return uniq
 
 
 def pickem_breakeven(table: SlipTable | None) -> tuple[float, str] | None:
@@ -311,7 +335,9 @@ def find_edges(
                 breakeven_slip=be_label, usable_in=usable, player_status=r.player_status,
                 fetched_at=r.fetched_at, deeplink=r.deeplink, flags=[f.value for f in r.flags],
                 is_alt_line=r.is_alt_line, provider_market_id=r.provider_market_id, entity=r.entity,
-                player_key=r.player_key, league=r.league,
+                player_key=r.player_key, league=r.league, stat_label_raw=r.stat_label_raw,
+                book_fair={b: (o.over if is_over else o.under) for b, o in fair.by_book.items()},
+                market_prices=prices_for(rows, r),
             )
             if is_pickem:
                 if be is None:

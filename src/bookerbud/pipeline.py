@@ -185,32 +185,65 @@ def refresh_context(
             out.players += len(players)
             out.warnings += warns
 
+    # Yesterday's results (box scores + schedule) for form charts and NBA rest:
+    # one combined call for every sport not yet covered.
+    yday = (day - timedelta(days=1)).isoformat()
+    want = {Sport(x) for x in history_sports(settings)} | ({Sport.NBA} if Sport.NBA in sports else set())
+    missing = [sp for sp in sorted(want) if not schedule_covered(conn, sp.value, yday)]
+    if missing and backfill_nba:
+        ys, ye = nba_ctx.yesterday_window(day, settings.tz)
+        used, ok = backfill_results(conn, settings, provider, missing, ys, ye, now=now, cap=60)
+        out.objects_used += used
+        if ok:
+            for sp in missing:
+                mark_schedule_covered(conn, sp.value, yday)
+        else:
+            out.warnings.append("Quota budget too low to store yesterday's results (form charts, NBA rest)")
+
     if Sport.NBA in sports:
         events = events_between(conn, "nba", start, end)
         if events:
-            yday = (day - timedelta(days=1)).isoformat()
             known = schedule_covered(conn, "nba", yday)
-            if not known and backfill_nba:
-                quota = quota_status(conn, settings, now)
-                cap = min(quota.remaining, 30)  # an NBA day never has more than 15 games
-                if cap > 0:
-                    run_id = start_run(conn, provider.name, "nba", "api", now)
-                    ys, ye = nba_ctx.yesterday_window(day, settings.tz)
-                    res = provider.fetch_schedule({Sport.NBA: settings.sports.get("nba", "NBA")}, ys, ye, max_objects=cap)
-                    upsert_events(conn, res.events, now)
-                    finish_run(conn, run_id, finished_at=datetime.now(UTC), requests_made=res.requests_made,
-                               objects_used=res.objects_used, n_events=len(res.events), n_props=0, n_flagged=0,
-                               notices=["schedule backfill " + yday], skipped={}, raw_paths=res.raw_paths)
-                    out.objects_used += res.objects_used
-                    if not res.truncated:
-                        mark_schedule_covered(conn, "nba", yday)
-                        known = True
-                else:
-                    out.warnings.append("NBA rest: quota budget exhausted, skipped yesterday backfill")
             games = nba_ctx.build(conn, events, day, start, settings.tz, yesterday_known=known)
             insert_context(conn, now, "nba", "game", [(g.event_id, g.model_dump_json()) for g in games])
             out.games += len(games)
     return out
+
+
+def history_sports(settings: Settings) -> list[str]:
+    from bookerbud.tracking.settle import load_tracking_config
+
+    return [x for x in load_tracking_config().history.daily_sports if x in settings.sports]
+
+
+def backfill_results(
+    conn: sqlite3.Connection,
+    settings: Settings,
+    provider: OddsProvider,
+    sports: list[Sport],
+    start: datetime,
+    end: datetime,
+    *,
+    now: datetime,
+    cap: int | None = None,
+) -> tuple[int, bool]:
+    """Fetch finished games in [start, end) and store schedule + box scores.
+    Returns (objects used, complete?). Quota-guarded; one call for all sports."""
+    from bookerbud.storage import upsert_game_logs
+
+    quota = quota_status(conn, settings, now)
+    limit = quota.remaining if cap is None else min(quota.remaining, cap)
+    if limit <= 0:
+        return 0, False
+    run_id = start_run(conn, provider.name, "history", "api", now)
+    res = provider.fetch_schedule({sp: settings.sports.get(sp.value, sp.value.upper()) for sp in sports},
+                                  start, end, max_objects=limit)
+    upsert_events(conn, res.events, now)
+    upsert_game_logs(conn, res.game_logs)
+    finish_run(conn, run_id, finished_at=datetime.now(UTC), requests_made=res.requests_made,
+               objects_used=res.objects_used, n_events=len(res.events), n_props=0, n_flagged=0,
+               notices=[f"results {start.date()}..{end.date()}"], skipped={}, raw_paths=res.raw_paths)
+    return res.objects_used, not res.truncated
 
 
 def load_context(conn: sqlite3.Connection, sports: list[Sport]):

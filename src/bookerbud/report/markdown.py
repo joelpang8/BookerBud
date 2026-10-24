@@ -32,7 +32,12 @@ def render_markdown(r: Report) -> str:
         for p in r.top_picks:
             stake = f"${p['stake']:.2f}" if p["kind"] != "pickem" else "per slip"
             out.append(f"{p['rank']}. **{p['subject']}** {p['market']}: {p['book_label']} {p['price']}, "
-                       f"edge {p['edge_pct']:+.1f}%, stake {stake}, {p['confidence']} confidence ({p['matchup']} {p['start_label']})")
+                       f"edge {p['edge_pct']:+.1f}%, stake {stake}, {p['confidence']} confidence ({p['matchup']} {p['start_label']}). "
+                       f"{p.get('driver', '')}")
+            f = p.get("form")
+            if f:
+                vals = " ".join(f"{g['value']:g}" for g in f["games"])
+                out.append(f"   Last {f['n']}: {vals} (line {f['threshold']:g}; hit {f['hits']}/{f['n']})")
         out.append("")
     out.append("## Data freshness")
     for f in r.freshness:
@@ -69,6 +74,8 @@ def render_markdown(r: Report) -> str:
         out.append("")
         for p in plays:
             out.append(f"- **{p['subject']} {p['market']} ({p['book_label']})**: {p['reason']}")
+            for w in p.get("why") or []:
+                out.append(f"  - *{w['label']}*: {w['text']}")
         out.append("")
     out.append("## Best pick'em slips (2–3 legs)")
     if not r.slips:

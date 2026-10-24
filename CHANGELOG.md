@@ -2,6 +2,16 @@
 
 ## Follow-up (2026-10-24)
 
+### Added
+- **"Why this pick"** breakdown on every card, covering price, fair value
+  (each book's no-vig number and whether they agree), line shopping, line
+  moves, recent form, context and risk. Top picks also show a one-line driver.
+- **Recent-form charts:** last 10 games vs. today's line on every card, with
+  a mini version on the top picks. They come from a new `game_logs` table fed
+  by the daily results backfill (NBA + NFL by default).
+- **`betedge history --days N`:** a one-time, quota-capped backfill of box
+  scores.
+
 ### Fixed
 - Top picks were dominated by 1st-quarter markets. Only full-game markets
   are recommended by default now (`filters.periods`), and partial periods use

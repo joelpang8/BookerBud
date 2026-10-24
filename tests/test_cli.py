@@ -131,3 +131,8 @@ def test_log_bets_and_performance_flow(cli_env):
 def test_settle_command_nothing_pending(cli_env):
     res = runner.invoke(app, ["settle"])
     assert res.exit_code == 0 and "nothing to settle" in res.output
+
+
+def test_history_without_key_fails_cleanly(cli_env):
+    res = runner.invoke(app, ["history", "--days", "3"])
+    assert res.exit_code == 1 and "SPORTSGAMEODDS_API_KEY" in res.output

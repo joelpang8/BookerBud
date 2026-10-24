@@ -70,3 +70,17 @@ def test_custom_alias_table_and_display():
 )
 def test_live_stat_ids(sport, label, canonical):
     assert StatMatcher(sport).match(label) == canonical
+
+
+def test_stat_value_from_box_scores():
+    from bookerbud.normalize.stats import stat_value_from
+
+    nba = {"points": 27, "rebounds": 8, "assists": 9}
+    assert stat_value_from(nba, "points+rebounds+assists") == 44
+    assert stat_value_from(nba, "steals") is None  # missing -> None, never guessed
+    # real SGO MLB box score keys (runs stored as `points`, RBI upper-case)
+    mlb = {"batting_hits": 2, "points": 1, "batting_RBI": 3, "batting_doubles": 1, "batting_triples": 0,
+           "batting_homeRuns": 0}
+    assert stat_value_from(mlb, "batting_hits+runs+rbi") == 6
+    assert stat_value_from(mlb, "batting_runs+rbi") == 4
+    assert stat_value_from(mlb, "batting_singles") == 1  # 2 hits - 1 double

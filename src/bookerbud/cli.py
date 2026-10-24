@@ -164,6 +164,46 @@ def context(
 
 
 @app.command()
+def history(
+    days: Annotated[int, typer.Option(help="How many past days of finished games to store")] = 14,
+    sport: Annotated[str, typer.Option(help="nba, mlb, nfl, or all (default: config/tracking.yaml history sports)")] = "",
+    max_objects: Annotated[int, typer.Option(help="Most quota objects this backfill may spend")] = 200,
+) -> None:
+    """One-time backfill of box scores for the recent-form charts (≈1 quota object per game)."""
+    from datetime import timedelta
+
+    from bookerbud.pipeline import backfill_results, day_window, history_sports
+    from bookerbud.storage import mark_schedule_covered
+
+    settings = load_settings()
+    sports = _sports(sport) if sport else [Sport(x) for x in history_sports(settings)]
+    today = datetime.now(settings.tz).date()
+    start, _ = day_window(today - timedelta(days=days), settings.tz)
+    end, _ = day_window(today, settings.tz)
+    provider = get_provider(settings)
+    conn = connect(settings.db_file)
+    try:
+        used, complete = backfill_results(conn, settings, provider, sports, start, end,
+                                          now=datetime.now(UTC), cap=max_objects)
+        if complete:
+            for i in range(1, days + 1):
+                for sp in sports:
+                    mark_schedule_covered(conn, sp.value, (today - timedelta(days=i)).isoformat())
+        n = conn.execute("SELECT COUNT(DISTINCT event_id) FROM game_logs").fetchone()[0]
+    except ProviderError as exc:
+        typer.secho(f"history failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
+    finally:
+        provider.close()
+        conn.close()
+    typer.echo(f"history: {', '.join(s.value for s in sports)} over the last {days} days: "
+               f"{used} quota objects, {n} games with box scores stored in total.")
+    if not complete:
+        typer.secho(f"  Stopped at the {max_objects}-object cap or the quota budget; rerun with a smaller --days "
+                    "or larger --max-objects for the rest.", fg=typer.colors.YELLOW)
+
+
+@app.command()
 def quota() -> None:
     """Local quota accounting (no API call). `betedge usage` asks the provider."""
     settings = load_settings()

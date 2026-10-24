@@ -165,3 +165,86 @@ def test_top_picks_empty_state(settings, nba_result):
     _store(conn, nba_result, FETCHED)
     r = build_report(conn, settings, [Sport.NBA], now=datetime(2026, 10, 25, 3, tzinfo=UTC), rcfg=ReportCfg())
     assert r.top_picks == [] and "No plays pass the filters right now" in render_html(r)
+
+
+# ------------------------------------------------------------- form + reasoning
+from bookerbud.normalize.names import player_key as _pk, team_key as _tk  # noqa: E402
+from bookerbud.report.html import _form_svg  # noqa: E402
+from bookerbud.storage import upsert_game_logs  # noqa: E402
+
+
+def _log(entity_key, name, day, stats, team="T", opp="O"):
+    return {"source": "test", "sport": "nba", "event_id": f"{name}-{day}", "start_time": f"2026-10-{day:02d}T23:00:00+00:00",
+            "entity_key": entity_key, "entity_name": name, "team": team, "opponent": opp, "stats": stats}
+
+
+@pytest.fixture
+def report_with_history(settings, nba_result):
+    conn = connect(settings.db_file)
+    _store(conn, nba_result, FETCHED)
+    pts = [30, 22, 26, 25, 28]  # vs LeBron's 24.5: hit, miss, hit, hit, hit
+    upsert_game_logs(conn, [_log(_pk("nba", "LeBron James"), "LeBron James", 10 + i, {"points": v}) for i, v in enumerate(pts)]
+                     + [_log(_pk("nba", "LeBron James"), "LeBron James", 30, {"points": 99})])  # after tip-off: ignored
+    upsert_game_logs(conn, [_log(_tk("nba", "Denver Nuggets"), "Denver Nuggets", 10 + i, {"points": 110 + i, "points_allowed": 106})
+                            for i in range(3)])  # margins 4, 5, 6
+    return build_report(conn, settings, [Sport.NBA], now=AS_OF, rcfg=ReportCfg())
+
+
+def _find(r, subject, book, line):
+    return next(p for p in r.plays["nba"] if p["subject"] == subject and p["book"] == book and p["line"] == line)
+
+
+def test_form_for_player_prop(report_with_history):
+    p = _find(report_with_history, "LeBron James", "draftkings", 24.5)
+    f = p["form"]
+    assert [g["value"] for g in f["games"]] == [30, 22, 26, 25, 28]  # oldest first, post-start game excluded
+    assert (f["threshold"], f["hits"], f["n"]) == (24.5, 4, 5)
+    assert f["avg"] == pytest.approx(26.2)
+    assert any(w["label"] == "Recent form" and "4 of the last 5" in w["text"] for w in p["why"])
+
+
+def test_form_for_team_spread(settings):
+    from bookerbud.report.form import form_for
+    from tests.test_context_apply import edge
+
+    conn = connect(settings.db_file)
+    upsert_game_logs(conn, [_log(_tk("nba", "Denver Nuggets"), "Denver Nuggets", 10 + i,
+                                 {"points": 110 + i, "points_allowed": 106}) for i in range(3)])  # margins 4, 5, 6
+    e = edge(sport="nba", player=None, team="Denver Nuggets", stat="points")
+    e.market_kind, e.bet_type, e.side, e.line, e.entity = "game_line", "sp", "home", -4.5, "match"
+    e.start_time = AS_OF
+    f = form_for(conn, e, {}, 10)
+    # covers -4.5 when margin > 4.5: 4 miss, 5 hit, 6 hit
+    assert f["what"] == "margin" and f["threshold"] == 4.5
+    assert [g["result"] for g in f["games"]] == ["miss", "hit", "hit"]
+
+
+def test_why_breaks_down_consensus(report_with_history):
+    curry = next(p for p in report_with_history.plays["nba"] if p["subject"] == "Stephen Curry" and p["book"] == "fanduel")
+    why = {w["label"]: w["text"] for w in curry["why"]}
+    assert set(why) >= {"Price", "Fair value", "Line shopping", "Recent form", "Risk"}
+    assert "4 other books" in why["Fair value"] and "BetMGM 53.4%" in why["Fair value"]
+    assert why["Line shopping"].startswith("Best price at this line: FanDuel +105 vs")
+    assert "no Pinnacle price" in why["Risk"]
+    assert curry["driver"].startswith("FanDuel is the outlier: +105 vs")
+    assert "No game log stored yet" in why["Recent form"]  # Curry has no history in this fixture
+
+
+def test_form_chart_is_to_scale():
+    form = {"games": [{"date": "10/1", "opp": "X", "value": 10, "result": "miss"},
+                      {"date": "10/3", "opp": "Y", "value": 30, "result": "hit"}],
+            "threshold": 20, "n": 2, "hits": 1}
+    svg = _form_svg(form)
+    import re
+
+    heights = [float(h) for h in re.findall(r'class="bar \w+" x="[\d.]+" y="[\d.]+" width="[\d.]+" height="([\d.]+)"', svg)]
+    assert heights[1] == pytest.approx(3 * heights[0], rel=1e-2)  # 30 vs 10, shared zero baseline
+    ys = re.findall(r'class="thr" x1="[\d.]+" y1="([\d.]+)"', svg)
+    assert ys  # dashed line at the threshold
+    assert ">20<" in svg and "10/1" in svg and "10/3" in svg
+
+
+def test_dashboard_shows_form_and_why(report_with_history):
+    doc = render_html(report_with_history)
+    assert "Last 5 games" in doc and "Why this pick" in doc
+    assert doc.count('<details class="why" open>') == len(report_with_history.top_picks)  # top picks open by default

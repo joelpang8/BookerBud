@@ -55,6 +55,10 @@ def player_key(sport: str, name: str) -> str:
     return f"{sport}:{normalize_name(name).replace(' ', '_')}"
 
 
+def team_key(sport: str, team: str) -> str:
+    return f"team:{sport}:{normalize_name(team).replace(' ', '_')}"
+
+
 class PlayerMatcher:
     """Resolve arbitrary book spellings to roster names for one event."""
 

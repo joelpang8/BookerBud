@@ -125,6 +125,21 @@ CREATE TABLE IF NOT EXISTS bets (
     settle_attempts INTEGER NOT NULL DEFAULT 0
 );
 
+-- Box scores of finished games (players and teams), for "recent form" charts.
+CREATE TABLE IF NOT EXISTS game_logs (
+    source      TEXT NOT NULL,
+    sport       TEXT NOT NULL,
+    event_id    TEXT NOT NULL,
+    start_time  TEXT NOT NULL,
+    entity_key  TEXT NOT NULL,   -- player_key, or team:<sport>:<name>
+    entity_name TEXT NOT NULL,
+    team        TEXT,
+    opponent    TEXT,
+    stats       TEXT NOT NULL,   -- JSON box score, provider stat names
+    PRIMARY KEY (source, event_id, entity_key)
+);
+CREATE INDEX IF NOT EXISTS ix_gl_entity ON game_logs (entity_key, start_time);
+
 -- Which (sport, local date) schedules we hold in `events` in full.
 CREATE TABLE IF NOT EXISTS schedule_coverage (
     sport TEXT NOT NULL,
@@ -417,3 +432,36 @@ def events_by_id(conn: sqlite3.Connection, ids: list[str]) -> dict[str, EventInf
                                  away_team=r["away_team"], status=r["status"])
         for r in rows
     }
+
+
+def upsert_game_logs(conn: sqlite3.Connection, rows: list[dict]) -> int:
+    conn.executemany(
+        """INSERT INTO game_logs (source, sport, event_id, start_time, entity_key, entity_name, team, opponent, stats)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT (source, event_id, entity_key) DO UPDATE SET stats = excluded.stats""",
+        [(r["source"], r["sport"], r["event_id"], r["start_time"], r["entity_key"], r["entity_name"],
+          r.get("team"), r.get("opponent"), json.dumps(r["stats"])) for r in rows],
+    )
+    conn.commit()
+    return len(rows)
+
+
+def recent_games(conn: sqlite3.Connection, entity_keys: list[str], before: datetime, limit: int) -> list[dict]:
+    """Most recent finished games (newest first) for any of `entity_keys` before `before`, one row per event."""
+    if not entity_keys:
+        return []
+    marks = ",".join("?" * len(entity_keys))
+    rows = conn.execute(
+        f"""SELECT * FROM game_logs WHERE entity_key IN ({marks}) AND start_time < ?
+            ORDER BY start_time DESC""",
+        [*entity_keys, before.astimezone(UTC).isoformat()],
+    ).fetchall()
+    out, seen = [], set()
+    for r in rows:
+        if r["event_id"] in seen:
+            continue
+        seen.add(r["event_id"])
+        out.append({**dict(r), "stats": json.loads(r["stats"]), "start_time": _dt(r["start_time"])})
+        if len(out) == limit:
+            break
+    return out

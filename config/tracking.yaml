@@ -10,3 +10,11 @@ closing_odds: false
 
 settle_after_hours: 4   # games settle this long after they start
 max_attempts: 6         # then a row is marked "ungradable"
+
+# Recent-form charts. Each daily run stores yesterday's box scores for these
+# sports in one combined call (about 1 quota object per game played yesterday,
+# min 1). NBA is also needed for rest/back-to-back flags. MLB is off: in season
+# it's ~15 games a day. `betedge history --days N` backfills older games once.
+history:
+  daily_sports: [nba, nfl]
+  form_games: 10
