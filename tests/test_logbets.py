@@ -11,13 +11,8 @@ from bookerbud.report.build import ReportCfg, build_report
 from bookerbud.report.html import render_html
 from bookerbud.report.serve import KEY_HEADER, make_server
 from bookerbud.storage import connect
-from bookerbud.tracking.logbets import (
-    BetError,
-    bet_from_market,
-    bet_from_rec,
-    describe,
-    place,
-)
+from bookerbud.storage.tracking import get_bet, update_bet
+from bookerbud.tracking.logbets import BetError, bet_from_market, bet_from_rec, describe, edit, place, remove
 from tests.test_report import AS_OF, FETCHED
 from tests.test_storage import _store
 
@@ -121,3 +116,58 @@ def test_api_bets(bet_server):
     req = urllib.request.Request(url.replace("bets", "status"), headers={KEY_HEADER: "secret"})
     with urllib.request.urlopen(req) as resp:
         assert json.loads(resp.read()) == {"running": False}
+
+
+def _lebron(conn, **kw):
+    bet = bet_from_market(conn, player="lebron", team=None, stat="points", side="over", bet_type=None,
+                          book="draftkings", line=None, price=-110)
+    return place(conn, bet, stake=kw.get("stake"))[0]
+
+
+def test_edit_changes_only_given_fields(conn):
+    bet_id = _lebron(conn)
+    bet = edit(conn, bet_id, stake=20, price=-125)
+    assert (bet["stake"], bet["price_american"], bet["side"]) == (20.0, -125, "over")
+    assert get_bet(conn, bet_id)["price_american"] == -125
+    with pytest.raises(BetError, match="American odds"):
+        edit(conn, bet_id, price=50)
+    with pytest.raises(BetError, match="over / under"):
+        edit(conn, bet_id, side="home")
+    with pytest.raises(BetError, match="No bet #999"):
+        edit(conn, 999, stake=1)
+
+
+def test_edit_regrades_a_settled_bet(conn):
+    bet_id = _lebron(conn, stake=10)
+    # pretend settle graded it: 26 points against over 25.5 at -110 wins 9.09
+    update_bet(conn, bet_id, {"line": 25.5, "result": "win", "stat_value": 26.0, "profit": 9.09, "clv_pct": 2.0})
+    bet = edit(conn, bet_id, side="under")
+    assert bet["result"] == "loss" and bet["profit"] == -10.0 and bet["clv_pct"] is None
+    bet = edit(conn, bet_id, line=26)
+    assert bet["result"] == "push" and bet["profit"] == 0.0
+    bet = edit(conn, bet_id, line=27.5, stake=40, price=+150)
+    assert bet["result"] == "win" and bet["profit"] == pytest.approx(60.0)  # 40 x 1.5
+    bet = edit(conn, bet_id, stake=0)
+    assert bet["profit"] == 0.0
+
+
+def test_delete_bet(conn):
+    bet_id = _lebron(conn)
+    assert remove(conn, bet_id)["player"] == "LeBron James"
+    assert get_bet(conn, bet_id) is None
+    with pytest.raises(BetError):
+        remove(conn, bet_id)
+
+
+def test_edit_and_delete_via_action(conn, settings):
+    bet_id = _lebron(conn)
+    conn.close()
+    code, body = log_bet_action(settings, {"action": "edit", "id": str(bet_id), "stake": "15", "price": "-120",
+                                           "line": "", "side": "under", "book": "draftkings"})
+    assert code == 200 and body["text"].startswith("Updated: LeBron James under") and "-120 for $15.00" in body["text"]
+    html = (settings.raw_dir.parent / "reports" / "latest.html").read_text()
+    assert f'data-edit="{bet_id}"' in html and 'value="-120"' in html
+    code, body = log_bet_action(settings, {"action": "delete", "id": bet_id})
+    assert code == 200 and body["text"].startswith("Deleted:")
+    assert log_bet_action(settings, {"action": "delete", "id": bet_id})[0] == 400
+    assert log_bet_action(settings, {"action": "edit"}) == (400, {"error": "Which bet? (missing id)"})

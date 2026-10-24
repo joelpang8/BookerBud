@@ -23,6 +23,7 @@ from bookerbud.report import text
 from bookerbud.report.form import form_for
 from bookerbud.storage import events_by_id, latest_context_time, latest_run_ids, run_info
 from bookerbud.storage.tracking import record_recommendations, recommendations_for_day
+from bookerbud.tracking.logbets import SIDES
 
 
 class ReportCfg(BaseModel):
@@ -167,6 +168,8 @@ def bets_for_day(conn: sqlite3.Connection, now: datetime, tz) -> list[dict]:
             "stake": b["stake"] or 0.0, "result": b["result"], "profit": b["profit"],
             "start_label": st.strftime("%I:%M %p").lstrip("0"), "day": f"{st.month}/{st.day}",
             "from_pick": b["rec_id"] is not None,
+            "edit": {"stake": b["stake"] or 0.0, "price": b["price_american"], "line": b["line"], "side": b["side"],
+                     "sides": list(SIDES.get(b["bet_type"], ())), "book": b["bookmaker"]},
         })
     return out
 

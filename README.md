@@ -59,6 +59,12 @@ result once it's graded. For a bet that isn't one of the listed picks, use
 over/under, line and book. It finds that market in today's odds. A bet
 logged without a stake counts toward hit rate and CLV but not ROI.
 
+To fix a bet you noted, tap **Edit** on it under Your bets. You can change
+the stake, price, line, over/under and book, or delete it. If the bet was
+already graded, changing the line or side re-grades it from the stored stat
+line. From the terminal: `uv run betedge edit-bet 7 --stake 15 --price -120`
+or `uv run betedge edit-bet 7 --delete` (bet numbers come from `betedge bets`).
+
 Every play the report shows is recorded automatically, whether or not you
 bet it. About 4 hours after a game starts, `betedge settle` (run by `daily`)
 grades it from the final stats. That costs about 1 quota object per game that

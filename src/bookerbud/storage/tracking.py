@@ -73,6 +73,29 @@ def insert_bet(conn: sqlite3.Connection, bet: dict[str, Any]) -> int:
     return int(cur.lastrowid)
 
 
+def get_bet(conn: sqlite3.Connection, bet_id: int) -> sqlite3.Row | None:
+    return conn.execute("SELECT * FROM bets WHERE id = ?", (bet_id,)).fetchone()
+
+
+EDITABLE_BET_COLS = ("stake", "price_american", "line", "side", "bookmaker", "notes", "profit", "settle_attempts",
+                     *SETTLE_FIELDS)
+
+
+def update_bet(conn: sqlite3.Connection, bet_id: int, fields: dict[str, Any]) -> None:
+    bad = set(fields) - set(EDITABLE_BET_COLS)
+    if bad:
+        raise ValueError(f"not editable: {sorted(bad)}")
+    if fields:
+        conn.execute(f"UPDATE bets SET {', '.join(f'{k} = ?' for k in fields)} WHERE id = ?", [*fields.values(), bet_id])
+        conn.commit()
+
+
+def delete_bet(conn: sqlite3.Connection, bet_id: int) -> bool:
+    cur = conn.execute("DELETE FROM bets WHERE id = ?", (bet_id,))
+    conn.commit()
+    return cur.rowcount > 0
+
+
 def pending(conn: sqlite3.Connection, started_before: datetime, max_attempts: int) -> list[tuple[str, sqlite3.Row]]:
     """Unsettled rows whose game started before `started_before`."""
     out = []

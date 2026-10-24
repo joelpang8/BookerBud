@@ -492,6 +492,34 @@ def log(
         conn.close()
 
 
+@app.command("edit-bet")
+def edit_bet(
+    bet_id: Annotated[int, typer.Argument(help="Bet # from `betedge bets`")],
+    stake: Annotated[float | None, typer.Option(help="New stake (0 = not recorded)")] = None,
+    price: Annotated[int | None, typer.Option(help="New American odds")] = None,
+    line: Annotated[float | None, typer.Option(help="New line")] = None,
+    side: Annotated[str | None, typer.Option(help="over / under (or yes / no)")] = None,
+    book: Annotated[str | None, typer.Option(help="Bookmaker id, e.g. draftkings")] = None,
+    note: Annotated[str | None, typer.Option(help="Replace the note")] = None,
+    delete: Annotated[bool, typer.Option("--delete", help="Remove the bet instead")] = False,
+) -> None:
+    """Fix or remove a bet you noted (same as Edit on the dashboard)."""
+    from bookerbud.tracking.logbets import BetError, describe, edit, remove
+
+    settings = load_settings()
+    conn = connect(settings.db_file)
+    try:
+        if delete:
+            typer.echo(f"Deleted bet #{bet_id}: {describe(remove(conn, bet_id))}")
+        else:
+            bet = edit(conn, bet_id, stake=stake, price=price, line=line, side=side, book=book, note=note)
+            typer.echo(f"Bet #{bet_id}: {describe(bet)}" + (f" ({bet['result']})" if bet.get("result") else ""))
+    except BetError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    finally:
+        conn.close()
+
+
 @app.command()
 def bets(limit: int = 30) -> None:
     """Your logged bets, newest first, with closing-line value and results once settled."""

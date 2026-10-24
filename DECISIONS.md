@@ -531,3 +531,15 @@ That leaves room for a second fetch closer to game time on busy days.
   asks for a fuller name instead of guessing.
 - After saving, the page is rebuilt from stored data, with no API calls and
   no quota cost.
+
+## Editing noted bets (2026-10-24)
+
+- Only the terms you could have mistyped are editable: stake, price, line,
+  side (over/under or yes/no only) and book. Changing the player or market
+  is done by deleting and logging again, so a bet never silently points at a
+  different market.
+- **Re-grading is local:** a graded over/under or yes/no bet keeps its stat
+  value, so a new line or side is re-graded without an API call. Other
+  graded bets go back to pending for the next `settle`. Changing the terms
+  clears the old CLV numbers, since they were measured for the old price or
+  line.

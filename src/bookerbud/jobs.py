@@ -89,14 +89,17 @@ def report_path(settings: Settings) -> Path:
 
 
 def log_bet_action(settings: Settings, payload: dict) -> tuple[int, dict]:
-    """The dashboard's Mark placed / Log a bet. Saves the bet, rebuilds the page
+    """The dashboard's Mark placed / Log a bet / Edit / Delete (payload "action":
+    add (default), edit or delete with "id"). Saves the change, rebuilds the page
     from stored data (no API calls) and returns (HTTP code, body)."""
     from bookerbud.tracking.logbets import (
         BetError,
         bet_from_market,
         bet_from_rec,
         describe,
+        edit,
         place,
+        remove,
     )
 
     def num(key, cast):
@@ -111,17 +114,31 @@ def log_bet_action(settings: Settings, payload: dict) -> tuple[int, dict]:
     conn = connect(settings.db_file)
     try:
         stake, price, line = num("stake", float), num("price", lambda x: int(float(x))), num("line", float)
-        if payload.get("rec_id"):
+        action = payload.get("action") or "add"
+        if action in ("edit", "delete"):
+            bet_id = num("id", int)
+            if bet_id is None:
+                raise BetError("Which bet? (missing id)")
+            if action == "delete":
+                bet, text = remove(conn, bet_id), "Deleted: "
+            else:
+                bet, text = edit(conn, bet_id, stake=stake, price=price, line=line,
+                                 side=payload.get("side") or None, book=payload.get("book") or None), "Updated: "
+        elif action != "add":
+            raise BetError(f"Unknown action {action!r}.")
+        elif payload.get("rec_id"):
             bet = bet_from_rec(conn, int(payload["rec_id"]), line=line, price=price)
         else:
             bet = bet_from_market(conn, player=(payload.get("player") or "").strip() or None, team=None,
                                   stat=payload.get("stat") or None, side=payload.get("side") or None, bet_type=None,
                                   book=payload.get("book") or None, line=line, price=price)
-        bet_id, bet = place(conn, bet, stake=stake, note=payload.get("note"))
+        if action == "add":
+            bet_id, bet = place(conn, bet, stake=stake, note=payload.get("note"))
+            text = ""
     except BetError as exc:
         return 400, {"error": str(exc)}
     finally:
         conn.close()
     sports = [Sport(s) for s in settings.sports if s in {x.value for x in Sport}]
     write_report(settings, sports, now=datetime.now(UTC))
-    return 200, {"ok": True, "id": bet_id, "text": describe(bet)}
+    return 200, {"ok": True, "id": bet_id, "text": text + describe(bet)}

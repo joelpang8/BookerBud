@@ -3,6 +3,15 @@
 ## Follow-up (2026-10-24)
 
 ### Added
+- **Edit or delete a noted bet**: an Edit button on each bet under Your
+  bets (stake, price, line, over/under, book, Delete), plus
+  `betedge edit-bet <#> [--stake --price --line --side --book --note | --delete]`.
+  - Editing a graded over/under bet re-grades it from the stored stat and
+    recomputes profit.
+  - Changing the price, line, side or book clears that bet's closing-line
+    (CLV) numbers.
+
+### Added
 - **Note bets you placed, from the dashboard** (served link with key):
   - **Mark placed** on each pick, with stake optional and price prefilled.
     The card then shows "✓ Placed".

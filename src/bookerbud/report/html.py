@@ -216,13 +216,14 @@ svg .zero { stroke: var(--line); stroke-width: 1; }
 .pick .mini svg { width: 120px; height: 28px; flex: 0 0 auto; }
 
 /* Placed bets */
+.placed a { margin-left: 10px; color: var(--accent); font-weight: 600; }
 .placed { font-size: .84rem; font-weight: 600; color: var(--good); background: var(--good-soft); border-radius: 8px; padding: 6px 10px; justify-self: start; }
 .mark { display: grid; gap: 8px; }
 .mbtn, .fbtn { border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 8px; padding: 7px 14px; font-weight: 600; font-size: .86rem; cursor: pointer; justify-self: start; }
 .fbtn.primary { background: var(--accent); color: var(--accent-ink); }
 .mform, .logform form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 .mform label, .logform label { display: grid; gap: 3px; font-size: .74rem; color: var(--muted); font-weight: 600; }
-.mform input, .logform input, .logform select { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 7.5em; }
+.mform input, .mform select, .logform input, .logform select { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 7.5em; }
 .logform input[name="player"] { width: 12em; }
 .mmsg { flex-basis: 100%; font-size: .8rem; color: var(--muted); }
 .mmsg.err { color: var(--bad); }
@@ -235,6 +236,9 @@ svg .zero { stroke: var(--line); stroke-width: 1; }
 .mybets .res.win { background: var(--good-soft); color: var(--good); }
 .mybets .res.loss { background: var(--chip); color: var(--bad); }
 .mybets .empty { margin: 0; }
+.mybets .bedit { grid-column: 1 / -1; }
+.lbtn { border: 0; background: none; color: var(--accent); font: inherit; font-size: .82rem; font-weight: 600; padding: 2px 0; cursor: pointer; }
+.fbtn.danger { border-color: var(--bad); color: var(--bad); }
 .logform { margin-top: 8px; }
 .logform summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: .88rem; padding-block: 4px; }
 
@@ -419,11 +423,21 @@ JS = r"""
       var mk = ev.target.closest('[data-mark]');
       if (mk) { mk.hidden = true; mk.parentNode.querySelector('.mform').hidden = false; return; }
       var cancel = ev.target.closest('[data-cancel]');
-      if (cancel) { var f = cancel.closest('.mform'); f.hidden = true; f.parentNode.querySelector('[data-mark]').hidden = false; }
+      if (cancel) { var f = cancel.closest('.mform'); f.hidden = true; f.parentNode.querySelector('[data-mark]').hidden = false; return; }
+      var ed = ev.target.closest('[data-edit]');
+      if (ed) { ed.hidden = true; ed.parentNode.querySelector('.eform').hidden = false; return; }
+      var ce = ev.target.closest('[data-cancel-edit]');
+      if (ce) { var g = ce.closest('.eform'); g.hidden = true; g.parentNode.querySelector('[data-edit]').hidden = false; return; }
+      var del = ev.target.closest('[data-delete]');
+      if (del && confirm('Delete this bet from your notes?')) postBet({ action: 'delete', id: del.dataset.delete }, del.closest('.eform'));
     });
     document.addEventListener('submit', function (ev) {
       var f = ev.target;
-      if (f.classList.contains('mform')) {
+      if (f.classList.contains('eform')) {
+        ev.preventDefault();
+        postBet({ action: 'edit', id: f.dataset.bet, stake: f.stake.value === '' ? '0' : f.stake.value, price: f.price.value,
+                  line: f.line ? f.line.value : '', side: f.side ? f.side.value : '', book: f.book.value }, f);
+      } else if (f.classList.contains('mform')) {
         ev.preventDefault();
         postBet({ rec_id: f.dataset.rec, stake: f.stake.value, price: f.price.value }, f);
       } else if (f.id === 'logbet') {
@@ -545,7 +559,8 @@ def _placed_block(p: dict) -> str:
     if p.get("placed"):
         b = p["placed"]
         stake = f'${b["stake"]:.2f} ' if b.get("stake") else ""
-        return f'<div class="placed">\u2713 Placed \u00b7 {stake}@ {_e(b["price"])}</div>'
+        return (f'<div class="placed">\u2713 Placed \u00b7 {stake}@ {_e(b["price"])}'
+                f'<a class="need-key" hidden href="#mybets">Edit</a></div>')
     rec = p.get("rec_id")
     if not rec:
         return ""
@@ -555,6 +570,33 @@ def _placed_block(p: dict) -> str:
             f'<label for="stake-{rec}">Stake $<input id="stake-{rec}" name="stake" inputmode="decimal" placeholder="optional"></label>'
             f'<label for="price-{rec}">Price<input id="price-{rec}" name="price" inputmode="numeric" value="{price}"></label>'
             f'<button class="fbtn primary" type="submit">Save</button><button class="fbtn" type="button" data-cancel>Cancel</button>'
+            f'<span class="mmsg" role="status"></span></form></div>')
+
+
+BOOKS = [("draftkings", "DraftKings"), ("fanduel", "FanDuel")]
+
+
+def _edit_form(b: dict) -> str:
+    e, i = b["edit"], b["id"]
+    price = "" if e["price"] is None else (f'+{e["price"]}' if e["price"] > 0 else str(e["price"]))
+    stake = f'{e["stake"]:g}' if e["stake"] else ""
+    line = "" if e["line"] is None else f'{e["line"]:g}'
+    side = ""
+    if e["sides"]:
+        opts = "".join(f'<option value="{v}"{" selected" if v == e["side"] else ""}>{v.title()}</option>' for v in e["sides"])
+        side = f'<label for="es-{i}">Side<select id="es-{i}" name="side">{opts}</select></label>'
+    books = BOOKS if any(k == e["book"] for k, _ in BOOKS) else [(e["book"], e["book"]), *BOOKS]
+    bopts = "".join(f'<option value="{k}"{" selected" if k == e["book"] else ""}>{_e(v)}</option>' for k, v in books)
+    line_in = "" if e["line"] is None else \
+        f'<label for="el-{i}">Line<input id="el-{i}" name="line" inputmode="decimal" value="{line}"></label>'
+    return (f'<div class="bedit need-key" hidden><button class="lbtn" type="button" data-edit="{i}">Edit</button>'
+            f'<form class="mform eform" data-bet="{i}" hidden>'
+            f'<label for="ek-{i}">Stake $<input id="ek-{i}" name="stake" inputmode="decimal" value="{stake}" placeholder="none"></label>'
+            f'<label for="ep-{i}">Price<input id="ep-{i}" name="price" inputmode="numeric" value="{price}"></label>'
+            f'{line_in}{side}<label for="eb-{i}">Book<select id="eb-{i}" name="book">{bopts}</select></label>'
+            f'<button class="fbtn primary" type="submit">Save</button>'
+            f'<button class="fbtn" type="button" data-cancel-edit>Cancel</button>'
+            f'<button class="fbtn danger" type="button" data-delete="{i}">Delete</button>'
             f'<span class="mmsg" role="status"></span></form></div>')
 
 
@@ -568,7 +610,8 @@ def _my_bets(r: Report) -> str:
         if b["result"] in ("win", "loss") and b["profit"] is not None and b["stake"]:
             label += f' {b["profit"]:+.2f}'
         rows.append(f'<li><span><b>{_e(b["who"])}</b> {_e(b["market"])}<br><small>{_e(b["book_label"])} {_e(b["price"])}{stake}'
-                     f' \u00b7 {_e(b["day"])} {_e(b["start_label"])}</small></span><span class="res {_e(res)}">{_e(label)}</span></li>')
+                     f' \u00b7 {_e(b["day"])} {_e(b["start_label"])}</small></span><span class="res {_e(res)}">{_e(label)}</span>'
+                     f'{_edit_form(b)}</li>')
     body = (f'<ul>{"".join(rows)}</ul>' if rows else
             '<p class="empty">No bets noted for today\'s games. Tap Mark placed on a pick, or log one below.</p>')
     stats = [("points", "Points"), ("rebounds", "Rebounds"), ("assists", "Assists"), ("threes_made", "3-PT Made"),
@@ -589,7 +632,7 @@ def _my_bets(r: Report) -> str:
         '<label for="lb-stake">Stake $<input id="lb-stake" name="stake" inputmode="decimal" placeholder="optional"></label>'
         '<button class="fbtn primary" type="submit">Save</button><span class="mmsg" role="status"></span></form></details>'
     )
-    return f'<section class="mybets" aria-label="Your bets"><h2>Your bets</h2>{body}{form}</section>'
+    return f'<section class="mybets" id="mybets" aria-label="Your bets"><h2>Your bets</h2>{body}{form}</section>'
 
 
 def _ticket(p: dict) -> str:
