@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from bookerbud.config import CONFIG_DIR, Settings
 from bookerbud.edge.config import load_payouts
 from bookerbud.edge.engine import Edge
+from bookerbud.edge.odds import american_to_decimal
 from bookerbud.edge.slips import Slip, build_slips
 from bookerbud.models import Sport
 from bookerbud.pipeline import analyze, quota_status
@@ -60,7 +61,8 @@ class Report:
     settings: dict
     totals: dict = field(default_factory=dict)
     performance: dict | None = None
-    top_picks: list[dict] = field(default_factory=list)
+    top_picks: list[dict] = field(default_factory=list)  # across all sports
+    top_picks_by_sport: dict[str, list[dict]] = field(default_factory=dict)  # "nba" -> that sport's top picks
     recommended: list = field(default_factory=list, repr=False)  # Edge objects shown (recorded for CLV)
 
     def to_json(self) -> str:
@@ -97,6 +99,7 @@ def play_dict(e: Edge, events: dict, tz, bankroll: float) -> dict:
         "book": e.bookmaker,
         "book_label": text.book(e.bookmaker),
         "price": text.american(e.price_american) if e.payout_type != "pickem" else "Pick'em",
+        "decimal": american_to_decimal(e.price_american) if e.payout_type != "pickem" and e.price_american else 0.0,
         "kind": e.payout_type,
         "fair": e.fair_prob,
         "implied": e.implied_prob,
@@ -267,7 +270,8 @@ def build_report(
         for i, p in enumerate(sport_plays):
             p["anchor"] = f"play-{p['sport']}-{i + 1}"
     top_picks = pick_top(plays, rcfg)
-    top_anchors = {p["anchor"] for p in top_picks}
+    top_by_sport = {sp: pick_top({sp: ps}, rcfg) for sp, ps in plays.items()}
+    top_anchors = {p["anchor"] for p in top_picks} | {p["anchor"] for ps in top_by_sport.values() for p in ps}
     for sport_plays in plays.values():
         for p in sport_plays:
             p["is_top"] = p["anchor"] in top_anchors  # their "Why this pick" opens by default
@@ -317,7 +321,7 @@ def build_report(
         generated_at=generated_at or now, as_of=now, tz=settings.timezone, sports=[s.value for s in sports],
         freshness=freshness, quota=quota, warnings=warnings, plays=plays, slips=slip_rows, games=games,
         skipped=dict(res.skipped), totals=totals, recommended=recommended, performance=performance,
-        top_picks=top_picks,
+        top_picks=top_picks, top_picks_by_sport=top_by_sport,
         settings={"bankroll": bankroll, "kelly_fraction": cfg.bankroll.kelly_fraction,
                   "max_bet_pct": cfg.bankroll.max_bet_pct, "min_edge_pct": cfg.filters.min_edge_pct,
                   "states": settings.states, "plan": settings.plan, "max_line_age": max_age,

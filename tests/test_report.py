@@ -248,3 +248,16 @@ def test_dashboard_shows_form_and_why(report_with_history):
     doc = render_html(report_with_history)
     assert "Last 5 games" in doc and "Why this pick" in doc
     assert doc.count('<details class="why" open>') == len(report_with_history.top_picks)  # top picks open by default
+
+
+def test_per_sport_top_picks_and_sort_controls(report):
+    assert set(report.top_picks_by_sport) == {"nba", "mlb"}
+    assert all(p["sport"] == "nba" for p in report.top_picks_by_sport["nba"])
+    assert report.top_picks_by_sport["mlb"] == []
+    doc = render_html(report)
+    assert 'data-top-sport="all"' in doc and 'data-top-sport="nba" hidden' in doc
+    assert "Top 3 NBA picks today" in doc
+    for k in ("edge", "odds", "fair", "time"):
+        assert f'data-f="sort" data-v="{k}"' in doc
+    p = report.plays["nba"][0]
+    assert f'data-dec="{p["decimal"]:.4f}"' in doc and 'data-start="' in doc

@@ -360,11 +360,22 @@ def edges(
     all_books: Annotated[bool, typer.Option(help="Include books not usable in your states")] = False,
     as_of: Annotated[str | None, typer.Option(help="Evaluate freshness as of this ISO time (for replays)")] = None,
     no_context: Annotated[bool, typer.Option(help="Ignore injury/lineup/weather/rest context")] = False,
+    sort: Annotated[str, typer.Option(help="edge (default), odds (biggest payout first), fair (most likely), time")] = "edge",
     limit: int = 30,
 ) -> None:
     """+EV plays from the latest snapshot (research only)."""
+    from bookerbud.edge.odds import american_to_decimal
+
     res, _ = _run_engine(sport, as_of, all_books, min_edge, not no_context)
-    rows = [e for e in res.edges if not book or e.bookmaker == book][:limit]
+    keys = {
+        "edge": lambda e: -e.ev_pct,
+        "odds": lambda e: -(american_to_decimal(e.price_american) if e.price_american else 0.0),
+        "fair": lambda e: -e.fair_prob,
+        "time": lambda e: e.start_time,
+    }
+    if sort not in keys:
+        raise typer.BadParameter("sort must be edge, odds, fair or time")
+    rows = sorted((e for e in res.edges if not book or e.bookmaker == book), key=keys[sort])[:limit]
     if not rows:
         typer.echo("No plays pass the filters.")
     else:

@@ -108,6 +108,7 @@ button { font: inherit; color: inherit; }
 .seg[aria-pressed="true"] span, .chip[aria-pressed="true"] span { color: inherit; opacity: .8; }
 .rail .sep { flex: 0 0 1px; background: var(--line); margin-inline: 2px; }
 .rail .view { margin-left: auto; }
+.rail .lbl { align-self: center; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding-right: 2px; }
 
 /* Sport sections */
 .sport { padding-block: 18px 6px; }
@@ -250,11 +251,29 @@ JS = r"""
   var app = document.getElementById('app');
   if (!app) return;
   var KEY = 'bookerbud.dashboard.v1';
-  var st = { sport: 'all', book: '', conf: '', state: '', view: 'cards' };
+  var st = { sport: 'all', book: '', conf: '', state: '', view: 'cards', sort: 'edge' };
+  var SORTS = {
+    edge: function (d) { return -parseFloat(d.edge); },
+    odds: function (d) { return -parseFloat(d.dec); },
+    fair: function (d) { return -parseFloat(d.fair); },
+    time: function (d) { return Date.parse(d.start); }
+  };
+  function sortAll() {
+    var key = SORTS[st.sort] || SORTS.edge;
+    document.querySelectorAll('.rack, tbody').forEach(function (box) {
+      var items = Array.prototype.slice.call(box.children).filter(function (el) { return el.hasAttribute('data-play'); });
+      items.sort(function (a, b) { return key(a.dataset) - key(b.dataset) || parseFloat(b.dataset.edge) - parseFloat(a.dataset.edge); });
+      items.forEach(function (el) { box.appendChild(el); });
+    });
+  }
   try { var saved = JSON.parse(localStorage.getItem(KEY) || '{}'); for (var k in saved) if (k in st) st[k] = saved[k]; } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
   function apply() {
     app.setAttribute('data-view', st.view);
+    sortAll();
+    var tops = document.querySelectorAll('[data-top-sport]');
+    var hasTop = Array.prototype.some.call(tops, function (t) { return t.dataset.topSport === st.sport; });
+    tops.forEach(function (t) { t.hidden = t.dataset.topSport !== (hasTop ? st.sport : 'all'); });
     document.querySelectorAll('[data-play]').forEach(function (el) {
       var d = el.dataset;
       var ok = (st.sport === 'all' || d.sport === st.sport) && (!st.book || d.book === st.book) &&
@@ -275,7 +294,7 @@ JS = r"""
     var b = ev.target.closest('[data-f]');
     if (!b) return;
     var f = b.dataset.f, v = b.dataset.v;
-    if (f === 'sport' || f === 'view') st[f] = v; else st[f] = (st[f] === v ? '' : v);
+    if (f === 'sport' || f === 'view' || f === 'sort') st[f] = v; else st[f] = (st[f] === v ? '' : v);
     save(); apply();
   });
   function ages() {
@@ -340,7 +359,9 @@ def _scale(implied: float, fair: float) -> str:
 
 def _attrs(p: dict) -> str:
     return (f'data-play data-sport="{_e(p["sport"])}" data-book="{_e(p["book"])}" '
-            f'data-conf="{_e(p["confidence"])}" data-states="{_e(" ".join(p["states"]))}"')
+            f'data-conf="{_e(p["confidence"])}" data-states="{_e(" ".join(p["states"]))}" '
+            f'data-edge="{p["edge_pct"]:.4f}" data-dec="{p.get("decimal", 0.0):.4f}" data-fair="{p["fair"]:.4f}" '
+            f'data-start="{_e(p["start"])}"')
 
 
 def _form_svg(form: dict, compact: bool = False) -> str:
@@ -425,10 +446,22 @@ def _ticket(p: dict) -> str:
 </article>"""
 
 
-def _top_picks(picks: list[dict]) -> str:
+SPORT_NAMES = {"all": "", "nba": "NBA ", "mlb": "MLB ", "nfl": "NFL "}
+
+
+def _top_section(r: Report) -> str:
+    """One top-picks list per sport filter; the page shows the one matching the
+    selected sport (the overall list without JavaScript)."""
+    lists = {"all": r.top_picks, **(r.top_picks_by_sport or {})}
+    return "".join(_top_picks(picks, key) for key, picks in lists.items())
+
+
+def _top_picks(picks: list[dict], key: str = "all") -> str:
+    hidden = "" if key == "all" else " hidden"
+    label = SPORT_NAMES.get(key, key.upper() + " ")
     if not picks:
-        return ('<section class="top"><h2>Top picks</h2><p class="empty">No plays pass the filters right now. '
-                'Check the warnings below, or fetch fresh odds.</p></section>')
+        return (f'<section class="top" data-top-sport="{_e(key)}"{hidden}><h2>Top {label}picks</h2><p class="empty">'
+                'No plays pass the filters right now. Check the warnings below, or fetch fresh odds.</p></section>')
     items = []
     for p in picks:
         stake = f'${p["stake"]:.2f}' if p["kind"] != "pickem" else "per slip"
@@ -446,8 +479,8 @@ def _top_picks(picks: list[dict]) -> str:
                if p.get("form") else "")
             + "</a></li>"
         )
-    return (f'<section class="top" aria-label="Top picks"><h2>Top {len(picks)} picks today</h2>'
-            f'<ol>{"".join(items)}</ol></section>')
+    return (f'<section class="top" aria-label="Top picks" data-top-sport="{_e(key)}"{hidden}>'
+            f'<h2>Top {len(picks)} {label}picks today</h2><ol>{"".join(items)}</ol></section>')
 
 
 def _row(p: dict) -> str:
@@ -624,6 +657,10 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
     ]
     views = ('<button class="chip view" data-f="view" data-v="cards" aria-pressed="true">Cards</button>'
              '<button class="chip" data-f="view" data-v="table" aria-pressed="false">Table</button>')
+    sorts = '<span class="lbl">Sort</span>' + "".join(
+        f'<button class="chip" data-f="sort" data-v="{k}" aria-pressed="{str(k == "edge").lower()}">{label}</button>'
+        for k, label in (("edge", "Best edge"), ("odds", "Best odds"), ("fair", "Most likely"), ("time", "Start time"))
+    )
 
     sections = []
     for sport in r.sports:
@@ -670,7 +707,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 </div>
 <div data-panel="today">
 <div class="wrap">
-{_top_picks(r.top_picks)}
+{_top_section(r)}
 <div class="board">
 <div><span class="eyebrow">Plays</span><b>{t["plays"]}</b><small>edge ≥ {s["min_edge_pct"]:g}%</small></div>
 <div><span class="eyebrow">Best edge</span><b class="pos">{best}</b><small>expected return</small></div>
@@ -680,7 +717,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 <div class="status">{"".join(pills)}</div>
 {alerts}
 </div>
-<nav class="rail" aria-label="Filters"><div class="wrap"><div class="row">{"".join(segs)}{views}</div><div class="row">{"".join(chips)}</div></div></nav>
+<nav class="rail" aria-label="Filters"><div class="wrap"><div class="row">{"".join(segs)}{views}</div><div class="row">{"".join(chips)}</div><div class="row">{sorts}</div></div></nav>
 <main class="wrap">
 {"".join(sections)}
 {slip_section}

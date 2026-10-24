@@ -3,6 +3,13 @@
 ## Follow-up (2026-10-24)
 
 ### Added
+- Dashboard sort control: Best edge, Best odds (biggest payout first), Most
+  likely (highest fair win chance), Start time. It applies to cards and the
+  table and is remembered per device.
+- The Top picks box follows the sport filter (e.g. "Top 3 NBA picks today").
+- `betedge edges --sort edge|odds|fair|time`.
+
+### Added
 - **"Why this pick"** breakdown on every card, covering price, fair value
   (each book's no-vig number and whether they agree), line shopping, line
   moves, recent form, context and risk. Top picks also show a one-line driver.

@@ -136,3 +136,12 @@ def test_settle_command_nothing_pending(cli_env):
 def test_history_without_key_fails_cleanly(cli_env):
     res = runner.invoke(app, ["history", "--days", "3"])
     assert res.exit_code == 1 and "SPORTSGAMEODDS_API_KEY" in res.output
+
+
+def test_edges_sort_by_odds(cli_env):
+    assert runner.invoke(app, ["fetch", "--sport", "nba", "--replay", str(cli_env)]).exit_code == 0
+    res = runner.invoke(app, ["edges", "--sport", "nba", "--sort", "odds", "--as-of", "2026-10-24T18:10:00-04:00"])
+    assert res.exit_code == 0, res.output
+    lines = res.output.splitlines()
+    assert lines.index(next(l for l in lines if "+120" in l)) < lines.index(next(l for l in lines if "+105" in l))
+    assert runner.invoke(app, ["edges", "--sort", "nope"]).exit_code != 0
