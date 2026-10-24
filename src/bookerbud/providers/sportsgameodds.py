@@ -27,7 +27,14 @@ import httpx
 
 from bookerbud.config import Settings, SportsGameOddsSettings, get_secret
 from bookerbud.models import EventInfo, Flag, MarketKind, RawProp, RosterPlayer, Sport
-from bookerbud.providers.base import FetchResult, OddsProvider, ProviderAuthError, ProviderError
+from bookerbud.providers.base import (
+    EventSettlement,
+    FetchResult,
+    OddSettlement,
+    OddsProvider,
+    ProviderAuthError,
+    ProviderError,
+)
 from bookerbud.raw_log import RawLogger
 
 API_KEY_ENV = "SPORTSGAMEODDS_API_KEY"
@@ -259,6 +266,29 @@ class SportsGameOddsProvider(OddsProvider):
                 break
         return result
 
+    def fetch_settlement(
+        self, event_ids: list[str], bookmakers: list[str]
+    ) -> tuple[dict[str, EventSettlement], FetchResult]:
+        """GET /events?eventIDs=...&includeOpenCloseOdds=true. One object per event.
+        closeOdds/closeOverUnder/closeSpread = each book's price at event start."""
+        out: dict[str, EventSettlement] = {}
+        meta = FetchResult()
+        books = ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS)
+        for i in range(0, len(event_ids), self.cfg.page_limit):
+            chunk = event_ids[i : i + self.cfg.page_limit]
+            params = {"eventIDs": ",".join(chunk), "includeOpenCloseOdds": "true", "bookmakerID": books,
+                      "limit": len(chunk)}
+            body, raw_path = self._get("/events", params, f"settle_{i // self.cfg.page_limit}")
+            meta.requests_made += 1
+            meta.objects_used += max(1, len(body.get("data") or []))
+            meta.raw_paths.append(raw_path)
+            for ev in body.get("data") or []:
+                st = parse_settlement(ev)
+                out[st.event_id] = st
+                for alias in ev.get("aliases") or []:  # SGO may re-key an event; keep the id we stored
+                    out.setdefault(alias, st)
+        return out, meta
+
     def usage(self) -> dict[str, Any] | None:
         body, _ = self._get("/account/usage", {}, "account_usage")
         return body.get("data")
@@ -395,3 +425,40 @@ class SportsGameOddsProvider(OddsProvider):
             deeplink=entry.get("deeplink"),
             parse_flags=flags,
         )
+
+
+def _num(v: Any) -> float | None:
+    try:
+        return None if v is None or v == "" else float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_settlement(ev: dict[str, Any]) -> EventSettlement:
+    status = ev.get("status") or {}
+    st = EventSettlement(
+        event_id=ev["eventID"], started=bool(status.get("started")), ended=bool(status.get("ended")),
+        finalized=bool(status.get("finalized")), cancelled=bool(status.get("cancelled")),
+        results=ev.get("results") or {},
+    )
+    for odd_id, o in (ev.get("odds") or {}).items():
+        close: dict[str, tuple[int | None, float | None]] = {}
+        for sgo_book, entry in (o.get("byBookmaker") or {}).items():
+            book = _SGO_TO_CANON.get(sgo_book)
+            if book is None:
+                continue
+            line_key = "closeOverUnder" if o.get("betTypeID") == "ou" else "closeSpread" if o.get("betTypeID") == "sp" else None
+            try:
+                price = parse_american(entry.get("closeOdds"))
+            except ValueError:
+                price = None
+            line = _num(entry.get(line_key)) if line_key else None
+            if price is not None or line is not None:
+                close[book] = (price, line)
+        st.odds[odd_id] = OddSettlement(
+            odd_id=o.get("oddID", odd_id), opposing_odd_id=o.get("opposingOddID"), stat_id=o.get("statID", ""),
+            stat_entity=o.get("statEntityID", ""), period=o.get("periodID", "game"), bet_type=o.get("betTypeID", ""),
+            side=o.get("sideID", ""), score=_num(o.get("score")), scoring_supported=o.get("scoringSupported"),
+            cancelled=bool(o.get("cancelled")), close=close,
+        )
+    return st

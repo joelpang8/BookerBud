@@ -161,12 +161,12 @@ th { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: 
 td.num, th.num { text-align: right; white-space: nowrap; }
 td .edgev { color: var(--good); font-weight: 600; }
 tr:last-child td { border-bottom: 0; }
-#app[data-view="cards"] .tablewrap, #app[data-view="table"] .rack { display: none; }
+#app[data-view="cards"] .sport .tablewrap, #app[data-view="table"] .rack { display: none; }
 /* Phones always get cards; the table is a wide-screen view. */
 @media (max-width: 760px) {
   [data-f="view"] { display: none; }
   #app[data-view="table"] .rack { display: grid; }
-  #app[data-view="table"] .tablewrap { display: none; }
+  #app[data-view="table"] .sport .tablewrap { display: none; }
 }
 
 /* Slips */
@@ -183,6 +183,24 @@ tr:last-child td { border-bottom: 0; }
 .games ul { margin: 0; padding: 0 14px 12px 32px; font-size: .86rem; color: var(--muted); }
 
 .banner { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: .88rem; }
+/* Tabs + performance */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-block: 4px 12px; }
+.tab { border: 0; background: none; padding: 8px 4px; margin-right: 18px; cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: .02em; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.board .neg { color: var(--bad); }
+.note { color: var(--muted); font-size: .85rem; margin: 0 0 12px; }
+.perf-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .perf-grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; display: grid; gap: 10px; }
+.panel > * { min-width: 0; }
+.panel h3 { margin: 0; font-family: var(--display); font-size: 1.25rem; letter-spacing: .02em; }
+.panel .tablewrap { border: 0; border-radius: 0; }
+.calib svg { width: 100%; height: auto; display: block; }
+.calib .grid { stroke: var(--line); stroke-width: 1; }
+.calib .diag { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+.calib .dot { fill: var(--accent); fill-opacity: .8; stroke: var(--surface); stroke-width: 1.5; }
+.calib text { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+.calib .axis { fill: var(--ink); font-family: var(--body); font-size: 12px; }
 footer { color: var(--muted); font-size: .78rem; padding-block: 28px 32px; display: grid; gap: 4px; }
 @media (prefers-reduced-motion: no-preference) { .seg, .chip { transition: background-color .12s, color .12s; } }
 """
@@ -227,6 +245,20 @@ JS = r"""
       el.textContent = m < 1 ? 'just now' : m < 90 ? m + ' min ago' : (m / 60).toFixed(1) + ' h ago';
     });
   }
+  function showTab(name) {
+    document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== name; });
+    document.querySelectorAll('[data-tab]').forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.tab === name)); });
+  }
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-tab]');
+    if (t) { showTab(t.dataset.tab); try { history.replaceState(null, '', t.dataset.tab === 'today' ? '#' : '#' + t.dataset.tab); } catch (e) {} }
+    var bd = ev.target.closest('[data-bd]');
+    if (bd) {
+      document.querySelectorAll('[data-bd-table]').forEach(function (x) { x.hidden = x.dataset.bdTable !== bd.dataset.bd; });
+      document.querySelectorAll('[data-bd]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === bd)); });
+    }
+  });
+  showTab(location.hash === '#performance' ? 'performance' : 'today');
   apply(); ages(); setInterval(ages, 60000);
 })();
 """
@@ -322,6 +354,107 @@ def _slip(s: dict) -> str:
 </article>"""
 
 
+def _p(x, signed=False, ratio=True) -> str:
+    if x is None or (isinstance(x, float) and x != x):
+        return "–"
+    v = x * 100 if ratio else x
+    return f"{v:+.1f}%" if signed else f"{v:.1f}%"
+
+
+def _calib_svg(points: list[dict]) -> str:
+    """Predicted vs actual win rate on one shared, square scale (10-point grid)."""
+    vals = [v for p in points for v in (p["predicted"], p["actual"])]
+    lo = max(0.0, math.floor(min(vals) * 10) / 10)
+    hi = min(1.0, math.ceil(max(vals) * 10) / 10)
+    if hi - lo < 0.2:
+        lo, hi = max(0.0, lo - 0.1), min(1.0, hi + 0.1)
+    W, H, L, B, T, R = 330, 310, 46, 40, 22, 22  # margins leave room for the largest dot at the edges
+    pw, ph = W - L - R, H - T - B
+
+    def x(v):
+        return L + (v - lo) / (hi - lo) * pw
+
+    def y(v):
+        return T + ph - (v - lo) / (hi - lo) * ph
+
+    ticks = [round(lo + i * 0.1, 2) for i in range(int(round((hi - lo) / 0.1)) + 1)]
+    grid = "".join(
+        f'<line class="grid" x1="{x(t):.1f}" y1="{T}" x2="{x(t):.1f}" y2="{T + ph}"/>'
+        f'<line class="grid" x1="{L}" y1="{y(t):.1f}" x2="{L + pw}" y2="{y(t):.1f}"/>'
+        f'<text x="{x(t):.1f}" y="{T + ph + 16}" text-anchor="middle">{t * 100:.0f}%</text>'
+        f'<text x="{L - 6}" y="{y(t) + 4:.1f}" text-anchor="end">{t * 100:.0f}%</text>'
+        for t in ticks
+    )
+    nmax = max(p["n"] for p in points)
+    dots = "".join(
+        f'<circle class="dot" cx="{x(p["predicted"]):.1f}" cy="{y(p["actual"]):.1f}" r="{4 + 8 * math.sqrt(p["n"] / nmax):.1f}">'
+        f'<title>{p["lo"] * 100:.0f}–{p["hi"] * 100:.0f}%: predicted {p["predicted"] * 100:.1f}%, actual {p["actual"] * 100:.1f}% (n={p["n"]})</title></circle>'
+        for p in points
+    )
+    return (f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Calibration: predicted vs actual win rate">{grid}'
+            f'<line class="diag" x1="{x(lo):.1f}" y1="{y(lo):.1f}" x2="{x(hi):.1f}" y2="{y(hi):.1f}"/>{dots}'
+            f'<text class="axis" x="{L + pw / 2:.1f}" y="{H - 4}" text-anchor="middle">Predicted (fair) win rate</text>'
+            f'<text class="axis" transform="translate(12 {T + ph / 2:.1f}) rotate(-90)" text-anchor="middle">Actual</text></svg>')
+
+
+def _perf_panel(perf: dict | None) -> str:
+    if not perf:
+        return ""
+    r, b = perf["recs"], perf["bets"]
+    roi_cls = "pos" if (b.get("roi") or 0) > 0 else "neg" if (b.get("roi") or 0) < 0 else ""
+    clv_cls = lambda v: "pos" if (v or 0) > 0 else "neg" if (v or 0) < 0 else ""  # noqa: E731
+    board = f"""<div class="board">
+<div><span class="eyebrow">Your ROI</span><b class="{roi_cls}">{_p(b.get("roi"), True)}</b><small>{("+" if b["profit"] >= 0 else "\u2212") + "$" + format(abs(b["profit"]), ",.2f") + " on $" + format(b["staked"], ",.0f") if b["n"] else "no bets logged"}</small></div>
+<div><span class="eyebrow">Your CLV</span><b class="{clv_cls(b["clv"])}">{_p(b["clv"], True, False)}</b><small>beat close {_p(b["beat_close"])}</small></div>
+<div><span class="eyebrow">Model CLV</span><b class="{clv_cls(r["clv"])}">{_p(r["clv"], True, False)}</b><small>{r["clv_n"]} recommendations</small></div>
+<div><span class="eyebrow">Hit rate</span><b>{_p(r["hit_rate"])}</b><small>{r["wins"]}–{r["losses"]}, {perf["pending"]} pending</small></div>
+</div>"""
+    if r["graded"] == 0 and b["graded"] == 0 and not r["clv_n"]:
+        return (board + '<p class="empty">Nothing settled yet. Plays settle about 4 hours after the game starts, and '
+                '<code>betedge daily</code> settles yesterday\'s plays before fetching today\'s. Closing-line value is the number to '
+                'watch first: it says whether the model beats the market long before win/loss records mean anything.</p>')
+    note = ('<p class="note">Fewer than 100 graded plays: treat these as noise for now. CLV stabilises much faster than ROI.</p>'
+            if r["graded"] < 100 else "")
+
+    def table(rows: list[dict], first: str, bets_rows: list[dict]) -> str:
+        bmap = {x["key"]: x for x in bets_rows}
+        body = "".join(
+            f'<tr><td>{_e(x["key"])}</td><td class="num mono">{x["n"]}</td><td class="num mono">{x["graded"]}</td>'
+            f'<td class="num mono">{_p(x["hit_rate"])}</td><td class="num mono">{_p(x["clv"], True, False)}</td>'
+            f'<td class="num mono">{_p(x["flat_roi"], True)}</td>'
+            f'<td class="num mono">{bmap[x["key"]]["n"] if x["key"] in bmap else 0}</td>'
+            f'<td class="num mono">{_p(bmap[x["key"]]["roi"], True) if x["key"] in bmap else "–"}</td></tr>'
+            for x in rows
+        )
+        return (f'<div class="tablewrap"><table><thead><tr><th>{first}</th><th class="num">Plays</th><th class="num">Graded</th>'
+                '<th class="num">Hit</th><th class="num">CLV</th><th class="num">Flat ROI</th><th class="num">Your bets</th>'
+                f'<th class="num">Your ROI</th></tr></thead><tbody>{body}</tbody></table></div>')
+
+    dims = (("sport", "Sport"), ("stat", "Stat"), ("book", "Book"))
+    seg = "".join(f'<button class="chip" data-bd="{d}" aria-pressed="{str(i == 0).lower()}">{label}</button>'
+                  for i, (d, label) in enumerate(dims))
+    tables = "".join(f'<div data-bd-table="{d}"{"" if i == 0 else " hidden"}>{table(perf["by"][d]["recs"], label, perf["by"][d]["bets"])}</div>'
+                     for i, (d, label) in enumerate(dims))
+    buckets = "".join(
+        f'<tr><td>{_e(x["bucket"])}</td><td class="num mono">{x["n"]}</td><td class="num mono">{_p(x["predicted"])}</td>'
+        f'<td class="num mono">{_p(x["hit_rate"])}</td><td class="num mono">{_p(x["clv"], True, False)}</td>'
+        f'<td class="num mono">{_p(x["flat_roi"], True)}</td></tr>'
+        for x in perf["edge_buckets"]
+    )
+    calib = (f'<div class="calib">{_calib_svg(perf["calibration"])}</div>'
+             '<p class="note">Each dot is a 5-point bucket of predicted win probability; bigger dots hold more plays. '
+             'Dots on the dashed line mean the fair probabilities are well calibrated; below it means they run optimistic.</p>'
+             if perf["calibration"] else '<p class="note">Needs graded plays.</p>')
+    return f"""{board}{note}
+<div class="perf-grid">
+<div class="panel"><h3>Breakdown</h3><div class="row" style="display:flex;gap:6px;flex-wrap:wrap">{seg}</div>{tables}
+<h3>Edge buckets</h3><p class="note">Is a bigger predicted edge actually a better bet?</p>
+<div class="tablewrap"><table><thead><tr><th>Predicted edge</th><th class="num">Plays</th><th class="num">Pred. win</th>
+<th class="num">Actual win</th><th class="num">CLV</th><th class="num">Flat ROI</th></tr></thead><tbody>{buckets}</tbody></table></div></div>
+<div class="panel"><h3>Calibration</h3>{calib}</div>
+</div>"""
+
+
 def render_html(r: Report, *, standalone: bool = True, banner: str | None = None) -> str:
     tz = ZoneInfo(r.tz)
     as_of = r.as_of.astimezone(tz)
@@ -407,6 +540,10 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 {f'<p class="banner">{_e(banner)}</p>' if banner else ""}
 <header class="mast"><h1>BookerBud <span>{as_of.strftime("%a %b")} {as_of.day}</span></h1>
 <span class="sub">Research only. Nothing here places a bet.</span></header>
+<div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button><button class="tab" role="tab" data-tab="performance" aria-selected="false">Performance</button></div>
+</div>
+<div data-panel="today">
+<div class="wrap">
 <div class="board">
 <div><span class="eyebrow">Plays</span><b>{t["plays"]}</b><small>edge ≥ {s["min_edge_pct"]:g}%</small></div>
 <div><span class="eyebrow">Best edge</span><b class="pos">{best}</b><small>expected return</small></div>
@@ -422,6 +559,10 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 {slip_section}
 {games_section}
 </main>
+</div>
+<section class="wrap" id="performance" data-panel="performance">
+{_perf_panel(r.performance)}
+</section>
 <footer class="wrap">
 <span>Stakes are {s["kelly_fraction"]:g}× Kelly on a ${bankroll:,.0f} bankroll, capped at {s["max_bet_pct"]:g}% per bet. States: {_e(", ".join(s["states"]))}. Data plan: {_e(s["plan"])}.</span>
 <span>Generated {gen.strftime("%I:%M %p").lstrip("0")} {_e(gen.tzname())} from the latest snapshot. Weather data by Open-Meteo.com (CC BY 4.0). MLB data © MLB Advanced Media, individual non-commercial use.</span>

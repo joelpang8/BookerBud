@@ -1,5 +1,31 @@
 # Changelog
 
+## Phase 5 — Tracking (2026-10-24)
+
+### Added
+- `recommendations` table: every play the report shows, recorded once per
+  day at its first-seen price and fair value.
+- `bets` table and commands:
+  - `betedge log` takes a recommendation # or searches the market;
+    `--price`/`--line` override what you actually got.
+  - `betedge bets`.
+- `betedge settle`, also run first by `daily`:
+  - One SportsGameOdds call per batch of finished games (`eventIDs` +
+    `includeOpenCloseOdds`, about 1 object per game, quota-guarded).
+  - Records each book's closing number and the closing fair probability at
+    your line (same Pinnacle/consensus method as pre-game).
+  - Computes CLV and beat-the-close, and grades results from the market
+    `score` or the event `results`.
+  - Falls back to the last pre-game snapshot when closing odds are missing.
+    Retries, then marks a row `ungradable` after 6 attempts.
+- `betedge performance` covers recommendations and bets:
+  - hit rate, CLV, beat-close %, flat-stake ROI and real ROI;
+  - breakdowns by sport, stat and book;
+  - edge buckets and probability calibration.
+- Dashboard **Performance** tab: summary tiles, breakdown tables, edge
+  buckets and a calibration chart. `#performance` opens it directly.
+
+
 ## Phase 4 — Daily report & dashboard (2026-10-24)
 
 ### Added

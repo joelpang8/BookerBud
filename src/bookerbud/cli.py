@@ -32,7 +32,8 @@ from bookerbud.pipeline import (
 )
 from bookerbud.raw_log import RawLogger
 from bookerbud.providers import ProviderError, get_provider
-from bookerbud.storage import connect, flagged_summary, latest_runs, query_player_props
+from bookerbud.storage import connect, flagged_summary, latest_runs, load_latest_props, query_player_props
+from bookerbud.storage.tracking import get_recommendation, insert_bet, record_recommendations, recommendations_for_day
 
 app = typer.Typer(help="BookerBud: daily +EV research. Never places bets.", no_args_is_help=True)
 
@@ -386,8 +387,13 @@ def report(
                          rcfg=rcfg, use_context=not no_context)
     finally:
         conn.close()
-    out_dir.mkdir(parents=True, exist_ok=True)
     stem = now.astimezone(settings.tz).strftime("%Y-%m-%d")
+    conn = connect(settings.db_file)
+    try:
+        record_recommendations(conn, r.recommended, stem, datetime.now(UTC))
+    finally:
+        conn.close()
+    out_dir.mkdir(parents=True, exist_ok=True)
     html_doc = render_html(r)
     (out_dir / f"{stem}.html").write_text(html_doc)
     (out_dir / "latest.html").write_text(html_doc)
@@ -400,12 +406,208 @@ def report(
     typer.echo("  view on your phone: `betedge serve`")
 
 
+def _american(v) -> str:
+    return "pick'em" if v is None else (f"+{v}" if v > 0 else str(v))
+
+
+def _rec_line(r) -> str:
+    who = r["player"] or r["team"] or "Game total"
+    line = "" if r["line"] is None else f" {r['line']:g}"
+    price = "pick'em" if r["payout_type"] == "pickem" else (f"+{r['price_american']}" if (r["price_american"] or 0) > 0 else str(r["price_american"]))
+    return (f"#{r['id']:<4} {r['sport'].upper()} {who} {r['side']}{line} {r['stat_type']} [{r['period']}] "
+            f"@ {r['bookmaker']} {price}  edge {r['ev_pct']:+.1f}%  stake ${r['stake_suggested'] or 0:.2f}")
+
+
+@app.command()
+def log(
+    rec_id: Annotated[int | None, typer.Argument(help="Recommendation # from `betedge log --list`")] = None,
+    stake: Annotated[float | None, typer.Option(help="Dollars you staked")] = None,
+    price: Annotated[int | None, typer.Option(help="American odds you actually got (default: the recommended price)")] = None,
+    line: Annotated[float | None, typer.Option(help="Line you actually got (default: the recommended line)")] = None,
+    list_: Annotated[bool, typer.Option("--list", help="Show today's recommendations with their #")] = False,
+    day: Annotated[str | None, typer.Option("--date", help="Recommendation day for --list (YYYY-MM-DD)")] = None,
+    player: Annotated[str | None, typer.Option(help="Log a bet that wasn't recommended: player name")] = None,
+    team: Annotated[str | None, typer.Option(help="...or team (moneyline / spread / team total)")] = None,
+    stat: Annotated[str | None, typer.Option(help="Canonical stat, e.g. points (default: points)")] = None,
+    side: Annotated[str | None, typer.Option(help="over / under / home / away / yes / no")] = None,
+    bet_type: Annotated[str | None, typer.Option(help="ou / sp / ml / yn")] = None,
+    book: Annotated[str | None, typer.Option(help="Bookmaker id, e.g. draftkings")] = None,
+    note: Annotated[str | None, typer.Option(help="Free-text note")] = None,
+) -> None:
+    """Record a bet you actually placed (BookerBud never places bets itself)."""
+    settings = load_settings()
+    conn = connect(settings.db_file)
+    try:
+        if list_:
+            d = day or datetime.now(settings.tz).date().isoformat()
+            rows = recommendations_for_day(conn, d)
+            typer.echo("\n".join(_rec_line(r) for r in rows) if rows else f"No recommendations recorded for {d}. Run `betedge report`.")
+            return
+        if stake is None or stake <= 0:
+            raise typer.BadParameter("--stake is required (dollars, > 0)")
+        if rec_id is not None:
+            r = get_recommendation(conn, rec_id)
+            if r is None:
+                raise typer.BadParameter(f"No recommendation #{rec_id}. See `betedge log --list`.")
+            bet = {k: r[k] for k in ("sport", "league", "event_id", "start_time", "market_kind", "entity", "player",
+                                    "player_key", "team", "opponent", "stat_type", "period", "bet_type", "side",
+                                    "bookmaker", "payout_type", "provider_market_id", "is_alt_line", "fair_prob", "ev_pct")}
+            bet.update(rec_id=rec_id, line=r["line"] if line is None else line,
+                       price_american=r["price_american"] if price is None else price)
+        else:
+            bet = _bet_from_snapshot(conn, settings, player, team, stat, side, bet_type, book, line, price)
+        bet.update(stake=stake, notes=note)
+        if bet["payout_type"] != "pickem" and bet["price_american"] is None:
+            raise typer.BadParameter("--price is required for sportsbook bets")
+        bet_id = insert_bet(conn, bet)
+        who = bet["player"] or bet["team"] or "Game total"
+        typer.echo(f"Logged bet #{bet_id}: {who} {bet['side']} {bet['line'] if bet['line'] is not None else ''} "
+                   f"{bet['stat_type']} @ {bet['bookmaker']} {_american(bet['price_american'])} for ${stake:.2f}")
+    finally:
+        conn.close()
+
+
+def _bet_from_snapshot(conn, settings, player, team, stat, side, bet_type, book, line, price) -> dict:
+    if not (player or team) or not side or not book:
+        raise typer.BadParameter("Give a recommendation #, or --player/--team with --side and --book")
+    from bookerbud.normalize.names import normalize_name
+
+    props = load_latest_props(conn, [s.value for s in Sport])
+    want_bt = bet_type or ("ou" if player else None)
+    want_stat = stat or ("points" if player else None)
+
+    def matches(p) -> bool:
+        if p.bookmaker != book or p.side != side or p.is_alt_line:
+            return False
+        if player:
+            if not (p.player and normalize_name(player) in normalize_name(p.player)):
+                return False
+        elif p.player or not (p.team and team.lower() in p.team.lower()):
+            return False  # team bets are game lines for that team
+        if want_stat and p.stat_type != want_stat:
+            return False
+        return not want_bt or p.bet_type == want_bt
+
+    cands = [p for p in props if matches(p)]
+    keys = {(p.event_id, p.provider_market_id, p.period) for p in cands}
+    if not cands:
+        raise typer.BadParameter("No matching market in the latest snapshot. Check --book/--side/--stat.")
+    if len(keys) > 1:
+        lines = sorted({f"{p.player or p.team} {p.stat_type} [{p.period}] {p.bet_type} {p.line}" for p in cands})
+        raise typer.BadParameter("Several markets match; narrow with --stat/--bet-type:\n  " + "\n  ".join(lines[:10]))
+    p = next(c for c in cands if c.period == "game") if any(c.period == "game" for c in cands) else cands[0]
+    return {
+        "sport": p.sport.value, "league": p.league, "event_id": p.event_id, "start_time": p.start_time.isoformat(),
+        "market_kind": p.market_kind.value, "entity": p.entity, "player": p.player, "player_key": p.player_key,
+        "team": p.team, "opponent": p.opponent, "stat_type": p.stat_type, "period": p.period, "bet_type": p.bet_type,
+        "side": p.side, "bookmaker": p.bookmaker, "payout_type": p.payout_type.value,
+        "provider_market_id": p.provider_market_id, "is_alt_line": 0, "line": p.line if line is None else line,
+        "price_american": p.price_american if price is None else price, "rec_id": None,
+    }
+
+
+@app.command()
+def bets(limit: int = 30) -> None:
+    """Your logged bets, newest first, with closing-line value and results once settled."""
+    settings = load_settings()
+    conn = connect(settings.db_file)
+    df = pd.read_sql_query(
+        """SELECT id, start_time, sport, COALESCE(player, team, 'total') AS who, side, line,
+                  stat_type, bookmaker AS book, price_american AS price, stake, clv_pct AS clv, result, profit
+           FROM bets ORDER BY id DESC LIMIT ?""", conn, params=[limit])
+    conn.close()
+    if not df.empty:
+        df.insert(1, "day", pd.to_datetime(df.pop("start_time"), utc=True).dt.tz_convert(settings.tz).dt.strftime("%m-%d"))
+        df["price"] = df["price"].map(lambda v: "" if pd.isna(v) else (f"+{int(v)}" if v > 0 else str(int(v))))
+        df["clv"] = df["clv"].map(lambda v: "" if pd.isna(v) else f"{v:+.1f}%")
+    typer.echo("No bets logged yet. `betedge log --list`, then `betedge log <#> --stake 20`." if df.empty else df.to_string(index=False))
+
+
+@app.command("settle")
+def settle_cmd() -> None:
+    """Record closing lines, CLV and results for finished games (recommendations and bets)."""
+    from bookerbud.tracking.settle import settle as run_settle
+
+    settings = load_settings()
+    provider = get_provider(settings)
+    conn = connect(settings.db_file)
+    try:
+        s = run_settle(conn, settings, provider)
+    except ProviderError as exc:
+        typer.secho(f"settle failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
+    finally:
+        provider.close()
+        conn.close()
+    if not s.pending:
+        typer.echo("settle: nothing to settle yet (games settle about 4 h after they start).")
+        return
+    typer.echo(f"settle: {s.pending} rows pending, {s.events} games fetched ({s.objects_used} quota objects), "
+               f"results {dict(s.settled) or '{}'}, CLV recorded for {s.clv_rows}")
+    for w in s.warnings:
+        typer.secho(f"  {w}", fg=typer.colors.YELLOW)
+
+
+def _fmt_pct(x, signed=False, ratio=True) -> str:
+    if x is None or (isinstance(x, float) and x != x):
+        return "–"
+    v = x * 100 if ratio else x
+    return f"{v:+.1f}%" if signed else f"{v:.1f}%"
+
+
+@app.command()
+def performance(
+    since: Annotated[str | None, typer.Option(help="Only games on/after YYYY-MM-DD")] = None,
+    by: Annotated[str, typer.Option(help="Breakdown: sport, stat or book")] = "sport",
+) -> None:
+    """ROI, CLV, hit rate and edge-bucket calibration (recommendations and your bets)."""
+    from bookerbud.tracking.performance import summarize
+
+    settings = load_settings()
+    conn = connect(settings.db_file)
+    p = summarize(conn, since)
+    conn.close()
+    r, b = p["recs"], p["bets"]
+    typer.secho("Recommendations (every play the report showed)", bold=True)
+    typer.echo(f"  {r['n']} plays, {r['graded']} graded ({p['pending']} pending) | hit {_fmt_pct(r['hit_rate'])} | "
+               f"CLV {_fmt_pct(r['clv'], True, False)} over {r['clv_n']} | beat close {_fmt_pct(r['beat_close'])} | "
+               f"flat ROI {_fmt_pct(r['flat_roi'], True)} ({r['flat_units']:+.2f} u)")
+    typer.secho("Your bets", bold=True)
+    if b["n"]:
+        typer.echo(f"  {b['n']} bets, ${b['staked']:,.2f} settled stake, profit ${b['profit']:+,.2f}, ROI {_fmt_pct(b['roi'], True)} | "
+                   f"hit {_fmt_pct(b['hit_rate'])} | CLV {_fmt_pct(b['clv'], True, False)} | beat close {_fmt_pct(b['beat_close'])}")
+    else:
+        typer.echo("  none logged yet (`betedge log --list`, then `betedge log <#> --stake 20`)")
+    dim = {"stat": "stat", "book": "book", "sport": "sport"}.get(by, "sport")
+    rows = p["by"][dim]["recs"]
+    if rows:
+        typer.secho(f"\nBy {dim} (recommendations)", bold=True)
+        typer.echo(pd.DataFrame([{dim: x["key"], "plays": x["n"], "graded": x["graded"], "hit": _fmt_pct(x["hit_rate"]),
+                                  "CLV": _fmt_pct(x["clv"], True, False), "flat ROI": _fmt_pct(x["flat_roi"], True)}
+                                 for x in rows]).to_string(index=False))
+    if p["edge_buckets"]:
+        typer.secho("\nEdge buckets (is a bigger predicted edge actually better?)", bold=True)
+        typer.echo(pd.DataFrame([{"edge": x["bucket"], "plays": x["n"], "graded": x["graded"],
+                                  "predicted win": _fmt_pct(x["predicted"]), "actual win": _fmt_pct(x["hit_rate"]),
+                                  "CLV": _fmt_pct(x["clv"], True, False), "flat ROI": _fmt_pct(x["flat_roi"], True)}
+                                 for x in p["edge_buckets"]]).to_string(index=False))
+    if p["calibration"]:
+        typer.secho("\nProbability calibration", bold=True)
+        typer.echo(pd.DataFrame([{"fair prob": f"{x['lo'] * 100:.0f}–{x['hi'] * 100:.0f}%", "n": x["n"],
+                                  "predicted": _fmt_pct(x["predicted"]), "actual": _fmt_pct(x["actual"])}
+                                 for x in p["calibration"]]).to_string(index=False))
+    if r["graded"] < 100:
+        typer.secho(f"\nOnly {r['graded']} graded plays: treat these numbers as noise until there are a few hundred.",
+                    fg=typer.colors.YELLOW)
+
+
 @app.command()
 def daily(
     sport: Annotated[str, typer.Option(help="nba, mlb, nfl, or all")] = "all",
     force: Annotated[bool, typer.Option(help="Allow spending past the quota budget, up to the plan's hard limit")] = False,
 ) -> None:
-    """The whole morning routine: fetch odds + context, then write the dashboard."""
+    """The whole routine: settle finished games, fetch odds + context, write the dashboard."""
+    settle_cmd()
     fetch(sport=sport, day=None, include_live=False, force=force, no_context=False, replay=None)
     report(sport=sport, as_of=None, no_context=False)
 

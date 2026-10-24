@@ -337,3 +337,68 @@ for this use.
 
   SGO's routine "upgrade your plan" notice is folded into the free-plan note
   rather than repeated.
+
+## Phase 5 — tracking (2026-10-24)
+
+### Closing lines
+- SGO docs: "Historical data from 2024+ is included in all plans", and
+  `includeOpenCloseOdds=true` adds `closeOdds` / `closeOverUnder` /
+  `closeSpread` = each book's number **at event start**. One call after the
+  games therefore gives true closing lines for every book, plus results.
+  Polling right before each game would cost the same objects and be less
+  accurate.
+- **Only events that had a recommendation or a bet are fetched**, in batches,
+  after `start + 4h`, capped by the quota budget (oldest first if short).
+- **CLV definition:** the EV your bet would have at the closing fair
+  probability, i.e. P_close(win)·(decimal−1) − P_close(lose).
+  - The closing fair probability uses the same method as pre-game: Pinnacle
+    if present, else a consensus of the other books' closing pairs with the
+    target book excluded, moved to your exact line.
+  - So an alt line or a line you got at a different number is valued
+    correctly, not just compared to the book's own close.
+  - "Beat close" separately records whether your price/line beat the same
+    book's closing number.
+- **Fallback:** if a market has no closing odds, the last snapshot we stored
+  before the start is used (`close_source = last_snapshot`). On the free plan
+  that snapshot could be hours old, so it understates real CLV movement. The
+  source is stored per row.
+
+### Grading
+- Uses the market's `score` field when present, else
+  `results[period][entity][stat]`. Combined stats such as
+  `points+rebounds+assists` are summed from their parts, and game totals sum
+  home + away.
+- Cancelled events or markets → `void`. Not final yet → retried. After 6
+  attempts → `ungradable` (excluded from hit rate and ROI).
+- Single pick'em legs get a result but no profit. Pick'em slips would need
+  their own entry log, which isn't built because the free plan has no pick'em
+  lines.
+
+### Recording
+- **What counts as recommended:** what the report showed (top N per sport,
+  after filters and context). Each play is recorded once per day at its
+  **first-seen** price, because that's what you could have bet. Later
+  sightings only bump a counter.
+- **Bets** keep their own price, line and stake, so settlement uses what you
+  actually got.
+
+### Metrics
+- **Hit rate:** wins / (wins + losses).
+- **Flat ROI:** 1 unit on every sportsbook recommendation at its first price.
+- **ROI:** your profit / your settled stake.
+- **Edge buckets:** under 2, 2–4, 4–6, 6–10 and 10+ % predicted edge.
+- **Calibration:** 5-point buckets of predicted fair probability vs. actual
+  win rate.
+- The dashboard and CLI warn below 100 graded plays. CLV is the number to
+  trust first; ROI needs hundreds of bets.
+
+### Updated quota picture (free plan, 2,250 budget)
+| Job | Objects / 30 days |
+|---|---|
+| `fetch` once a day (all leagues, one call) | ~300–700 (season overlap dependent) |
+| NBA rest backfill (once a day) | ~150–300 in NBA season |
+| `settle` (games with a recommendation only) | ~100–300 |
+| **Typical total** | **~600–1,300** |
+
+That leaves room for a second fetch closer to game time on busy days.
+`betedge quota` shows where you stand.

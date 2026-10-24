@@ -105,3 +105,29 @@ def test_report_command_writes_files(cli_env, tmp_path):
 def test_serve_without_report(cli_env):
     res = runner.invoke(app, ["serve"])
     assert res.exit_code == 1 and "betedge report" in res.output
+
+
+def test_log_bets_and_performance_flow(cli_env):
+    assert runner.invoke(app, ["fetch", "--sport", "nba", "--replay", str(cli_env)]).exit_code == 0
+    assert runner.invoke(app, ["report", "--as-of", "2026-10-24T18:10:00-04:00"]).exit_code == 0
+    listing = runner.invoke(app, ["log", "--list", "--date", "2026-10-24"])
+    assert "#1" in listing.output and "edge +" in listing.output
+    res = runner.invoke(app, ["log", "1", "--stake", "20"])
+    assert res.exit_code == 0 and "Logged bet #1" in res.output
+    res = runner.invoke(app, ["log", "--player", "jokic", "--stat", "assists", "--side", "over", "--book", "fanduel",
+                              "--price", "-120", "--stake", "5"])
+    assert res.exit_code == 0, res.output
+    assert "Nikola Jokić over 9.5 assists @ fanduel -120 for $5.00" in res.output
+    ambiguous = runner.invoke(app, ["log", "--player", "lebron", "--stat", "points", "--side", "over", "--book", "nobody",
+                                    "--stake", "5"])
+    assert ambiguous.exit_code != 0
+    assert runner.invoke(app, ["log", "1"]).exit_code != 0  # stake required
+    bets = runner.invoke(app, ["bets"])
+    assert "Nikola Jokić" in bets.output and "fanduel" in bets.output
+    perf = runner.invoke(app, ["performance"])
+    assert perf.exit_code == 0 and "Your bets" in perf.output and "2 bets" in perf.output
+
+
+def test_settle_command_nothing_pending(cli_env):
+    res = runner.invoke(app, ["settle"])
+    assert res.exit_code == 0 and "nothing to settle" in res.output

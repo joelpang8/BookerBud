@@ -125,3 +125,11 @@ def test_serve_redirects_and_stays_in_folder(tmp_path):
     finally:
         srv.shutdown()
         srv.server_close()
+
+
+def test_dashboard_has_performance_tab(report):
+    assert report.performance is not None and report.performance["recs"]["n"] == 0
+    doc = render_html(report)
+    assert 'data-tab="performance"' in doc and 'data-panel="performance"' in doc
+    assert "Nothing settled yet" in doc
+    assert "## Performance" in render_markdown(report)

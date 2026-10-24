@@ -77,6 +77,32 @@ def render_markdown(r: Report) -> str:
             extra = f": {'; '.join(g['lines'])}" if g["lines"] else ""
             out.append(f"- {SPORT.get(g['sport'], g['sport'])} {g['start_label']} {g['matchup']}{extra}")
         out.append("")
+    perf = r.performance
+    if perf:
+        rc, b = perf["recs"], perf["bets"]
+
+        def pc(x, signed=False, ratio=True):
+            if x is None:
+                return "–"
+            v = x * 100 if ratio else x
+            return f"{v:+.1f}%" if signed else f"{v:.1f}%"
+
+        out.append("## Performance")
+        out.append(f"- **Recommendations**: {rc['n']} plays, {rc['graded']} graded ({perf['pending']} pending), "
+                   f"hit {pc(rc['hit_rate'])}, CLV {pc(rc['clv'], True, False)}, beat close {pc(rc['beat_close'])}, "
+                   f"flat ROI {pc(rc['flat_roi'], True)}")
+        if b["n"]:
+            out.append(f"- **Your bets**: {b['n']} bets, profit ${b['profit']:+,.2f} on ${b['staked']:,.2f}, "
+                       f"ROI {pc(b['roi'], True)}, CLV {pc(b['clv'], True, False)}, beat close {pc(b['beat_close'])}")
+        else:
+            out.append("- **Your bets**: none logged yet")
+        if perf["edge_buckets"]:
+            out.append("")
+            out.append("| Predicted edge | Plays | Pred. win | Actual win | CLV | Flat ROI |")
+            out.append("|---|---|---|---|---|---|")
+            out += [f"| {x['bucket']} | {x['n']} | {pc(x['predicted'])} | {pc(x['hit_rate'])} | "
+                    f"{pc(x['clv'], True, False)} | {pc(x['flat_roi'], True)} |" for x in perf["edge_buckets"]]
+        out.append("")
     if r.skipped:
         out.append("<details><summary>Filtered out</summary>\n")
         out += [f"- {k}: {v}" for k, v in sorted(r.skipped.items(), key=lambda kv: -kv[1])]

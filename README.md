@@ -7,7 +7,7 @@ Underdog and Sleeper against sharp-book (Pinnacle) no-vig fair probabilities.
 > **Research only.** BookerBud never places bets and never logs into a betting
 > account. It reads odds from a data provider and writes reports.
 
-Status: **Phases 1–4 (data layer, edge engine, context filters, daily dashboard) are done.** See [CHANGELOG.md](CHANGELOG.md) and
+Status: **All five phases are built** (data layer, edge engine, context filters, daily dashboard, tracking). See [CHANGELOG.md](CHANGELOG.md) and
 [DECISIONS.md](DECISIONS.md).
 
 ## Setup
@@ -30,9 +30,27 @@ empty until a pick'em data source is added. See DECISIONS.md.
 ## Daily routine
 
 ```bash
-uv run betedge daily     # fetch odds + injuries/lineups/weather/rest, then write the dashboard
+uv run betedge daily     # settle yesterday, fetch odds + injuries/lineups/weather/rest, write the dashboard
 uv run betedge serve     # open the printed http://<your-computer-ip>:8765 link on your phone
 ```
+
+## Tracking what you bet
+
+```bash
+uv run betedge log --list              # today's recommendations, numbered
+uv run betedge log 3 --stake 20        # you took #3 at the shown price
+uv run betedge log 3 --stake 20 --price -120 --line 25   # ...at a different price/line
+uv run betedge log --player "jokic" --stat assists --side over --book fanduel --price -120 --stake 10   # not recommended
+uv run betedge bets                    # your bets with CLV and results
+uv run betedge performance --by stat   # ROI, CLV, hit rate, edge buckets, calibration
+```
+
+Every play the report shows is recorded automatically, whether or not you
+bet it. About 4 hours after a game starts, `betedge settle` (run by `daily`)
+records each book's closing line, the closing fair probability at **your**
+line, the CLV, and the result. It costs about 1 quota object per game that
+had a recommendation. The dashboard's **Performance** tab shows the same
+numbers.
 
 `daily` writes `data/reports/YYYY-MM-DD.html` (the dashboard), a `.md` copy,
 a `.json` copy, and `latest.html`. The dashboard is one self-contained file
@@ -130,6 +148,9 @@ src/bookerbud/
   report/html.py            responsive dashboard (phone + desktop, light + dark)
   report/markdown.py        Markdown copy of the report
   report/serve.py           read-only LAN server for viewing on your phone
+  storage/tracking.py       recommendations + bets tables
+  tracking/settle.py        closing lines, CLV, grading (with snapshot fallback)
+  tracking/performance.py   ROI, CLV, hit rate, edge buckets, calibration
   cli.py                    `betedge` commands
 tests/                      pytest; fixtures/ has one real SGO response + a synthetic NBA slate
 data/                       (gitignored) SQLite DB and raw API logs

@@ -56,9 +56,11 @@ class Report:
     skipped: dict[str, int]
     settings: dict
     totals: dict = field(default_factory=dict)
+    performance: dict | None = None
+    recommended: list = field(default_factory=list, repr=False)  # Edge objects shown (recorded for CLV)
 
     def to_json(self) -> str:
-        return json.dumps(self.__dict__, default=str, indent=1)
+        return json.dumps({k: v for k, v in self.__dict__.items() if k != "recommended"}, default=str, indent=1)
 
 
 def _local(dt: datetime, tz) -> datetime:
@@ -217,8 +219,10 @@ def build_report(
 
     # Plays
     plays: dict[str, list[dict]] = {}
+    recommended: list[Edge] = []
     for sp in sports:
         sp_edges = [e for e in res.edges if e.sport == sp.value][: rcfg.top_plays_per_sport]
+        recommended += sp_edges
         plays[sp.value] = [play_dict(e, events, tz, bankroll) for e in sp_edges]
 
     # Slips
@@ -252,6 +256,9 @@ def build_report(
         })
     games.sort(key=lambda g: g["start"])
 
+    from bookerbud.tracking.performance import summarize
+
+    performance = summarize(conn)
     all_plays = [p for ps in plays.values() for p in ps]
     totals = {
         "plays": len(all_plays),
@@ -262,7 +269,7 @@ def build_report(
     return Report(
         generated_at=generated_at or now, as_of=now, tz=settings.timezone, sports=[s.value for s in sports],
         freshness=freshness, quota=quota, warnings=warnings, plays=plays, slips=slip_rows, games=games,
-        skipped=dict(res.skipped), totals=totals,
+        skipped=dict(res.skipped), totals=totals, recommended=recommended, performance=performance,
         settings={"bankroll": bankroll, "kelly_fraction": cfg.bankroll.kelly_fraction,
                   "max_bet_pct": cfg.bankroll.max_bet_pct, "min_edge_pct": cfg.filters.min_edge_pct,
                   "states": settings.states, "plan": settings.plan, "max_line_age": max_age},

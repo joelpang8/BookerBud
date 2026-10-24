@@ -45,6 +45,34 @@ class FetchResult:
         self.truncated = self.truncated or other.truncated
 
 
+@dataclass
+class OddSettlement:
+    """Closing prices and the graded stat for one side of one market."""
+
+    odd_id: str
+    opposing_odd_id: str | None
+    stat_id: str
+    stat_entity: str
+    period: str
+    bet_type: str
+    side: str
+    score: float | None = None  # the stat value that decides the bet, when the provider supplies it
+    scoring_supported: bool | None = None
+    cancelled: bool = False
+    close: dict[str, tuple[int | None, float | None]] = field(default_factory=dict)  # book -> (price, line)
+
+
+@dataclass
+class EventSettlement:
+    event_id: str
+    started: bool
+    ended: bool
+    finalized: bool
+    cancelled: bool
+    results: dict = field(default_factory=dict)  # {period: {entity: {statID: value}}}
+    odds: dict[str, OddSettlement] = field(default_factory=dict)
+
+
 class OddsProvider(ABC):
     name: ClassVar[str]
 
@@ -73,6 +101,12 @@ class OddsProvider(ABC):
     ) -> FetchResult:
         """Events only (no odds), including finished games. Used for rest/back-to-back."""
         raise NotImplementedError(f"{self.name} has no schedule endpoint")
+
+    def fetch_settlement(
+        self, event_ids: list[str], bookmakers: list[str]
+    ) -> tuple[dict[str, EventSettlement], FetchResult]:
+        """Closing odds + results for specific (usually finished) events."""
+        raise NotImplementedError(f"{self.name} has no settlement endpoint")
 
     def usage(self) -> dict[str, Any] | None:
         """Quota/rate-limit info, if the provider exposes it."""

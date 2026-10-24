@@ -96,6 +96,35 @@ CREATE TABLE IF NOT EXISTS context_snapshots (
 );
 CREATE INDEX IF NOT EXISTS ix_ctx ON context_snapshots (sport, kind, key, fetched_at);
 
+-- Phase 5: every play the report recommended (taken or not), and bets you logged.
+-- Settlement columns (close_*, clv_pct, result, ...) are filled by `betedge settle`.
+CREATE TABLE IF NOT EXISTS recommendations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rec_day TEXT NOT NULL, first_seen_at TEXT NOT NULL, last_seen_at TEXT NOT NULL, times_seen INTEGER NOT NULL DEFAULT 1,
+    sport TEXT NOT NULL, league TEXT, event_id TEXT NOT NULL, start_time TEXT NOT NULL,
+    market_kind TEXT NOT NULL, entity TEXT, player TEXT, player_key TEXT, team TEXT, opponent TEXT,
+    stat_type TEXT NOT NULL, period TEXT NOT NULL, bet_type TEXT NOT NULL, side TEXT NOT NULL, line REAL,
+    bookmaker TEXT NOT NULL, payout_type TEXT NOT NULL, price_american INTEGER,
+    implied_prob REAL, fair_prob REAL, push_prob REAL, ev_pct REAL, confidence TEXT, fair_source TEXT, fair_books TEXT,
+    stake_suggested REAL, breakeven_slip TEXT, provider_market_id TEXT NOT NULL, is_alt_line INTEGER DEFAULT 0, notes TEXT,
+    close_source TEXT, close_at TEXT, close_line REAL, close_price INTEGER, close_fair_prob REAL, close_push_prob REAL,
+    close_books TEXT, clv_pct REAL, beat_close INTEGER, result TEXT, stat_value REAL, settled_at TEXT,
+    settle_attempts INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (rec_day, event_id, bookmaker, provider_market_id, line)
+);
+CREATE TABLE IF NOT EXISTS bets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL, rec_id INTEGER REFERENCES recommendations(id),
+    sport TEXT NOT NULL, league TEXT, event_id TEXT NOT NULL, start_time TEXT NOT NULL,
+    market_kind TEXT NOT NULL, entity TEXT, player TEXT, player_key TEXT, team TEXT, opponent TEXT,
+    stat_type TEXT NOT NULL, period TEXT NOT NULL, bet_type TEXT NOT NULL, side TEXT NOT NULL, line REAL,
+    bookmaker TEXT NOT NULL, payout_type TEXT NOT NULL, price_american INTEGER, stake REAL NOT NULL,
+    provider_market_id TEXT NOT NULL, is_alt_line INTEGER DEFAULT 0, fair_prob REAL, ev_pct REAL, notes TEXT,
+    close_source TEXT, close_at TEXT, close_line REAL, close_price INTEGER, close_fair_prob REAL, close_push_prob REAL,
+    close_books TEXT, clv_pct REAL, beat_close INTEGER, result TEXT, stat_value REAL, profit REAL, settled_at TEXT,
+    settle_attempts INTEGER NOT NULL DEFAULT 0
+);
+
 -- Which (sport, local date) schedules we hold in `events` in full.
 CREATE TABLE IF NOT EXISTS schedule_coverage (
     sport TEXT NOT NULL,
