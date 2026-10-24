@@ -659,10 +659,19 @@ def serve(
     from bookerbud.report.build import load_report_config
     from bookerbud.report.serve import Refresher, lan_addresses, load_or_create_key, make_server
 
+    from bookerbud.jobs import write_report
+
     settings = load_settings()
     out_dir = report_path(settings)
+    # Rebuild the page from stored data (no API calls) so it always matches the
+    # installed version, e.g. picks up the Refresh button right after `git pull`.
+    try:
+        write_report(settings, [Sport(s) for s in settings.sports if s in {x.value for x in Sport}],
+                     now=datetime.now(UTC))
+    except Exception as exc:  # serve whatever exists rather than failing
+        typer.secho(f"  couldn't rebuild the dashboard ({exc}); serving the last one", fg=typer.colors.YELLOW)
     if not (out_dir / "latest.html").exists():
-        typer.echo("No dashboard yet. Run `betedge report` first.")
+        typer.echo("No dashboard yet. Run `betedge daily` first.")
         raise typer.Exit(1)
     refresher = key = None
     if not no_refresh:

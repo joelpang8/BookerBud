@@ -2,6 +2,12 @@
 
 ## Follow-up (2026-10-24)
 
+### Fixed
+- The Refresh button didn't appear after `git pull` because the served page
+  was the old build. `serve` now rebuilds the dashboard from stored data on
+  start (no API calls). Opening it without the `?k=` key shows how to get the
+  button instead of hiding it silently.
+
 ### Added
 - **Refresh odds** button on the dashboard when it's viewed through
   `betedge serve`. It runs fetch, then context, then the report, in the

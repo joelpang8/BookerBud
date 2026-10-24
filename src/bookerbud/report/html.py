@@ -331,8 +331,16 @@ JS = r"""
     if (!box || location.protocol.indexOf('http') !== 0 || !window.fetch) return;
     var key = null;
     try { key = new URLSearchParams(location.search).get('k'); } catch (e) {}
-    if (!key) return;
     var btn = document.getElementById('refresh-btn'), msg = document.getElementById('refresh-msg');
+    if (!key) {
+      // Opened without the key: if this server can refresh, say how to get the button.
+      fetch('/api/status', { cache: 'no-store' }).then(function (r) {
+        if (r.status !== 403) return;
+        box.hidden = false; btn.hidden = true;
+        msg.textContent = 'To refresh odds from here, open the link that betedge serve prints (it ends in ?k=\u2026).';
+      }).catch(function () {});
+      return;
+    }
     var waiting = false;
     function api(method, path) {
       return fetch(path, { method: method, headers: { 'X-BookerBud-Key': key }, cache: 'no-store' })

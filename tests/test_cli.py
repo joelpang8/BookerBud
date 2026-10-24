@@ -102,9 +102,17 @@ def test_report_command_writes_files(cli_env, tmp_path):
     assert "LeBron James" in (out / "latest.html").read_text()
 
 
-def test_serve_without_report(cli_env):
+def test_serve_builds_a_page_even_before_any_fetch(cli_env, monkeypatch, tmp_path):
+    class Stop(Exception):
+        pass
+
+    def fake_make_server(*a, **k):
+        raise Stop
+
+    monkeypatch.setattr("bookerbud.report.serve.make_server", fake_make_server)
     res = runner.invoke(app, ["serve"])
-    assert res.exit_code == 1 and "betedge report" in res.output
+    assert isinstance(res.exception, Stop)  # got as far as starting the server
+    assert (tmp_path / "data" / "reports" / "latest.html").exists()
 
 
 def test_log_bets_and_performance_flow(cli_env):
@@ -145,3 +153,23 @@ def test_edges_sort_by_odds(cli_env):
     lines = res.output.splitlines()
     assert lines.index(next(l for l in lines if "+120" in l)) < lines.index(next(l for l in lines if "+105" in l))
     assert runner.invoke(app, ["edges", "--sort", "nope"]).exit_code != 0
+
+
+def test_serve_rebuilds_dashboard_before_serving(cli_env, monkeypatch, tmp_path):
+    """`serve` must refresh latest.html from stored data so a new version's
+    page (e.g. the Refresh button) shows up without running `report` first."""
+    assert runner.invoke(app, ["fetch", "--sport", "nba", "--replay", str(cli_env)]).exit_code == 0
+    out = tmp_path / "data" / "reports"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "latest.html").write_text("<p>old page</p>")
+
+    class Stop(Exception):
+        pass
+
+    def fake_make_server(*a, **k):
+        raise Stop
+
+    monkeypatch.setattr("bookerbud.report.serve.make_server", fake_make_server)
+    res = runner.invoke(app, ["serve"])
+    assert isinstance(res.exception, Stop)
+    assert 'id="refresh-btn"' in (out / "latest.html").read_text()
