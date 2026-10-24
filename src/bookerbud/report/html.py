@@ -328,7 +328,15 @@ JS = r"""
   // Refresh odds: talks to `betedge serve` on your computer; hidden anywhere else.
   (function () {
     var box = document.getElementById('refresh');
-    if (!box || location.protocol.indexOf('http') !== 0 || !window.fetch) return;
+    if (!box) return;
+    if (location.protocol === 'file:') {
+      // Opened as a file on the computer: refreshing needs the served page.
+      box.hidden = false; document.getElementById('refresh-btn').hidden = true;
+      document.getElementById('refresh-msg').textContent =
+        'This is the saved file. To refresh odds from the page, run betedge serve and open the link it prints (localhost:8765/?k=\u2026).';
+      return;
+    }
+    if (location.protocol.indexOf('http') !== 0 || !window.fetch) return;
     var key = null;
     try { key = new URLSearchParams(location.search).get('k'); } catch (e) {}
     var btn = document.getElementById('refresh-btn'), msg = document.getElementById('refresh-msg');

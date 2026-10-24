@@ -224,7 +224,7 @@ def build_report(
         if fetched and age is not None and age > max_age and n_events:
             warnings.append({"level": "warn", "text": (
                 f"{sp.value.upper()} lines are {age / 60:.1f} h old, older than the {max_age:.0f}-minute limit, "
-                "so its plays are hidden. Run `betedge fetch` for fresh prices.")})
+                "so its plays are hidden. Tap Refresh odds (or run `betedge daily`) for fresh prices.")})
         if n_events and use_context and ctx_at is None:
             warnings.append({"level": "warn", "text": f"No injury/lineup context for {sp.value.upper()} yet. Run `betedge context`."})
         sp_props = [p for p in a.props if p.sport is sp and p.market_kind.value == "player_prop"]
