@@ -225,3 +225,24 @@ def test_started_games_never_recommended(props):
     late = run(props, now=datetime(2026, 10, 25, 1, 5, tzinfo=UTC))  # LAL@DEN tipped at 01:00Z
     assert not [e for e in late.edges if e.event_id == "SYNTH_NBA_LAL_DEN"]
     assert late.skipped["game_started"] > 0
+
+
+def test_partial_periods_off_by_default(props):
+    q1 = [p.model_copy(update={"period": "1q", "provider_market_id": p.provider_market_id.replace("-game-", "-1q-")})
+          for p in props]
+    res = run(q1)
+    assert res.edges == [] and res.skipped["period_not_enabled"] > 0
+    c = cfg()
+    c.filters.periods = ["game", "1q"]
+    assert run(q1, c).edges  # opt-in works
+
+
+def test_period_scaled_models():
+    c = load_edge_config()
+    game = c.model_for("nba", "game_total")
+    q1 = c.model_for("nba", "game_total", "1q")
+    assert q1.sd == pytest.approx(game.sd * 0.5) and q1.max_gap == pytest.approx(game.max_gap * 0.5)
+    pts, pts_h = c.model_for("nba", "points"), c.model_for("nba", "points", "1h")
+    assert pts_h.cv == pytest.approx(pts.cv / 0.5 ** 0.5)
+    assert c.model_for("nba", "game_total", "weird").max_gap == 0.0
+    assert c.model_for("mlb", "total_bases", "1i").kind == "poisson"

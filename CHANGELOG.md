@@ -2,6 +2,11 @@
 
 ## Follow-up (2026-10-24)
 
+### Fixed
+- Top picks were dominated by 1st-quarter markets. Only full-game markets
+  are recommended by default now (`filters.periods`), and partial periods use
+  line-move models scaled to their length if you turn them on.
+
 ### Added
 - **Top 3 picks** box at the top of the dashboard's Today tab (and of the
   Markdown report). Picks are ranked by edge % × confidence weight (high 1.0,

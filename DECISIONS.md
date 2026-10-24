@@ -437,3 +437,23 @@ That leaves room for a second fetch closer to game time on busy days.
 - **Fix, part 2 (backstop):** if the API rejects another book, the provider
   drops it and retries once. It also remembers the book in
   `data/sgo_unavailable_books.json`, so later runs don't hit the error again.
+
+## Partial-period markets (2026-10-24)
+
+- **The first live dashboard's top picks were all 1st-quarter markets.** Two
+  causes:
+  1. On the free plan, fair odds are a consensus of books whose
+     quarter/half markets are thin, high-margin and out of step with each
+     other. That produces large noisy "edges".
+  2. A bug: the line-move model used full-game spreads of outcomes for
+     partial periods (e.g. an NBA total std. dev. of 18 points for a quarter
+     that's nearer 9). That overstated the value of a better line.
+- **Fix, part 1:** `config/edge.yaml → filters.periods: [game]`. Only
+  full-game markets are recommended by default. Partial periods are still
+  fetched and stored, and can be turned on.
+- **Fix, part 2:** models now scale by the share of the game a period covers
+  (f = ½ for halves, ¼ for quarters, ⅑ for innings):
+  - margin/total sd × √f;
+  - player-stat cv ÷ √f;
+  - max line move × √f;
+  - unknown periods never move lines.

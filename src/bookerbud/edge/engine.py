@@ -249,9 +249,12 @@ def find_edges(
 
     for _, rows in group_markets(props).items():
         pairs = book_pairs(rows, cfg.devig_method)
-        model = cfg.model_for(rows[0].sport.value, model_key(rows[0]))
+        model = cfg.model_for(rows[0].sport.value, model_key(rows[0]), rows[0].period)
         for r in rows:
             if r.bookmaker not in cfg.filters.bet_books:
+                continue
+            if r.period not in cfg.filters.periods:
+                skipped["period_not_enabled"] += 1
                 continue
             if not r.available:
                 skipped["closed"] += 1

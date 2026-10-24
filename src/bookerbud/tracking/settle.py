@@ -195,7 +195,7 @@ def closing_value(row, props: list[Prop], cfg: EdgeConfig, settings: Settings, p
     if not props:
         return None
     pairs = book_pairs(props, cfg.devig_method)
-    model = cfg.model_for(row["sport"], _model_key(row))
+    model = cfg.model_for(row["sport"], _model_key(row), row["period"])
     is_over, thr = to_threshold(row["bet_type"], row["side"], row["line"])
     fair, _ = fair_for(row["bookmaker"], thr, pairs, settings.bookmakers.sharp, model, cfg)
     if fair is None:

@@ -13,6 +13,10 @@ filters:
   max_line_age_minutes: 30     # SGO free tier refreshes every ~10 min
   max_ev_pct: 25.0             # anything above this is almost surely bad data -> flagged, not shown
   bet_books: [draftkings, fanduel, prizepicks, underdog, sleeper]
+  # Game periods to recommend. Partial periods (1st quarter/half, single innings)
+  # are thin, noisy markets on the free plan and dominated the first live run with
+  # mostly fake edges, so only full games by default. To try them: [game, 1h, 1q]
+  periods: [game]
 
 bankroll:
   amount: 1000                 # dollars
@@ -29,7 +33,8 @@ slips:
   same_game_penalty: 0.97
   min_teams: 2                 # PrizePicks/Underdog require 2+ teams per entry
 
-# Line-adjustment models (src/bookerbud/edge/lines.py). max_gap = the most
+# Line-adjustment models (src/bookerbud/edge/lines.py). Values are for a FULL
+# game; partial periods are scaled automatically (see EdgeConfig.model_for). max_gap = the most
 # we'll move a line before skipping the play. sigma = cv * line for player stats;
 # fixed sd for game margins/totals. These sds/cvs are starting assumptions
 # (roughly typical game-to-game spread), to be checked against Phase 5 calibration.

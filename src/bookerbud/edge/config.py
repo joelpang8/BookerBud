@@ -18,8 +18,19 @@ class FairCfg(BaseModel):
     require_sharp: bool = False
 
 
+# Share of a full game each period covers, for scaling line-move models.
+PERIOD_FRACTION = {
+    "game": 1.0, "reg": 1.0, "1h": 0.5, "2h": 0.5,
+    "1q": 0.25, "2q": 0.25, "3q": 0.25, "4q": 0.25,
+    **{f"{i}i": 1 / 9 for i in range(1, 10)},
+}
+
+
 class FilterCfg(BaseModel):
     min_edge_pct: float = 2.0
+    # Which game periods to recommend. Partial periods (1h, 1q, ...) have thin,
+    # noisy markets on the free plan, so only full games by default.
+    periods: list[str] = Field(default_factory=lambda: ["game"])
     max_line_age_minutes: float = 30
     max_ev_pct: float = 25.0
     bet_books: list[str] = Field(default_factory=lambda: ["draftkings", "fanduel", "prizepicks", "underdog", "sleeper"])
@@ -48,10 +59,24 @@ class EdgeConfig(BaseModel):
     slips: SlipCfg = Field(default_factory=SlipCfg)
     stat_models: dict = Field(default_factory=dict)
 
-    def model_for(self, sport: str, key: str) -> StatModel:
-        spec = (self.stat_models.get(sport) or {}).get(key) or self.stat_models.get("default") or {
+    def model_for(self, sport: str, key: str, period: str = "game") -> StatModel:
+        """Line-move model for a market. The configured sds/cvs describe a full
+        game; shorter periods are scaled: a period covering a fraction f of the
+        game has sd x sqrt(f) on margins/totals, relative spread cv / sqrt(f) on
+        player stats, and max line move x sqrt(f). Unknown periods never move lines."""
+        spec = dict((self.stat_models.get(sport) or {}).get(key) or self.stat_models.get("default") or {
             "kind": "normal", "cv": 0.35, "max_gap": 1.0,
-        }
+        })
+        f = PERIOD_FRACTION.get(period)
+        if f is None:
+            spec["max_gap"] = 0.0
+        elif f != 1.0:
+            root = f ** 0.5
+            if spec.get("sd") is not None:
+                spec["sd"] = spec["sd"] * root
+            elif spec.get("cv") is not None:
+                spec["cv"] = spec["cv"] / root
+            spec["max_gap"] = spec["max_gap"] * root
         return StatModel(**spec)
 
 
