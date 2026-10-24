@@ -55,7 +55,7 @@ def _metrics(df: pd.DataFrame, *, bets: bool) -> dict[str, Any]:
         "beat_close": float(beat.mean()) if len(beat) else None,
     }
     if bets:
-        settled = df[df["profit"].notna()] if len(df) else df
+        settled = df[df["profit"].notna() & (df["stake"] > 0)] if len(df) else df  # no-stake bets: hit rate/CLV only
         staked = float(settled["stake"].sum()) if len(settled) else 0.0
         prof = float(settled["profit"].sum()) if len(settled) else 0.0
         out.update(staked=staked, profit=prof, roi=prof / staked if staked else None)

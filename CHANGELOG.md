@@ -2,6 +2,19 @@
 
 ## Follow-up (2026-10-24)
 
+### Added
+- **Note bets you placed, from the dashboard** (served link with key):
+  - **Mark placed** on each pick, with stake optional and price prefilled.
+    The card then shows "✓ Placed".
+  - A **Your bets** section under Top picks lists today's noted bets with
+    their result.
+  - **Log a bet that isn't listed** form (player, stat, side, line, book,
+    price, stake), matched against today's odds.
+  - `POST /api/bets` on `betedge serve`, behind the same key as Refresh.
+  - `betedge log` now has an optional stake and shares the same matching
+    code (`tracking/logbets.py`).
+- Bets with no stake count toward hit rate and CLV, not ROI.
+
 ### Fixed
 - The Refresh button didn't appear after `git pull` because the served page
   was the old build. `serve` now rebuilds the dashboard from stored data on

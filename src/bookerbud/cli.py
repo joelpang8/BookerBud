@@ -454,7 +454,7 @@ def _rec_line(r) -> str:
 @app.command()
 def log(
     rec_id: Annotated[int | None, typer.Argument(help="Recommendation # from `betedge log --list`")] = None,
-    stake: Annotated[float | None, typer.Option(help="Dollars you staked")] = None,
+    stake: Annotated[float | None, typer.Option(help="Dollars you staked (optional: leave out to just note the bet)")] = None,
     price: Annotated[int | None, typer.Option(help="American odds you actually got (default: the recommended price)")] = None,
     line: Annotated[float | None, typer.Option(help="Line you actually got (default: the recommended line)")] = None,
     list_: Annotated[bool, typer.Option("--list", help="Show today's recommendations with their #")] = False,
@@ -476,67 +476,20 @@ def log(
             rows = recommendations_for_day(conn, d)
             typer.echo("\n".join(_rec_line(r) for r in rows) if rows else f"No recommendations recorded for {d}. Run `betedge report`.")
             return
-        if stake is None or stake <= 0:
-            raise typer.BadParameter("--stake is required (dollars, > 0)")
-        if rec_id is not None:
-            r = get_recommendation(conn, rec_id)
-            if r is None:
-                raise typer.BadParameter(f"No recommendation #{rec_id}. See `betedge log --list`.")
-            bet = {k: r[k] for k in ("sport", "league", "event_id", "start_time", "market_kind", "entity", "player",
-                                    "player_key", "team", "opponent", "stat_type", "period", "bet_type", "side",
-                                    "bookmaker", "payout_type", "provider_market_id", "is_alt_line", "fair_prob", "ev_pct")}
-            bet.update(rec_id=rec_id, line=r["line"] if line is None else line,
-                       price_american=r["price_american"] if price is None else price)
-        else:
-            bet = _bet_from_snapshot(conn, settings, player, team, stat, side, bet_type, book, line, price)
-        bet.update(stake=stake, notes=note)
-        if bet["payout_type"] != "pickem" and bet["price_american"] is None:
-            raise typer.BadParameter("--price is required for sportsbook bets")
-        bet_id = insert_bet(conn, bet)
-        who = bet["player"] or bet["team"] or "Game total"
-        typer.echo(f"Logged bet #{bet_id}: {who} {bet['side']} {bet['line'] if bet['line'] is not None else ''} "
-                   f"{bet['stat_type']} @ {bet['bookmaker']} {_american(bet['price_american'])} for ${stake:.2f}")
+        from bookerbud.tracking.logbets import BetError, bet_from_market, bet_from_rec, describe, place
+
+        try:
+            if rec_id is not None:
+                bet = bet_from_rec(conn, rec_id, line=line, price=price)
+            else:
+                bet = bet_from_market(conn, player=player, team=team, stat=stat, side=side, bet_type=bet_type,
+                                      book=book, line=line, price=price)
+            bet_id, bet = place(conn, bet, stake=stake, note=note)
+        except BetError as exc:
+            raise typer.BadParameter(str(exc)) from exc
+        typer.echo(f"Logged bet #{bet_id}: {describe(bet)}")
     finally:
         conn.close()
-
-
-def _bet_from_snapshot(conn, settings, player, team, stat, side, bet_type, book, line, price) -> dict:
-    if not (player or team) or not side or not book:
-        raise typer.BadParameter("Give a recommendation #, or --player/--team with --side and --book")
-    from bookerbud.normalize.names import normalize_name
-
-    props = load_latest_props(conn, [s.value for s in Sport])
-    want_bt = bet_type or ("ou" if player else None)
-    want_stat = stat or ("points" if player else None)
-
-    def matches(p) -> bool:
-        if p.bookmaker != book or p.side != side or p.is_alt_line:
-            return False
-        if player:
-            if not (p.player and normalize_name(player) in normalize_name(p.player)):
-                return False
-        elif p.player or not (p.team and team.lower() in p.team.lower()):
-            return False  # team bets are game lines for that team
-        if want_stat and p.stat_type != want_stat:
-            return False
-        return not want_bt or p.bet_type == want_bt
-
-    cands = [p for p in props if matches(p)]
-    keys = {(p.event_id, p.provider_market_id, p.period) for p in cands}
-    if not cands:
-        raise typer.BadParameter("No matching market in the latest snapshot. Check --book/--side/--stat.")
-    if len(keys) > 1:
-        lines = sorted({f"{p.player or p.team} {p.stat_type} [{p.period}] {p.bet_type} {p.line}" for p in cands})
-        raise typer.BadParameter("Several markets match; narrow with --stat/--bet-type:\n  " + "\n  ".join(lines[:10]))
-    p = next(c for c in cands if c.period == "game") if any(c.period == "game" for c in cands) else cands[0]
-    return {
-        "sport": p.sport.value, "league": p.league, "event_id": p.event_id, "start_time": p.start_time.isoformat(),
-        "market_kind": p.market_kind.value, "entity": p.entity, "player": p.player, "player_key": p.player_key,
-        "team": p.team, "opponent": p.opponent, "stat_type": p.stat_type, "period": p.period, "bet_type": p.bet_type,
-        "side": p.side, "bookmaker": p.bookmaker, "payout_type": p.payout_type.value,
-        "provider_market_id": p.provider_market_id, "is_alt_line": 0, "line": p.line if line is None else line,
-        "price_american": p.price_american if price is None else price, "rec_id": None,
-    }
 
 
 @app.command()
@@ -655,7 +608,7 @@ def serve(
     no_refresh: Annotated[bool, typer.Option(help="Hide the dashboard's Refresh odds button (read-only)")] = False,
 ) -> None:
     """Serve the dashboard to your phone/computer over your home network (Ctrl+C to stop)."""
-    from bookerbud.jobs import refresh_odds, report_path
+    from bookerbud.jobs import log_bet_action, refresh_odds, report_path
     from bookerbud.report.build import load_report_config
     from bookerbud.report.serve import Refresher, lan_addresses, load_or_create_key, make_server
 
@@ -678,7 +631,8 @@ def serve(
         key = load_or_create_key(settings.raw_dir.parent / "serve_key.txt")
         cooldown = load_report_config().refresh_cooldown_minutes * 60
         refresher = Refresher(lambda: refresh_odds(settings), cooldown)
-    server = make_server(out_dir, host, port, refresher=refresher, key=key)
+    server = make_server(out_dir, host, port, refresher=refresher, key=key,
+                         bet_action=(lambda payload: log_bet_action(settings, payload)) if key else None)
     q = f"/?k={key}" if key else "/"
     typer.echo(f"Serving {out_dir}. On this computer: http://localhost:{port}{q}")
     if host == "0.0.0.0":

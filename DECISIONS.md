@@ -515,3 +515,19 @@ That leaves room for a second fetch closer to game time on busy days.
 - The button only appears when the page is loaded over http with a key and
   the server answers. In a file opened directly, or in the shared preview,
   it stays hidden.
+
+## Noting placed bets from the dashboard (2026-10-24)
+
+- Placing stays manual: BookerBud never touches a sportsbook account. The
+  dashboard only records what you tell it you placed.
+- `POST /api/bets` reuses the refresh key. Writing to the database is as
+  sensitive as spending quota, so viewers on the Wi-Fi without the key get
+  403.
+- **Stake is optional**, because noting a bet should be one tap. A stake of
+  0 means "not recorded": the bet counts for hit rate and CLV but is left
+  out of ROI, so it doesn't skew ROI.
+- A bet that isn't one of the recommendations is matched against the latest
+  stored odds by player name, stat, side and book. If that's ambiguous, it
+  asks for a fuller name instead of guessing.
+- After saving, the page is rebuilt from stored data, with no API calls and
+  no quota cost.

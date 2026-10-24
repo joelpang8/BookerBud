@@ -8,6 +8,7 @@ latest.html, keeping the query string (which carries the key).
 API (only when started with a refresh job and key):
   GET  /api/status   -> refresh state + quota          (header X-BookerBud-Key)
   POST /api/refresh  -> start fetch + context + report  (202 started, 409 running, 429 cooling down)
+  POST /api/bets     -> note a bet you placed (JSON body)  (200 saved, 400 couldn't match)
 """
 
 from __future__ import annotations
@@ -85,9 +86,13 @@ class Refresher:
                 "result": self.result, "error": self.error, "cooldown_left": cooldown_left if self.started_at else 0}
 
 
+MAX_BODY = 4096
+
+
 class ReportHandler(SimpleHTTPRequestHandler):
     refresher: Refresher | None = None
     key: str | None = None
+    bet_action: Callable[[dict], tuple[int, dict]] | None = None
 
     # ---------------------------------------------------------------- helpers
     def _json(self, code: int, body: dict) -> None:
@@ -107,14 +112,28 @@ class ReportHandler(SimpleHTTPRequestHandler):
         path = urlsplit(self.path).path
         if not path.startswith("/api/"):
             return False
-        if self.refresher is None:
+        if self.refresher is None and self.bet_action is None:
             self._json(404, {"error": "refresh is disabled on this server"})
         elif not self._authorised():
             self._json(403, {"error": "missing or wrong key: open the link printed by `betedge serve`"})
         elif path == "/api/status" and self.command == "GET":
-            self._json(200, self.refresher.status())
-        elif path == "/api/refresh" and self.command == "POST":
+            self._json(200, self.refresher.status() if self.refresher else {"running": False})
+        elif path == "/api/refresh" and self.command == "POST" and self.refresher:
             code, body = self.refresher.start()
+            self._json(code, body)
+        elif path == "/api/bets" and self.command == "POST" and self.bet_action:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > MAX_BODY:
+                self._json(413, {"error": "request too large"})
+                return True
+            try:
+                payload = json.loads(self.rfile.read(length) or b"{}")
+                if not isinstance(payload, dict):
+                    raise ValueError
+            except ValueError:
+                self._json(400, {"error": "body must be a JSON object"})
+                return True
+            code, body = type(self).bet_action(payload)
             self._json(code, body)
         else:
             self._json(404, {"error": "unknown endpoint"})
@@ -181,9 +200,11 @@ def load_or_create_key(path: Path) -> str:
 
 
 def make_server(
-    directory: Path, host: str, port: int, *, refresher: Refresher | None = None, key: str | None = None
+    directory: Path, host: str, port: int, *, refresher: Refresher | None = None, key: str | None = None,
+    bet_action: Callable[[dict], tuple[int, dict]] | None = None,
 ) -> ThreadingHTTPServer:
-    handler_cls = type("BookerBudHandler", (ReportHandler,), {"refresher": refresher, "key": key})
+    handler_cls = type("BookerBudHandler", (ReportHandler,),
+                       {"refresher": refresher, "key": key, "bet_action": staticmethod(bet_action) if bet_action else None})
 
     def factory(*args, **kwargs):
         return handler_cls(*args, directory=str(directory), **kwargs)

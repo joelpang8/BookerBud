@@ -129,11 +129,12 @@ def test_log_bets_and_performance_flow(cli_env):
     ambiguous = runner.invoke(app, ["log", "--player", "lebron", "--stat", "points", "--side", "over", "--book", "nobody",
                                     "--stake", "5"])
     assert ambiguous.exit_code != 0
-    assert runner.invoke(app, ["log", "1"]).exit_code != 0  # stake required
+    no_stake = runner.invoke(app, ["log", "2"])  # just noting the bet: stake optional
+    assert no_stake.exit_code == 0 and "no stake recorded" in no_stake.output
     bets = runner.invoke(app, ["bets"])
     assert "Nikola Jokić" in bets.output and "fanduel" in bets.output
     perf = runner.invoke(app, ["performance"])
-    assert perf.exit_code == 0 and "Your bets" in perf.output and "2 bets" in perf.output
+    assert perf.exit_code == 0 and "Your bets" in perf.output and "3 bets" in perf.output
 
 
 def test_settle_command_nothing_pending(cli_env):

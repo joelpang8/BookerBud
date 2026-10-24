@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -22,6 +22,7 @@ from bookerbud.pipeline import analyze, quota_status
 from bookerbud.report import text
 from bookerbud.report.form import form_for
 from bookerbud.storage import events_by_id, latest_context_time, latest_run_ids, run_info
+from bookerbud.storage.tracking import record_recommendations, recommendations_for_day
 
 
 class ReportCfg(BaseModel):
@@ -62,6 +63,7 @@ class Report:
     settings: dict
     totals: dict = field(default_factory=dict)
     performance: dict | None = None
+    my_bets: list[dict] = field(default_factory=list)  # bets you noted for today's games
     top_picks: list[dict] = field(default_factory=list)  # across all sports
     top_picks_by_sport: dict[str, list[dict]] = field(default_factory=dict)  # "nba" -> that sport's top picks
     recommended: list = field(default_factory=list, repr=False)  # Edge objects shown (recorded for CLV)
@@ -119,6 +121,8 @@ def play_dict(e: Edge, events: dict, tz, bankroll: float) -> dict:
         "reason": text.reason(e),
         "driver": text.key_driver(e),
         "deeplink": e.deeplink,
+        "odd_id": e.provider_market_id,
+        "event_id": e.event_id,
     }
 
 
@@ -140,6 +144,31 @@ def slip_dict(s: Slip, events: dict, tz, bankroll: float) -> dict:
             for l, p in zip(s.legs, s.probs)
         ],
     }
+
+
+def bets_for_day(conn: sqlite3.Connection, now: datetime, tz) -> list[dict]:
+    """Bets whose game is today or later (local), plus any noted today."""
+    start = datetime.combine(now.astimezone(tz).date(), datetime.min.time(), tzinfo=tz)
+    rows = conn.execute(
+        "SELECT * FROM bets WHERE start_time >= ? OR created_at >= ? ORDER BY start_time, id",
+        (start.astimezone(UTC).isoformat(), start.astimezone(UTC).isoformat()),
+    ).fetchall()
+    out = []
+    for b in rows:
+        st = datetime.fromisoformat(b["start_time"]).astimezone(tz)
+        line = "" if b["line"] is None else f" {text.line_str(b['line'], signed=b['bet_type'] == 'sp')}"
+        stat = text.StatMatcher(b["sport"]).display(b["stat_type"])
+        side = {"home": "", "away": ""}.get(b["side"], b["side"].title() + " ")
+        what = {"ml": "Moneyline", "sp": f"Spread{line}"}.get(b["bet_type"], f"{side}{line.strip()} {stat}".strip())
+        out.append({
+            "id": b["id"], "who": b["player"] or b["team"] or "Game total", "market": what,
+            "book_label": text.book(b["bookmaker"]),
+            "price": text.american(b["price_american"]) if b["price_american"] is not None else "Pick'em",
+            "stake": b["stake"] or 0.0, "result": b["result"], "profit": b["profit"],
+            "start_label": st.strftime("%I:%M %p").lstrip("0"), "day": f"{st.month}/{st.day}",
+            "from_pick": b["rec_id"] is not None,
+        })
+    return out
 
 
 def pick_top(plays: dict[str, list[dict]], rcfg: ReportCfg) -> list[dict]:
@@ -270,6 +299,20 @@ def build_report(
     for sport_plays in plays.values():
         for i, p in enumerate(sport_plays):
             p["anchor"] = f"play-{p['sport']}-{i + 1}"
+    # Record what's shown (for CLV/performance) and link each card to its
+    # recommendation #, so "Mark placed" knows what you bet and placed cards show it.
+    rec_day = now.astimezone(tz).date().isoformat()
+    record_recommendations(conn, recommended, rec_day, datetime.now(UTC))
+    ids = {(r["event_id"], r["bookmaker"], r["provider_market_id"], r["line"]): r["id"]
+           for r in recommendations_for_day(conn, rec_day)}
+    placed = {r["rec_id"]: dict(r) for r in conn.execute("SELECT * FROM bets WHERE rec_id IS NOT NULL")}
+    for sport_plays in plays.values():
+        for p in sport_plays:
+            p["rec_id"] = ids.get((p["event_id"], p["book"], p["odd_id"], p["line"]))
+            b = placed.get(p["rec_id"])
+            p["placed"] = ({"stake": b["stake"], "price": text.american(b["price_american"]) if b["price_american"] is not None else "pick'em"}
+                           if b else None)
+    my_bets = bets_for_day(conn, now, tz)
     top_picks = pick_top(plays, rcfg)
     top_by_sport = {sp: pick_top({sp: ps}, rcfg) for sp, ps in plays.items()}
     top_anchors = {p["anchor"] for p in top_picks} | {p["anchor"] for ps in top_by_sport.values() for p in ps}
@@ -322,7 +365,7 @@ def build_report(
         generated_at=generated_at or now, as_of=now, tz=settings.timezone, sports=[s.value for s in sports],
         freshness=freshness, quota=quota, warnings=warnings, plays=plays, slips=slip_rows, games=games,
         skipped=dict(res.skipped), totals=totals, recommended=recommended, performance=performance,
-        top_picks=top_picks, top_picks_by_sport=top_by_sport,
+        top_picks=top_picks, top_picks_by_sport=top_by_sport, my_bets=my_bets,
         settings={"bankroll": bankroll, "kelly_fraction": cfg.bankroll.kelly_fraction,
                   "max_bet_pct": cfg.bankroll.max_bet_pct, "min_edge_pct": cfg.filters.min_edge_pct,
                   "states": settings.states, "plan": settings.plan, "max_line_age": max_age,

@@ -215,6 +215,29 @@ svg .zero { stroke: var(--line); stroke-width: 1; }
 .pick .mini { grid-column: 2 / 4; display: flex; align-items: center; gap: 8px; font-size: .78rem; color: var(--muted); }
 .pick .mini svg { width: 120px; height: 28px; flex: 0 0 auto; }
 
+/* Placed bets */
+.placed { font-size: .84rem; font-weight: 600; color: var(--good); background: var(--good-soft); border-radius: 8px; padding: 6px 10px; justify-self: start; }
+.mark { display: grid; gap: 8px; }
+.mbtn, .fbtn { border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 8px; padding: 7px 14px; font-weight: 600; font-size: .86rem; cursor: pointer; justify-self: start; }
+.fbtn.primary { background: var(--accent); color: var(--accent-ink); }
+.mform, .logform form { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.mform label, .logform label { display: grid; gap: 3px; font-size: .74rem; color: var(--muted); font-weight: 600; }
+.mform input, .logform input, .logform select { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; width: 7.5em; }
+.logform input[name="player"] { width: 12em; }
+.mmsg { flex-basis: 100%; font-size: .8rem; color: var(--muted); }
+.mmsg.err { color: var(--bad); }
+.mybets { margin-block: 0 14px; }
+.mybets h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; margin: 0 0 8px; letter-spacing: .02em; }
+.mybets ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.mybets li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+.mybets li small { color: var(--muted); font-size: .8rem; }
+.mybets .res { align-self: center; font-size: .78rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+.mybets .res.win { background: var(--good-soft); color: var(--good); }
+.mybets .res.loss { background: var(--chip); color: var(--bad); }
+.mybets .empty { margin: 0; }
+.logform { margin-top: 8px; }
+.logform summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: .88rem; padding-block: 4px; }
+
 /* Top picks */
 .top { margin-block: 4px 14px; }
 .top h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .02em; margin: 0 0 8px; }
@@ -381,8 +404,37 @@ JS = r"""
         } else { busy(false); msg.textContent = r.body.error || ('Error ' + r.code); }
       }).catch(function () { busy(false); msg.textContent = 'Could not reach your computer. Is betedge serve still running?'; });
     });
+    function postBet(payload, form) {
+      var m = form.querySelector('.mmsg'); m.className = 'mmsg'; m.textContent = 'Saving\u2026';
+      fetch('/api/bets', { method: 'POST', headers: { 'X-BookerBud-Key': key, 'Content-Type': 'application/json' },
+                           body: JSON.stringify(payload), cache: 'no-store' })
+        .then(function (r) { return r.json().then(function (b) { return { code: r.status, body: b }; }); })
+        .then(function (r) {
+          if (r.code === 200) { m.textContent = 'Saved: ' + r.body.text; setTimeout(function () { location.reload(); }, 600); }
+          else { m.className = 'mmsg err'; m.textContent = r.body.error || ('Error ' + r.code); }
+        })
+        .catch(function () { m.className = 'mmsg err'; m.textContent = 'Could not reach your computer. Is betedge serve still running?'; });
+    }
+    document.addEventListener('click', function (ev) {
+      var mk = ev.target.closest('[data-mark]');
+      if (mk) { mk.hidden = true; mk.parentNode.querySelector('.mform').hidden = false; return; }
+      var cancel = ev.target.closest('[data-cancel]');
+      if (cancel) { var f = cancel.closest('.mform'); f.hidden = true; f.parentNode.querySelector('[data-mark]').hidden = false; }
+    });
+    document.addEventListener('submit', function (ev) {
+      var f = ev.target;
+      if (f.classList.contains('mform')) {
+        ev.preventDefault();
+        postBet({ rec_id: f.dataset.rec, stake: f.stake.value, price: f.price.value }, f);
+      } else if (f.id === 'logbet') {
+        ev.preventDefault();
+        postBet({ player: f.player.value, stat: f.stat.value, side: f.side.value, line: f.line.value,
+                  book: f.book.value, price: f.price.value, stake: f.stake.value }, f);
+      }
+    });
     api('GET', '/api/status').then(function (r) {
       if (r.code !== 200) return;
+      document.querySelectorAll('.need-key').forEach(function (el) { el.hidden = false; });
       box.hidden = false;
       if (r.body.running) { waiting = true; poll(); }
       else if (r.body.result) { msg.textContent = 'Last refresh: ' + r.body.result.plays + ' plays, quota ' + r.body.result.quota; }
@@ -489,6 +541,57 @@ def _why_block(p: dict, open_: bool) -> str:
     return f'<details class="why"{" open" if open_ else ""}><summary>Why this pick</summary><dl>{items}</dl></details>'
 
 
+def _placed_block(p: dict) -> str:
+    if p.get("placed"):
+        b = p["placed"]
+        stake = f'${b["stake"]:.2f} ' if b.get("stake") else ""
+        return f'<div class="placed">\u2713 Placed \u00b7 {stake}@ {_e(b["price"])}</div>'
+    rec = p.get("rec_id")
+    if not rec:
+        return ""
+    price = "" if p["kind"] == "pickem" else _e(p["price"]).replace("\u2212", "-")
+    return (f'<div class="mark need-key" hidden><button class="mbtn" type="button" data-mark="{rec}">Mark placed</button>'
+            f'<form class="mform" data-rec="{rec}" hidden>'
+            f'<label for="stake-{rec}">Stake $<input id="stake-{rec}" name="stake" inputmode="decimal" placeholder="optional"></label>'
+            f'<label for="price-{rec}">Price<input id="price-{rec}" name="price" inputmode="numeric" value="{price}"></label>'
+            f'<button class="fbtn primary" type="submit">Save</button><button class="fbtn" type="button" data-cancel>Cancel</button>'
+            f'<span class="mmsg" role="status"></span></form></div>')
+
+
+def _my_bets(r: Report) -> str:
+    rows = []
+    for b in r.my_bets:
+        stake = f' \u00b7 ${b["stake"]:.2f}' if b["stake"] else ""
+        res = b["result"] or "pending"
+        label = {"win": "Won", "loss": "Lost", "push": "Push", "void": "Void", "ungradable": "No result",
+                 "pending": "Pending"}.get(res, res)
+        if b["result"] in ("win", "loss") and b["profit"] is not None and b["stake"]:
+            label += f' {b["profit"]:+.2f}'
+        rows.append(f'<li><span><b>{_e(b["who"])}</b> {_e(b["market"])}<br><small>{_e(b["book_label"])} {_e(b["price"])}{stake}'
+                     f' \u00b7 {_e(b["day"])} {_e(b["start_label"])}</small></span><span class="res {_e(res)}">{_e(label)}</span></li>')
+    body = (f'<ul>{"".join(rows)}</ul>' if rows else
+            '<p class="empty">No bets noted for today\'s games. Tap Mark placed on a pick, or log one below.</p>')
+    stats = [("points", "Points"), ("rebounds", "Rebounds"), ("assists", "Assists"), ("threes_made", "3-PT Made"),
+             ("pts_reb_ast", "Pts+Rebs+Asts"), ("pts_reb", "Pts+Rebs"), ("pts_ast", "Pts+Asts"), ("reb_ast", "Rebs+Asts"),
+             ("steals", "Steals"), ("blocks", "Blocks"), ("passing_yards", "Pass Yards"), ("rushing_yards", "Rush Yards"),
+             ("receiving_yards", "Receiving Yards"), ("receptions", "Receptions"), ("total_bases", "Total Bases"),
+             ("hits", "Hits"), ("pitcher_strikeouts", "Pitcher Strikeouts")]
+    opts = "".join(f'<option value="{k}">{_e(v)}</option>' for k, v in stats)
+    form = (
+        '<details class="logform need-key" hidden><summary>Log a bet that isn\'t listed</summary>'
+        '<form id="logbet">'
+        '<label for="lb-player">Player<input id="lb-player" name="player" required placeholder="e.g. Keon Ellis"></label>'
+        f'<label for="lb-stat">Stat<select id="lb-stat" name="stat">{opts}</select></label>'
+        '<label for="lb-side">Side<select id="lb-side" name="side"><option value="over">Over</option><option value="under">Under</option></select></label>'
+        '<label for="lb-line">Line<input id="lb-line" name="line" inputmode="decimal" placeholder="5.5"></label>'
+        '<label for="lb-book">Book<select id="lb-book" name="book"><option value="draftkings">DraftKings</option><option value="fanduel">FanDuel</option></select></label>'
+        '<label for="lb-price">Price<input id="lb-price" name="price" inputmode="numeric" placeholder="optional"></label>'
+        '<label for="lb-stake">Stake $<input id="lb-stake" name="stake" inputmode="decimal" placeholder="optional"></label>'
+        '<button class="fbtn primary" type="submit">Save</button><span class="mmsg" role="status"></span></form></details>'
+    )
+    return f'<section class="mybets" aria-label="Your bets"><h2>Your bets</h2>{body}{form}</section>'
+
+
 def _ticket(p: dict) -> str:
     alt = '<span class="alt">alt line</span>' if p["alt"] else ""
     stake = (f'<div class="stake"><small>Stake</small>${p["stake"]:.2f}<em>{p["stake_pct"]:.1f}% of bankroll</em></div>'
@@ -509,6 +612,7 @@ def _ticket(p: dict) -> str:
 {_form_block(p)}
 <div class="perf" aria-hidden="true"></div>
 <div class="t-foot"><div class="edge"><small>Edge</small>{p["edge_pct"]:+.1f}%</div>{stake}<span class="conf {p["confidence"]}">{CONF.get(p["confidence"], p["confidence"])}</span></div>
+{_placed_block(p)}
 {f'<ul class="notes">{notes}</ul>' if notes else ''}
 <p class="reason">{_e(p["reason"])}</p>
 {_why_block(p, p.get("is_top", False))}
@@ -781,6 +885,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 <div data-panel="today">
 <div class="wrap">
 {_top_section(r)}
+{_my_bets(r)}
 <div class="board">
 <div><span class="eyebrow">Plays</span><b>{t["plays"]}</b><small>edge ≥ {s["min_edge_pct"]:g}%</small></div>
 <div><span class="eyebrow">Best edge</span><b class="pos">{best}</b><small>expected return</small></div>

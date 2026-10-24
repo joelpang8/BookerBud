@@ -50,6 +50,15 @@ uv run betedge bets                    # your bets with CLV and results
 uv run betedge performance --by stat   # ROI, CLV, hit rate, edge buckets, calibration
 ```
 
+**From the dashboard:** open the `betedge serve` link (with `?k=...`) and
+tap **Mark placed** on a pick. Stake is optional and the price is filled in
+for you, so change it if you got a different number. The card then shows
+"✓ Placed", and the bet appears under **Your bets** near the top with its
+result once it's graded. For a bet that isn't one of the listed picks, use
+**Log a bet that isn't listed** under Your bets: give the player, stat,
+over/under, line and book. It finds that market in today's odds. A bet
+logged without a stake counts toward hit rate and CLV but not ROI.
+
 Every play the report shows is recorded automatically, whether or not you
 bet it. About 4 hours after a game starts, `betedge settle` (run by `daily`)
 grades it from the final stats. That costs about 1 quota object per game that
@@ -72,9 +81,9 @@ odds** button appears at the top. It fetches odds, injuries and lineups and
 rebuilds the page. There's a 5-minute cooldown between refreshes, and the
 usual quota guard applies. Bookmark that link or add it to your phone's
 home screen: the key is saved in `data/serve_key.txt`, so it keeps working.
-`serve --no-refresh` hides the button.
+`serve --no-refresh` hides the button and the bet controls.
 
-**Phone access:** `betedge serve` shares only the reports folder, read-only, on
+**Phone access:** `betedge serve` shares only the reports folder on
 your home network. Phone and computer must be on the same Wi-Fi, and the
 computer has to stay on while you browse. To keep it private to the computer,
 use `--host 127.0.0.1`. For access away from home, a free private-network

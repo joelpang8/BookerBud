@@ -1,0 +1,123 @@
+import json
+import threading
+import urllib.error
+import urllib.request
+
+import pytest
+
+from bookerbud.jobs import log_bet_action
+from bookerbud.models import Sport
+from bookerbud.report.build import ReportCfg, build_report
+from bookerbud.report.html import render_html
+from bookerbud.report.serve import KEY_HEADER, make_server
+from bookerbud.storage import connect
+from bookerbud.tracking.logbets import (
+    BetError,
+    bet_from_market,
+    bet_from_rec,
+    describe,
+    place,
+)
+from tests.test_report import AS_OF, FETCHED
+from tests.test_storage import _store
+
+
+@pytest.fixture
+def conn(settings, nba_result):
+    c = connect(settings.db_file)
+    _store(c, nba_result, FETCHED)
+    return c
+
+
+def _rec_play(conn, settings):
+    r = build_report(conn, settings, [Sport.NBA], now=AS_OF, rcfg=ReportCfg())
+    plays = [p for ps in r.plays.values() for p in ps if p.get("rec_id") and p["kind"] != "pickem"]
+    assert plays, "fixture should produce at least one sportsbook play"
+    return r, plays[0]
+
+
+def test_mark_placed_from_pick_shows_on_dashboard(conn, settings):
+    r, play = _rec_play(conn, settings)
+    html = render_html(r)
+    assert "Mark placed" in html and "Your bets" in html and "No bets noted" in html
+    bet = bet_from_rec(conn, play["rec_id"], line=None, price=None)
+    bet_id, saved = place(conn, bet, stake=None)
+    assert bet_id > 0 and saved["stake"] == 0.0 and "no stake recorded" in describe(saved)
+    r2 = build_report(conn, settings, [Sport.NBA], now=AS_OF, rcfg=ReportCfg())
+    again = [p for ps in r2.plays.values() for p in ps if p.get("rec_id") == play["rec_id"]]
+    assert again and again[0]["placed"] is not None
+    assert len(r2.my_bets) == 1 and r2.my_bets[0]["result"] is None
+    html2 = render_html(r2)
+    assert "✓ Placed" in html2 and "No bets noted" not in html2
+
+
+def test_log_from_market_matches_latest_odds(conn):
+    bet = bet_from_market(conn, player="lebron", team=None, stat="points", side="over", bet_type=None,
+                          book="draftkings", line=None, price=-110)
+    assert bet["player"] == "LeBron James" and bet["price_american"] == -110 and bet["rec_id"] is None
+    _, saved = place(conn, bet, stake=25)
+    assert describe(saved).endswith("@ draftkings -110 for $25.00")
+
+
+def test_log_from_market_errors_are_readable(conn):
+    with pytest.raises(BetError, match="No draftkings market for nobody"):
+        bet_from_market(conn, player="nobody", team=None, stat="points", side="over", bet_type=None,
+                        book="draftkings", line=5.5, price=None)
+    with pytest.raises(BetError, match="Give a player"):
+        bet_from_market(conn, player=None, team=None, stat="points", side="over", bet_type=None,
+                        book="draftkings", line=5.5, price=None)
+    bet = bet_from_market(conn, player="lebron", team=None, stat="points", side="over", bet_type=None,
+                          book="draftkings", line=None, price=None)
+    with pytest.raises(BetError, match="negative"):
+        place(conn, bet, stake=-1)
+    with pytest.raises(BetError, match="enter the price"):
+        place(conn, {**bet, "price_american": None}, stake=None)
+
+
+def test_log_bet_action(conn, settings):
+    conn.close()
+    code, body = log_bet_action(settings, {"player": "lebron", "stat": "points", "side": "over", "book": "draftkings",
+                                           "price": "−115", "stake": "$10"})
+    assert code == 200 and body["ok"] and "-115 for $10.00" in body["text"]
+    code, body = log_bet_action(settings, {"player": "lebron", "side": "over", "book": "draftkings", "stake": "ten"})
+    assert code == 400 and "Stake must be a number" in body["error"]
+
+
+@pytest.fixture
+def bet_server(tmp_path):
+    (tmp_path / "latest.html").write_text("x")
+    seen = []
+
+    def action(payload):
+        seen.append(payload)
+        return (200, {"ok": True, "text": "saved"}) if payload.get("player") else (400, {"error": "need a player"})
+
+    srv = make_server(tmp_path, "127.0.0.1", 0, key="secret", bet_action=action)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}/api/bets", seen
+    srv.shutdown()
+    srv.server_close()
+
+
+def post(url, body: bytes, key="secret"):
+    req = urllib.request.Request(url, data=body, method="POST",
+                                 headers={KEY_HEADER: key, "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return resp.status, json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read())
+
+
+def test_api_bets(bet_server):
+    url, seen = bet_server
+    assert post(url, b'{"player": "x"}', key="wrong")[0] == 403
+    assert post(url, b'{"player": "Keon Ellis"}') == (200, {"ok": True, "text": "saved"})
+    assert post(url, b"{}") == (400, {"error": "need a player"})
+    assert post(url, b"[1]")[0] == 400 and post(url, b"not json")[0] == 400
+    assert post(url, b"{" + b" " * 5000 + b"}")[0] == 413
+    assert seen == [{"player": "Keon Ellis"}, {}]
+    # status works without a refresher so the page can reveal the bet controls
+    req = urllib.request.Request(url.replace("bets", "status"), headers={KEY_HEADER: "secret"})
+    with urllib.request.urlopen(req) as resp:
+        assert json.loads(resp.read()) == {"running": False}

@@ -10,7 +10,6 @@ from bookerbud.models import Sport
 from bookerbud.pipeline import fetch_and_store, quota_status, refresh_context
 from bookerbud.providers import get_provider
 from bookerbud.storage import connect
-from bookerbud.storage.tracking import record_recommendations
 
 
 def mlb_context(settings: Settings):
@@ -36,8 +35,7 @@ def write_report(settings: Settings, sports: list[Sport], *, now: datetime, use_
     try:
         r = build_report(conn, settings, sports, now=now, generated_at=datetime.now(UTC), rcfg=rcfg,
                          use_context=use_context)
-        stem = now.astimezone(settings.tz).strftime("%Y-%m-%d")
-        record_recommendations(conn, r.recommended, stem, datetime.now(UTC))
+        stem = now.astimezone(settings.tz).strftime("%Y-%m-%d")  # build_report recorded the recommendations
     finally:
         conn.close()
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -88,3 +86,42 @@ def report_path(settings: Settings) -> Path:
     from bookerbud.report.build import load_report_config, report_dir
 
     return report_dir(settings, load_report_config())
+
+
+def log_bet_action(settings: Settings, payload: dict) -> tuple[int, dict]:
+    """The dashboard's Mark placed / Log a bet. Saves the bet, rebuilds the page
+    from stored data (no API calls) and returns (HTTP code, body)."""
+    from bookerbud.tracking.logbets import (
+        BetError,
+        bet_from_market,
+        bet_from_rec,
+        describe,
+        place,
+    )
+
+    def num(key, cast):
+        v = payload.get(key)
+        if v is None or str(v).strip() == "":
+            return None
+        try:
+            return cast(str(v).strip().replace("−", "-").replace("$", ""))
+        except ValueError:
+            raise BetError(f"{key.title()} must be a number, got {v!r}.") from None
+
+    conn = connect(settings.db_file)
+    try:
+        stake, price, line = num("stake", float), num("price", lambda x: int(float(x))), num("line", float)
+        if payload.get("rec_id"):
+            bet = bet_from_rec(conn, int(payload["rec_id"]), line=line, price=price)
+        else:
+            bet = bet_from_market(conn, player=(payload.get("player") or "").strip() or None, team=None,
+                                  stat=payload.get("stat") or None, side=payload.get("side") or None, bet_type=None,
+                                  book=payload.get("book") or None, line=line, price=price)
+        bet_id, bet = place(conn, bet, stake=stake, note=payload.get("note"))
+    except BetError as exc:
+        return 400, {"error": str(exc)}
+    finally:
+        conn.close()
+    sports = [Sport(s) for s in settings.sports if s in {x.value for x in Sport}]
+    write_report(settings, sports, now=datetime.now(UTC))
+    return 200, {"ok": True, "id": bet_id, "text": describe(bet)}
