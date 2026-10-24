@@ -17,10 +17,13 @@ the docs at https://sportsgameodds.com/docs (checked 2026-10-24):
 
 from __future__ import annotations
 
+import json
+import re
 import time
 from collections import Counter
 from collections.abc import Callable
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -115,6 +118,7 @@ class SportsGameOddsProvider(OddsProvider):
         client: httpx.Client | None = None,
         sleep: Callable[[float], None] = time.sleep,
         clock: Callable[[], float] = time.monotonic,
+        state_path: Path | None = None,
     ):
         self.api_key = api_key
         self.cfg = cfg
@@ -124,10 +128,28 @@ class SportsGameOddsProvider(OddsProvider):
         self._clock = clock
         self._min_interval = 60.0 / max(cfg.requests_per_minute, 1)
         self._last_request: float | None = None
+        self._state_path = state_path
+        self.unavailable_books: set[str] = set(cfg.excluded_books)
+        if state_path and state_path.exists():
+            try:
+                self.unavailable_books |= set(json.loads(state_path.read_text()))
+            except ValueError:
+                pass
 
     @classmethod
     def from_settings(cls, settings: Settings, raw_logger: RawLogger) -> SportsGameOddsProvider:
-        return cls(get_secret(API_KEY_ENV), settings.providers.sportsgameodds, raw_logger)
+        return cls(get_secret(API_KEY_ENV), settings.providers.sportsgameodds, raw_logger,
+                   state_path=settings.raw_dir.parent / "sgo_unavailable_books.json")
+
+    def _books_param(self, bookmakers: list[str]) -> str:
+        return ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS and b not in self.unavailable_books)
+
+    def _learn_unavailable(self, sgo_book: str) -> None:
+        self.unavailable_books.add(_SGO_TO_CANON.get(sgo_book, sgo_book))
+        if self._state_path:
+            learned = sorted(self.unavailable_books - set(self.cfg.excluded_books))
+            self._state_path.parent.mkdir(parents=True, exist_ok=True)
+            self._state_path.write_text(json.dumps(learned))
 
     # ------------------------------------------------------------------ HTTP
 
@@ -173,8 +195,17 @@ class SportsGameOddsProvider(OddsProvider):
             if resp.status_code in (401, 403):
                 msg = body.get("error") if isinstance(body, dict) else body
                 raise ProviderAuthError(f"HTTP {resp.status_code}: {msg}")
+            msg = body.get("error") if isinstance(body, dict) else body
+            m = re.search(r"bookmakerID (\S+) is unavailable", str(msg or ""))
+            if resp.status_code == 400 and m and params.get("bookmakerID"):
+                # Plan doesn't include this book: drop it, remember it, retry.
+                self._learn_unavailable(m.group(1))
+                remaining = [b for b in str(params["bookmakerID"]).split(",") if b and b != m.group(1)]
+                if not remaining:
+                    raise ProviderError(f"None of the requested bookmakers are on your plan ({msg})")
+                params = {**params, "bookmakerID": ",".join(remaining)}
+                continue
             if resp.status_code >= 400 or not isinstance(body, dict) or body.get("success") is False:
-                msg = body.get("error") if isinstance(body, dict) else body
                 raise ProviderError(f"HTTP {resp.status_code} from {path}: {msg}")
             return body, raw_path
 
@@ -197,7 +228,7 @@ class SportsGameOddsProvider(OddsProvider):
             "leagueID": league_param,
             "startsAfter": _iso_z(starts_after),
             "startsBefore": _iso_z(starts_before),
-            "bookmakerID": ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS),
+            "bookmakerID": self._books_param(bookmakers),
             "includeAltLines": str(self.cfg.include_alt_lines).lower(),
             "oddsAvailable": "true",
         }
@@ -274,7 +305,7 @@ class SportsGameOddsProvider(OddsProvider):
         closeSpread = each book's price at event start."""
         out: dict[str, EventSettlement] = {}
         meta = FetchResult()
-        books = ",".join(BOOKMAKER_IDS[b] for b in bookmakers if b in BOOKMAKER_IDS)
+        books = self._books_param(bookmakers)
         for i in range(0, len(event_ids), self.cfg.page_limit):
             chunk = event_ids[i : i + self.cfg.page_limit]
             params = {"eventIDs": ",".join(chunk), "bookmakerID": books, "limit": len(chunk)}

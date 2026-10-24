@@ -53,3 +53,6 @@ providers:
     include_alt_lines: true
     timeout_seconds: 30
     max_retries: 4
+    # Not on the free (Amateur) plan; asking for them fails the whole request.
+    # Remove names here if you upgrade (Rookie adds underdog; Pro adds all four).
+    excluded_books: [pinnacle, prizepicks, underdog, sleeper]

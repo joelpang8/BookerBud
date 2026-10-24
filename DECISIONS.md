@@ -423,3 +423,17 @@ That leaves room for a second fetch closer to game time on busy days.
   repeats the predicted edge and looks like CLV without measuring anything.
   With one fetch a day, CLV stays blank. A second `betedge fetch` close to
   game time fills it in, at about 1 quota object per game in that fetch.
+
+## Live-run fix (2026-10-24)
+
+- **The docs were wrong about plan-restricted books.** SGO's Pinnacle page
+  says a request for a book outside your plan "comes back empty rather than
+  erroring". Live, on the free plan, it fails the whole request:
+  `HTTP 400 "The bookmakerID pinnacle is unavailable at your current
+  subscription tier"`.
+- **Fix, part 1:** `settings.yaml → providers.sportsgameodds.excluded_books`
+  lists the four books the free plan lacks (pinnacle, prizepicks, underdog,
+  sleeper), so they're never requested.
+- **Fix, part 2 (backstop):** if the API rejects another book, the provider
+  drops it and retries once. It also remembers the book in
+  `data/sgo_unavailable_books.json`, so later runs don't hit the error again.

@@ -51,6 +51,10 @@ class SportsGameOddsSettings(BaseModel):
     include_alt_lines: bool = True
     timeout_seconds: float = 30
     max_retries: int = 4
+    # Books your plan can't request. SGO rejects the whole request (HTTP 400)
+    # if one is included, so they're left out up front. Books the API rejects
+    # later are also learned automatically (data/sgo_unavailable_books.json).
+    excluded_books: list[str] = Field(default_factory=list)
 
 
 class ProviderSettings(BaseModel):

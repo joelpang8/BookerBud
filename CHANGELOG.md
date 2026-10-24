@@ -2,6 +2,12 @@
 
 ## Follow-up (2026-10-24)
 
+### Fixed
+- The first live run failed with HTTP 400 because the free plan rejects
+  requests that name Pinnacle (the SGO docs said it would just return empty).
+  Books not on the plan are now excluded in config, and any book the API
+  rejects is dropped, retried and remembered.
+
 ### Changed
 - Closing odds are off by default (`config/tracking.yaml`). `settle` fetches
   results only, and CLV comes from a snapshot taken after the play was priced

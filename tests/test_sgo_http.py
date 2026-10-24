@@ -189,3 +189,54 @@ def test_fetch_settlement_close_param(tmp_path, include_close):
     assert q["eventIDs"] == "mg55OPFOORFcu5v3FvfO"
     assert ("includeOpenCloseOdds" in q) is include_close
     assert data["mg55OPFOORFcu5v3FvfO"].finalized and meta.objects_used == 1
+
+
+def test_book_not_on_plan_is_dropped_remembered_and_retried(tmp_path):
+    """Live API behaviour (seen on the free plan): one unavailable bookmaker fails
+    the whole request with HTTP 400. We drop it, retry, and remember it."""
+    seen = []
+
+    def handler(req):
+        seen.append(req.url.params["bookmakerID"])
+        if "pinnacle" in req.url.params["bookmakerID"].split(","):
+            return httpx.Response(400, json={"success": False, "error":
+                "The bookmakerID pinnacle is unavailable at your current subscription tier. Upgrade to unlock"})
+        return httpx.Response(200, json={"success": True, "data": []})
+
+    state = tmp_path / "unavailable.json"
+    clock = FakeClock()
+    p = SportsGameOddsProvider("k", SportsGameOddsSettings(), RawLogger(tmp_path / "raw"),
+                               client=httpx.Client(base_url="https://api.test/v2", transport=httpx.MockTransport(handler)),
+                               sleep=clock.sleep, clock=clock.now, state_path=state)
+    p.fetch_slate(NBA, START, END, ALL_BOOKS)
+    assert seen == ["pinnacle,draftkings,fanduel,prizepicks,underdog,sleeper", "draftkings,fanduel,prizepicks,underdog,sleeper"]
+    assert json.loads(state.read_text()) == ["pinnacle"]
+
+    # A fresh provider reads the remembered list and never asks again.
+    seen.clear()
+    p2 = SportsGameOddsProvider("k", SportsGameOddsSettings(), RawLogger(tmp_path / "raw"),
+                                client=httpx.Client(base_url="https://api.test/v2", transport=httpx.MockTransport(handler)),
+                                sleep=clock.sleep, clock=clock.now, state_path=state)
+    p2.fetch_slate(NBA, START, END, ALL_BOOKS)
+    assert seen == ["draftkings,fanduel,prizepicks,underdog,sleeper"]
+
+
+def test_excluded_books_config(tmp_path):
+    seen = []
+
+    def handler(req):
+        seen.append(req.url.params["bookmakerID"])
+        return httpx.Response(200, json={"success": True, "data": []})
+
+    p, _ = make_provider(tmp_path, handler, excluded_books=["pinnacle", "prizepicks", "underdog", "sleeper"])
+    p.fetch_slate(NBA, START, END, ALL_BOOKS)
+    assert seen == ["draftkings,fanduel"]
+
+
+def test_all_books_unavailable_raises(tmp_path):
+    def handler(req):
+        return httpx.Response(400, json={"success": False, "error": "The bookmakerID pinnacle is unavailable at your current subscription tier."})
+
+    p, _ = make_provider(tmp_path, handler)
+    with pytest.raises(ProviderError, match="None of the requested bookmakers"):
+        p.fetch_slate(NBA, START, END, ["pinnacle"])
