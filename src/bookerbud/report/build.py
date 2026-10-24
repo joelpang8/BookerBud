@@ -31,6 +31,7 @@ class ReportCfg(BaseModel):
     output_dir: Path | None = None  # None -> <settings.data_dir>/reports
     quota_warn_pct: float = 80
     top_picks: int = 3
+    refresh_cooldown_minutes: float = 5
     confidence_weight: dict[str, float] = {"high": 1.0, "medium": 0.75, "low": 0.5}
 
 

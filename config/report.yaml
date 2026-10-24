@@ -10,3 +10,8 @@ top_picks: 3
 # Ranking score = edge % x this weight, so a well-sourced 5% edge can beat a
 # shaky 7% one. One pick per player (or per game line).
 confidence_weight: {high: 1.0, medium: 0.75, low: 0.5}
+
+# Dashboard "Refresh odds" button (only when viewed through `betedge serve`).
+# Minimum minutes between refreshes: SGO's free plan updates odds about every
+# 10 minutes, so refreshing faster spends quota without newer prices.
+refresh_cooldown_minutes: 5

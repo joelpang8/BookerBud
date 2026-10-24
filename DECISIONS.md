@@ -496,3 +496,22 @@ That leaves room for a second fetch closer to game time on busy days.
 - **Quota:** NBA + NFL daily results add roughly 250–350 objects / 30 days in
   season, replacing the NBA-only backfill. A one-time `history --days 14` is
   about 100 objects early in the NBA season.
+
+## Refresh button (2026-10-24)
+
+- The dashboard is a static file, so refreshing has to happen on the
+  computer. `betedge serve` therefore gains two endpoints:
+  - `POST /api/refresh` runs fetch, then context, then the report in a
+    background thread, one at a time.
+  - `GET /api/status` reports progress. The page polls it and reloads when
+    the refresh finishes.
+- **Why a key:** the server is reachable by anyone on the Wi-Fi, and a
+  refresh spends quota. Only requests with the `X-BookerBud-Key` header
+  matching the key in the printed link can refresh. Viewing stays open, as
+  before. The key is random, stored in `data/serve_key.txt` (gitignored, mode
+  600) and compared in constant time.
+- **Cooldown 5 minutes**, because the free plan's odds update about every 10
+  minutes. The quota guard still caps total spend.
+- The button only appears when the page is loaded over http with a key and
+  the server answers. In a file opened directly, or in the shared preview,
+  it stays hidden.

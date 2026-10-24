@@ -3,6 +3,17 @@
 ## Follow-up (2026-10-24)
 
 ### Added
+- **Refresh odds** button on the dashboard when it's viewed through
+  `betedge serve`. It runs fetch, then context, then the report, in the
+  background, shows progress and reloads the page.
+  - Protected by a private key in the served link (saved in
+    `data/serve_key.txt`).
+  - 5-minute cooldown (`refresh_cooldown_minutes` in `config/report.yaml`)
+    and the usual quota guard. `serve --no-refresh` disables it.
+- `bookerbud.jobs`: `write_report()` and `refresh_odds()`, shared by the CLI
+  and the server.
+
+### Added
 - Dashboard sort control: Best edge, Best odds (biggest payout first), Most
   likely (highest fair win chance), Start time. It applies to cards and the
   table and is remembered per device.

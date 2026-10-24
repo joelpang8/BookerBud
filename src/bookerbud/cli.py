@@ -428,36 +428,14 @@ def report(
     no_context: Annotated[bool, typer.Option(help="Ignore injury/lineup/weather/rest context")] = False,
 ) -> None:
     """Write today's dashboard (HTML) and Markdown report to the reports folder."""
-    from bookerbud.report.build import build_report, load_report_config, report_dir
-    from bookerbud.report.html import render_html
-    from bookerbud.report.markdown import render_markdown
+    from bookerbud.jobs import write_report
 
     settings = load_settings()
-    rcfg = load_report_config()
-    out_dir = report_dir(settings, rcfg)
-    conn = connect(settings.db_file)
-    try:
-        now = _as_of(settings, as_of)
-        r = build_report(conn, settings, _sports(sport), now=now, generated_at=datetime.now(UTC),
-                         rcfg=rcfg, use_context=not no_context)
-    finally:
-        conn.close()
-    stem = now.astimezone(settings.tz).strftime("%Y-%m-%d")
-    conn = connect(settings.db_file)
-    try:
-        record_recommendations(conn, r.recommended, stem, datetime.now(UTC))
-    finally:
-        conn.close()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    html_doc = render_html(r)
-    (out_dir / f"{stem}.html").write_text(html_doc)
-    (out_dir / "latest.html").write_text(html_doc)
-    (out_dir / f"{stem}.md").write_text(render_markdown(r))
-    (out_dir / f"{stem}.json").write_text(r.to_json())
+    r, path = write_report(settings, _sports(sport), now=_as_of(settings, as_of), use_context=not no_context)
     typer.echo(f"{r.totals['plays']} plays, {r.totals['slips']} slips, "
                f"{sum(1 for w in r.warnings if w['level'] == 'warn')} warnings")
-    typer.echo(f"  dashboard: {out_dir / f'{stem}.html'}  (also latest.html)")
-    typer.echo(f"  markdown:  {out_dir / f'{stem}.md'}")
+    typer.echo(f"  dashboard: {path}  (also latest.html)")
+    typer.echo(f"  markdown:  {path.with_suffix('.md')}")
     typer.echo("  view on your phone: `betedge serve`")
 
 
@@ -674,22 +652,33 @@ def daily(
 def serve(
     port: Annotated[int, typer.Option(help="Port to listen on")] = 8765,
     host: Annotated[str, typer.Option(help="0.0.0.0 = reachable from your phone on the same Wi-Fi; 127.0.0.1 = this computer only")] = "0.0.0.0",
+    no_refresh: Annotated[bool, typer.Option(help="Hide the dashboard's Refresh odds button (read-only)")] = False,
 ) -> None:
     """Serve the dashboard to your phone/computer over your home network (Ctrl+C to stop)."""
-    from bookerbud.report.build import load_report_config, report_dir
-    from bookerbud.report.serve import lan_addresses, make_server
+    from bookerbud.jobs import refresh_odds, report_path
+    from bookerbud.report.build import load_report_config
+    from bookerbud.report.serve import Refresher, lan_addresses, load_or_create_key, make_server
 
-    out_dir = report_dir(load_settings(), load_report_config())
+    settings = load_settings()
+    out_dir = report_path(settings)
     if not (out_dir / "latest.html").exists():
         typer.echo("No dashboard yet. Run `betedge report` first.")
         raise typer.Exit(1)
-    server = make_server(out_dir, host, port)
-    typer.echo(f"Serving {out_dir} (read-only). On this computer: http://localhost:{port}/")
+    refresher = key = None
+    if not no_refresh:
+        key = load_or_create_key(settings.raw_dir.parent / "serve_key.txt")
+        cooldown = load_report_config().refresh_cooldown_minutes * 60
+        refresher = Refresher(lambda: refresh_odds(settings), cooldown)
+    server = make_server(out_dir, host, port, refresher=refresher, key=key)
+    q = f"/?k={key}" if key else "/"
+    typer.echo(f"Serving {out_dir}. On this computer: http://localhost:{port}{q}")
     if host == "0.0.0.0":
         for ip in lan_addresses():
-            typer.echo(f"  On your phone (same Wi-Fi): http://{ip}:{port}/")
-        typer.secho("  Anyone on this Wi-Fi network can open it. Use --host 127.0.0.1 to keep it private.",
+            typer.echo(f"  On your phone (same Wi-Fi): http://{ip}:{port}{q}")
+        typer.secho("  Anyone on this Wi-Fi can view the page; only links with the key can press Refresh.",
                     fg=typer.colors.YELLOW)
+    if key:
+        typer.echo("  Bookmark that link (or Add to Home Screen): the key is saved, so it keeps working.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

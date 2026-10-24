@@ -66,6 +66,12 @@ button { font: inherit; color: inherit; }
 .mast h1 span { color: var(--muted); font-weight: 600; }
 .mast .sub { color: var(--muted); font-size: .85rem; }
 
+/* Refresh button (only shown when served by `betedge serve` with a key) */
+.refresh { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.rbtn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: .92rem; cursor: pointer; }
+.rbtn:disabled { opacity: .6; cursor: progress; }
+.rmsg { font-size: .82rem; color: var(--muted); }
+
 /* Summary board */
 .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; background: var(--surface); margin-block: 8px 12px; }
 .board > div { padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
@@ -318,6 +324,54 @@ JS = r"""
     }
   });
   showTab(location.hash === '#performance' ? 'performance' : 'today');
+
+  // Refresh odds: talks to `betedge serve` on your computer; hidden anywhere else.
+  (function () {
+    var box = document.getElementById('refresh');
+    if (!box || location.protocol.indexOf('http') !== 0 || !window.fetch) return;
+    var key = null;
+    try { key = new URLSearchParams(location.search).get('k'); } catch (e) {}
+    if (!key) return;
+    var btn = document.getElementById('refresh-btn'), msg = document.getElementById('refresh-msg');
+    var waiting = false;
+    function api(method, path) {
+      return fetch(path, { method: method, headers: { 'X-BookerBud-Key': key }, cache: 'no-store' })
+        .then(function (r) { return r.json().then(function (b) { return { code: r.status, body: b }; }); });
+    }
+    function busy(on) { btn.disabled = on; btn.textContent = on ? 'Refreshing\u2026' : 'Refresh odds'; }
+    function poll() {
+      api('GET', '/api/status').then(function (r) {
+        var s = r.body;
+        if (s.running) {
+          busy(true);
+          var secs = Math.max(0, Math.round((Date.now() - Date.parse(s.started_at)) / 1000));
+          msg.textContent = 'Fetching odds, injuries and lineups\u2026 ' + secs + 's';
+          setTimeout(poll, 2000);
+          return;
+        }
+        busy(false);
+        if (s.error) { msg.textContent = 'Refresh failed: ' + s.error; waiting = false; return; }
+        if (waiting) { msg.textContent = 'Updated. Reloading\u2026'; location.reload(); }
+      }).catch(function () { busy(false); msg.textContent = 'Lost connection to your computer. Is betedge serve still running?'; });
+    }
+    btn.addEventListener('click', function () {
+      busy(true); msg.textContent = 'Starting\u2026';
+      api('POST', '/api/refresh').then(function (r) {
+        if (r.code === 202 || r.code === 409) { waiting = true; poll(); }
+        else if (r.code === 429) {
+          busy(false);
+          var m = Math.ceil((r.body.retry_after || 60) / 60);
+          msg.textContent = 'Odds were refreshed in the last few minutes. Try again in ' + m + ' min.';
+        } else { busy(false); msg.textContent = r.body.error || ('Error ' + r.code); }
+      }).catch(function () { busy(false); msg.textContent = 'Could not reach your computer. Is betedge serve still running?'; });
+    });
+    api('GET', '/api/status').then(function (r) {
+      if (r.code !== 200) return;
+      box.hidden = false;
+      if (r.body.running) { waiting = true; poll(); }
+      else if (r.body.result) { msg.textContent = 'Last refresh: ' + r.body.result.plays + ' plays, quota ' + r.body.result.quota; }
+    }).catch(function () {});
+  })();
   apply(); ages(); setInterval(ages, 60000);
 })();
 """
@@ -461,7 +515,8 @@ def _top_picks(picks: list[dict], key: str = "all") -> str:
     label = SPORT_NAMES.get(key, key.upper() + " ")
     if not picks:
         return (f'<section class="top" data-top-sport="{_e(key)}"{hidden}><h2>Top {label}picks</h2><p class="empty">'
-                'No plays pass the filters right now. Check the warnings below, or fetch fresh odds.</p></section>')
+                'No plays pass the filters right now. Check the warnings below, or get fresh prices with Refresh odds '
+                '(or <code>betedge daily</code>).</p></section>')
     items = []
     for p in picks:
         stake = f'${p["stake"]:.2f}' if p["kind"] != "pickem" else "per slip"
@@ -702,7 +757,9 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 <div class="wrap">
 {f'<p class="banner">{_e(banner)}</p>' if banner else ""}
 <header class="mast"><h1>BookerBud <span>{as_of.strftime("%a %b")} {as_of.day}</span></h1>
-<span class="sub">Research only. Nothing here places a bet.</span></header>
+<span class="sub">Research only. Nothing here places a bet.</span>
+<div class="refresh" id="refresh" hidden><button class="rbtn" id="refresh-btn" type="button">Refresh odds</button><span class="rmsg" id="refresh-msg" role="status"></span></div>
+</header>
 <div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button><button class="tab" role="tab" data-tab="performance" aria-selected="false">Performance</button></div>
 </div>
 <div data-panel="today">
