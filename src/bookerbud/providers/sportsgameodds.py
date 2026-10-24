@@ -224,6 +224,41 @@ class SportsGameOddsProvider(OddsProvider):
                 break
         return result
 
+    def fetch_schedule(
+        self, leagues: dict[Sport, str], starts_after: datetime, starts_before: datetime, *, max_objects: int | None = None
+    ) -> FetchResult:
+        """Events in the window regardless of odds or status. Still billed one
+        object per event, so we shrink the payload to a single market."""
+        league_param = ",".join(leagues.values())
+        result = FetchResult()
+        cursor: str | None = None
+        page = 0
+        while True:
+            limit = self.cfg.page_limit if max_objects is None else min(self.cfg.page_limit, max_objects - result.objects_used)
+            if limit <= 0:
+                result.truncated = True
+                break
+            params: dict[str, Any] = {
+                "leagueID": league_param,
+                "startsAfter": _iso_z(starts_after),
+                "startsBefore": _iso_z(starts_before),
+                "oddID": "points-home-game-ml-home",
+                "bookmakerID": "draftkings",
+                "limit": limit,
+                **({"cursor": cursor} if cursor else {}),
+            }
+            body, raw_path = self._get("/events", params, f"schedule_{league_param}_p{page}")
+            result.requests_made += 1
+            result.objects_used += max(1, len(body.get("data") or []))
+            result.raw_paths.append(raw_path)
+            parsed = self.parse_payload(body, leagues, [])
+            result.events += parsed.events
+            cursor = body.get("nextCursor")
+            page += 1
+            if not cursor or not body.get("data"):
+                break
+        return result
+
     def usage(self) -> dict[str, Any] | None:
         body, _ = self._get("/account/usage", {}, "account_usage")
         return body.get("data")

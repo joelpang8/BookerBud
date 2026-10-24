@@ -7,7 +7,7 @@ Underdog and Sleeper against sharp-book (Pinnacle) no-vig fair probabilities.
 > **Research only.** BookerBud never places bets and never logs into a betting
 > account. It reads odds from a data provider and writes reports.
 
-Status: **Phases 1 (data layer) and 2 (edge engine) are done.** See [CHANGELOG.md](CHANGELOG.md) and
+Status: **Phases 1–3 (data layer, edge engine, context filters) are done.** See [CHANGELOG.md](CHANGELOG.md) and
 [DECISIONS.md](DECISIONS.md).
 
 ## Setup
@@ -38,7 +38,8 @@ uv run betedge show-props --player "lebron"                 # latest lines, ever
 uv run betedge show-props --player "jokic" --stat pts_reb_ast --alt
 uv run betedge show-props --player "lebron" --history       # line movement across snapshots
 
-uv run betedge edges                      # +EV plays from the latest snapshot
+uv run betedge context                    # injuries, MLB lineups/starters/weather, NBA rest (also runs after fetch)
+uv run betedge edges                      # +EV plays from the latest snapshot, context applied
 uv run betedge edges --sport nba --min-edge 3 --book fanduel
 uv run betedge slips --legs 2-3           # best pick'em slips (needs pick'em lines)
 uv run betedge quota                      # rolling 30-day object usage vs. budget (no API call)
@@ -63,6 +64,15 @@ minutes are filtered out of `edges`.
   devig method, line-move models, and slip rules.
 - `config/payouts.yaml`: pick'em payout tables. Re-verify these.
 - `config/availability.yaml`: which books you can use in which state.
+- `config/context.yaml`: what injuries, lineups, weather and rest do to a
+  play (drop / downgrade / note).
+
+### Context data sources (all free)
+SportsGameOdds player status (in the odds response), the MLB Stats API
+(individual non-commercial use), and Open-Meteo weather (CC-BY 4.0, weather
+data by [Open-Meteo.com](https://open-meteo.com/)). NBA.com is deliberately
+not used, because its terms forbid using its data in connection with
+gambling. See DECISIONS.md.
 
 ## Layout
 
@@ -72,6 +82,7 @@ config/stat_aliases.yaml    canonical stat types + every label seen for them
 config/edge.yaml            edge thresholds, bankroll, line models, slip rules
 config/payouts.yaml         pick'em payout tables (with source + verified flag)
 config/availability.yaml    which books are usable in NY / WI
+config/context.yaml         injury / lineup / weather / rest rules
 src/bookerbud/
   models.py                 Prop / RawProp / EventInfo / Flag
   config.py                 YAML + .env loading
@@ -89,6 +100,10 @@ src/bookerbud/
   edge/ev.py, kelly.py      EV (sportsbook + slips), Kelly sizing
   edge/engine.py            fair probability, filters -> Edge records
   edge/slips.py             pick'em slip optimizer
+  context/mlb.py            MLB Stats API: starters, lineups, IL, venues
+  context/weather.py        Open-Meteo game-time weather, wind in/out
+  context/nba.py            rest days / back-to-backs from stored schedule
+  context/apply.py          drop / downgrade / annotate plays
   cli.py                    `betedge` commands
 tests/                      pytest; fixtures/ has one real SGO response + a synthetic NBA slate
 data/                       (gitignored) SQLite DB and raw API logs

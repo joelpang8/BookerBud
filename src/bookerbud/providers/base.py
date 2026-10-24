@@ -68,6 +68,12 @@ class OddsProvider(ABC):
     def parse_payload(self, payload: dict[str, Any], leagues: dict[Sport, str], bookmakers: list[str]) -> FetchResult:
         """Parse one raw response body (as logged to data/raw). Used for replays."""
 
+    def fetch_schedule(
+        self, leagues: dict[Sport, str], starts_after: datetime, starts_before: datetime, *, max_objects: int | None = None
+    ) -> FetchResult:
+        """Events only (no odds), including finished games. Used for rest/back-to-back."""
+        raise NotImplementedError(f"{self.name} has no schedule endpoint")
+
     def usage(self) -> dict[str, Any] | None:
         """Quota/rate-limit info, if the provider exposes it."""
         return None

@@ -87,6 +87,7 @@ class Edge:
     fetched_at: datetime
     deeplink: str | None = None
     flags: list[str] = field(default_factory=list)
+    context_notes: list[str] = field(default_factory=list)  # Phase 3: injuries, lineups, weather, rest
 
     @property
     def edge_pp(self) -> float:

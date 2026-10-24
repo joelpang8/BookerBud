@@ -1,4 +1,9 @@
 from bookerbud.storage.db import (
+    events_between,
+    insert_context,
+    latest_context,
+    mark_schedule_covered,
+    schedule_covered,
     connect,
     finish_run,
     flagged_summary,
@@ -13,6 +18,11 @@ from bookerbud.storage.db import (
 )
 
 __all__ = [
+    "events_between",
+    "insert_context",
+    "latest_context",
+    "mark_schedule_covered",
+    "schedule_covered",
     "connect",
     "finish_run",
     "flagged_summary",

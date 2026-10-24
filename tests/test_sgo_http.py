@@ -157,3 +157,19 @@ def test_max_objects_caps_page_size_and_stops(tmp_path):
     assert len(seen) == 1 and seen[0].url.params["limit"] == "1"
     assert r.truncated and r.objects_used == 1
     assert any("quota budget" in n for n in r.notices)
+
+
+def test_fetch_schedule_is_events_only_and_capped(tmp_path):
+    seen = []
+
+    def handler(req):
+        seen.append(req)
+        return httpx.Response(200, json=load_fixture("sgo_nba_page2.json") | {"nextCursor": None})
+
+    p, _ = make_provider(tmp_path, handler)
+    r = p.fetch_schedule(NBA, START, END, max_objects=5)
+    q = seen[0].url.params
+    assert "oddsAvailable" not in q and "started" not in q  # finished games included
+    assert q["oddID"] == "points-home-game-ml-home" and q["limit"] == "5"
+    assert [e.event_id for e in r.events] == ["SYNTH_NBA_GSW_PHX"] and r.props == []
+    assert r.objects_used == 1

@@ -1,0 +1,33 @@
+# Phase 3 context filters: what to do with a play given injury, lineup,
+# weather and rest information. Actions: drop | downgrade (confidence one
+# level: high -> medium -> low) | note (annotate only).
+
+status:
+  # Normalised statuses. Sources: SportsGameOdds player status (all sports,
+  # free with the odds) and the MLB Stats API 40-man roster (IL / not active).
+  out: drop
+  injured_list: drop
+  suspended: drop
+  not_active_roster: drop     # MLB: on the 40-man but not the active roster
+  doubtful: drop
+  questionable: downgrade
+  day_to_day: downgrade
+  probable: note
+
+mlb:
+  # Once a team's lineup is posted, batter props for players not in it are dropped.
+  not_in_posted_lineup: drop
+  # Pitcher props (strikeouts, outs, earned runs) when he isn't the listed starter.
+  not_probable_starter: drop
+  # No probable starter announced yet.
+  starter_unknown: downgrade
+  pitcher_stats: [pitcher_strikeouts, pitcher_outs, earned_runs]
+  rain_risk_pct: 50           # precip probability at first pitch -> rain_risk action
+  rain_risk: downgrade
+  wind_note_mph: 8            # note when the in/out wind component is at least this
+
+nba:
+  back_to_back: note          # note | downgrade
+  # Rest from the events table; a missing yesterday is backfilled with one
+  # cheap SportsGameOdds call (about 1 quota object per game played yesterday).
+  backfill_yesterday: true

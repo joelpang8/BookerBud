@@ -16,7 +16,20 @@ from bookerbud.edge.config import load_availability, load_edge_config, load_payo
 from bookerbud.edge.engine import EdgeResult, find_edges
 from bookerbud.edge.slips import build_slips
 from bookerbud.models import Sport
-from bookerbud.pipeline import FetchSummary, QuotaExceeded, fetch_and_store, quota_status, replay_and_store
+from bookerbud.context.apply import apply_context, load_context_rules
+from bookerbud.context.http import JsonClient
+from bookerbud.context.mlb import MLBContext
+from bookerbud.context.weather import OpenMeteo
+from bookerbud.pipeline import (
+    FetchSummary,
+    QuotaExceeded,
+    fetch_and_store,
+    load_context,
+    quota_status,
+    refresh_context,
+    replay_and_store,
+)
+from bookerbud.raw_log import RawLogger
 from bookerbud.providers import ProviderError, get_provider
 from bookerbud.storage import connect, flagged_summary, latest_runs, load_latest_props, query_player_props
 
@@ -63,6 +76,7 @@ def fetch(
     day: Annotated[str | None, typer.Option("--date", help="YYYY-MM-DD in the configured timezone (default today)")] = None,
     include_live: Annotated[bool, typer.Option(help="Also include games that already started")] = False,
     force: Annotated[bool, typer.Option(help="Allow spending past the quota budget, up to the plan's hard limit")] = False,
+    no_context: Annotated[bool, typer.Option(help="Skip the injury/lineup/weather/rest refresh")] = False,
     replay: Annotated[
         list[Path] | None, typer.Option(help="Re-ingest logged raw response file(s)/dir instead of calling the API")
     ] = None,
@@ -84,8 +98,63 @@ def fetch(
         except (ProviderError, QuotaExceeded) as exc:
             typer.secho(f"fetch failed: {exc}", fg=typer.colors.RED, err=True)
             raise typer.Exit(1) from exc
+        if not no_context:
+            _context(conn, settings, provider, sports, target, backfill=True)
         q = quota_status(conn, settings)
         typer.echo(f"  quota: {q.used}/{q.budget} budget ({q.limit} plan limit) over the last {q.window_days} days")
+    finally:
+        provider.close()
+        conn.close()
+
+
+def _mlb_context(settings) -> MLBContext:
+    raw = RawLogger(settings.raw_dir)
+    return MLBContext(JsonClient("mlb-statsapi", raw), OpenMeteo(JsonClient("open-meteo", raw)))
+
+
+def _context(conn, settings, provider, sports, day, *, backfill: bool) -> None:
+    mlb = _mlb_context(settings) if Sport.MLB in sports else None
+    rules = load_context_rules()
+    try:
+        summary = refresh_context(conn, settings, provider, sports, day, mlb=mlb,
+                                  backfill_nba=backfill and rules.nba.backfill_yesterday)
+    except Exception as exc:  # context is advisory; never lose the odds snapshot over it
+        typer.secho(f"  context refresh failed: {exc}", fg=typer.colors.YELLOW, err=True)
+        return
+    finally:
+        if mlb:
+            mlb.client.close()
+            mlb.weather.client.close()
+    typer.echo(f"  context: {summary.games} games, {summary.players} player statuses"
+               + (f", {summary.objects_used} quota objects (NBA schedule backfill)" if summary.objects_used else ""))
+    for w in summary.warnings or []:
+        typer.secho(f"  context warning: {w}", fg=typer.colors.YELLOW)
+
+
+@app.command()
+def context(
+    sport: Annotated[str, typer.Option(help="nba, mlb, nfl, or all")] = "all",
+    day: Annotated[str | None, typer.Option("--date", help="YYYY-MM-DD (default today)")] = None,
+    no_backfill: Annotated[bool, typer.Option(help="Don't spend quota backfilling yesterday's NBA schedule")] = False,
+) -> None:
+    """Refresh injuries, MLB lineups/probable pitchers/weather and NBA rest for stored events."""
+    settings = load_settings()
+    provider = get_provider(settings)
+    conn = connect(settings.db_file)
+    try:
+        target = date.fromisoformat(day) if day else datetime.now(settings.tz).date()
+        _context(conn, settings, provider, _sports(sport), target, backfill=not no_backfill)
+        games, _ = load_context(conn, _sports(sport))
+        for g in games.values():
+            bits = []
+            if g.probable_pitchers:
+                bits.append(f"SP {g.probable_pitchers.get('away') or 'TBD'} vs {g.probable_pitchers.get('home') or 'TBD'}")
+            if g.lineups_posted:
+                bits.append("lineups " + ("posted" if all(g.lineups_posted.values()) else "not yet posted"))
+            if g.weather:
+                bits.append(g.weather.describe())
+            bits += g.notes
+            typer.echo(f"  [{g.sport}] {g.away_team} @ {g.home_team}: {'; '.join(bits) or '-'}")
     finally:
         provider.close()
         conn.close()
@@ -192,13 +261,16 @@ def usage() -> None:
         provider.close()
 
 
-def _run_engine(sport: str, as_of: str | None, all_books: bool, min_edge: float | None) -> tuple[EdgeResult, object]:
+def _run_engine(
+    sport: str, as_of: str | None, all_books: bool, min_edge: float | None, use_context: bool = True
+) -> tuple[EdgeResult, object]:
     settings = load_settings()
     cfg = load_edge_config()
     if min_edge is not None:
         cfg.filters.min_edge_pct = min_edge
     conn = connect(settings.db_file)
     props = load_latest_props(conn, [s.value for s in _sports(sport)])
+    games, players = load_context(conn, _sports(sport)) if use_context else ({}, {})
     conn.close()
     if not props:
         typer.echo("No snapshot to analyse. Run `betedge fetch` first.")
@@ -210,6 +282,16 @@ def _run_engine(sport: str, as_of: str | None, all_books: bool, min_edge: float 
         props, cfg, now=now, sharp_books=settings.bookmakers.sharp, states=settings.states,
         availability=load_availability(), payouts=load_payouts(), all_books=all_books,
     )
+    if use_context:
+        rules = load_context_rules()
+        # A pick'em leg can sit in both lists as the same object: apply once.
+        unique = list({id(e): e for e in res.edges + res.pickem_legs}.values())
+        kept, dropped = apply_context(unique, games, players, rules)
+        kept_ids = {id(e) for e in kept}
+        res.edges = [e for e in res.edges if id(e) in kept_ids]
+        res.pickem_legs = [e for e in res.pickem_legs if id(e) in kept_ids]
+        for reason, n in dropped.items():
+            res.skipped[f"context:{reason}"] += n
     return res, cfg
 
 
@@ -244,10 +326,11 @@ def edges(
     min_edge: Annotated[float | None, typer.Option(help="Override filters.min_edge_pct")] = None,
     all_books: Annotated[bool, typer.Option(help="Include books not usable in your states")] = False,
     as_of: Annotated[str | None, typer.Option(help="Evaluate freshness as of this ISO time (for replays)")] = None,
+    no_context: Annotated[bool, typer.Option(help="Ignore injury/lineup/weather/rest context")] = False,
     limit: int = 30,
 ) -> None:
     """+EV plays from the latest snapshot (research only)."""
-    res, _ = _run_engine(sport, as_of, all_books, min_edge)
+    res, _ = _run_engine(sport, as_of, all_books, min_edge, not no_context)
     rows = [e for e in res.edges if not book or e.bookmaker == book][:limit]
     if not rows:
         typer.echo("No plays pass the filters.")
@@ -258,7 +341,7 @@ def edges(
             "stake": f"${e.stake:.2f}" if e.payout_type != "pickem" else f"(vs {e.breakeven_slip})",
             "conf": e.confidence, "fair from": e.fair_source if e.fair_source != "consensus" else f"consensus({len(e.fair_books)})",
             "gap": f"{e.line_gap:g}" if e.line_gap else "", "states": ",".join(e.usable_in) or "-",
-            "status": e.player_status or "",
+            "notes": "; ".join(e.context_notes),
         } for e in rows])
         typer.echo(df.to_string(index=False))
     typer.echo(f"\nskipped: {dict(res.skipped)}")

@@ -84,6 +84,24 @@ CREATE TABLE IF NOT EXISTS prop_snapshots (
 CREATE INDEX IF NOT EXISTS ix_snap_player ON prop_snapshots (player_search, stat_type, fetched_at);
 CREATE INDEX IF NOT EXISTS ix_snap_market ON prop_snapshots (event_id, market_kind, entity, player_key, stat_type, period, bet_type, side, bookmaker);
 CREATE INDEX IF NOT EXISTS ix_snap_run ON prop_snapshots (run_id);
+
+-- Phase 3: injury/lineup/weather/rest context, append-only like odds.
+CREATE TABLE IF NOT EXISTS context_snapshots (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    fetched_at TEXT NOT NULL,
+    sport      TEXT NOT NULL,
+    kind       TEXT NOT NULL,      -- 'game' | 'player'
+    key        TEXT NOT NULL,      -- event_id or player_key
+    payload    TEXT NOT NULL       -- JSON (GameContext / PlayerContext)
+);
+CREATE INDEX IF NOT EXISTS ix_ctx ON context_snapshots (sport, kind, key, fetched_at);
+
+-- Which (sport, local date) schedules we hold in `events` in full.
+CREATE TABLE IF NOT EXISTS schedule_coverage (
+    sport TEXT NOT NULL,
+    day   TEXT NOT NULL,
+    PRIMARY KEY (sport, day)
+);
 """
 
 
@@ -292,3 +310,48 @@ def load_latest_props(conn: sqlite3.Connection, sports: list[str]) -> list[Prop]
         rows = conn.execute("SELECT * FROM prop_snapshots WHERE run_id = ? AND sport = ?", (run_id, sport))
         props += [row_to_prop(r) for r in rows]
     return props
+
+
+def insert_context(conn: sqlite3.Connection, fetched_at: datetime, sport: str, kind: str,
+                   items: list[tuple[str, str]]) -> None:
+    """items: (key, payload_json)."""
+    conn.executemany(
+        "INSERT INTO context_snapshots (fetched_at, sport, kind, key, payload) VALUES (?, ?, ?, ?, ?)",
+        [(_ts(fetched_at), sport, kind, k, payload) for k, payload in items],
+    )
+    conn.commit()
+
+
+def latest_context(conn: sqlite3.Connection, sport: str, kind: str) -> dict[str, str]:
+    """key -> payload JSON from the most recent context refresh for that sport."""
+    row = conn.execute(
+        "SELECT MAX(fetched_at) FROM context_snapshots WHERE sport = ? AND kind = ?", (sport, kind)
+    ).fetchone()
+    if not row or row[0] is None:
+        return {}
+    rows = conn.execute(
+        "SELECT key, payload FROM context_snapshots WHERE sport = ? AND kind = ? AND fetched_at = ?",
+        (sport, kind, row[0]),
+    )
+    return {r["key"]: r["payload"] for r in rows}
+
+
+def mark_schedule_covered(conn: sqlite3.Connection, sport: str, day: str) -> None:
+    conn.execute("INSERT OR IGNORE INTO schedule_coverage (sport, day) VALUES (?, ?)", (sport, day))
+    conn.commit()
+
+
+def schedule_covered(conn: sqlite3.Connection, sport: str, day: str) -> bool:
+    return conn.execute("SELECT 1 FROM schedule_coverage WHERE sport = ? AND day = ?", (sport, day)).fetchone() is not None
+
+
+def events_between(conn: sqlite3.Connection, sport: str, start: datetime, end: datetime) -> list[EventInfo]:
+    rows = conn.execute(
+        "SELECT * FROM events WHERE sport = ? AND start_time >= ? AND start_time < ? ORDER BY start_time",
+        (sport, _ts(start), _ts(end)),
+    )
+    return [
+        EventInfo(provider=r["provider"], event_id=r["event_id"], sport=Sport(r["sport"]), league=r["league"],
+                  start_time=_dt(r["start_time"]), home_team=r["home_team"], away_team=r["away_team"], status=r["status"])
+        for r in rows
+    ]

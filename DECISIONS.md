@@ -245,3 +245,57 @@ unless you pass `--all-books`.
   - `require_sharp`, `min_consensus_books`, and `bet_books`.
 - Alt lines are valid bet candidates. They're also where the biggest model
   error lives, so watch the `gap` column.
+
+## Phase 3 — context filters (2026-10-24)
+
+You confirmed the free plan is the long-term setup, so every Phase 3 source
+is free and none spends SportsGameOdds quota, except one small, guarded NBA
+backfill.
+
+### Sources picked, and why
+| Need | Source | Why |
+|---|---|---|
+| Injury status (all sports) | **SportsGameOdds `players[].status`** | Arrives inside the odds response we already pay for, from a provider licensed for betting use. Covers NFL, where no free official feed is usable. |
+| MLB IL / active roster | **MLB Stats API** 40-man roster (`statsapi.mlb.com`) | MLB's own data. MLBAM's notice permits "individual, non-commercial, non-bulk use", which matches personal research at a few calls a day. |
+| MLB probable pitchers, posted lineups | **MLB Stats API** schedule (`hydrate=probablePitcher,lineups`) | Same; lineups appear a few hours before first pitch. |
+| MLB weather | **Open-Meteo** forecast at first pitch | Free, no key, documented, CC-BY 4.0, 10k calls/day for non-commercial use, and works for Toronto (NWS is US-only). Wind is resolved into an out/in component using MLB's venue `azimuthAngle` (bearing from home plate to CF; Wrigley = 37°, which checks out). Domes skip the call. |
+| NBA rest / back-to-back | **Our own `events` table**, backfilled by one SportsGameOdds schedule call | See below. |
+
+**Rejected: NBA.com** (official injury-report PDFs, the cdn.nba.com
+schedule). NBA.com's Terms of Use say NBA data "may not be used in connection
+with any gambling activity (including legal gambling activity)". By your
+no-prohibited-sources rule, that's out.
+**Rejected: ESPN's hidden endpoints.** They're undocumented and not offered
+for this use.
+
+### Known gaps (no compliant free source)
+- **NBA and NFL lineups / late scratches:** only SGO's player status. NBA
+  injury news that breaks after your last fetch won't be seen. Fetch close to
+  bet time.
+- **Teammate injuries** (e.g. usage bumps when a star sits) are not modelled.
+  Only the player's own status matters.
+- **Whether SGO actually fills `players[].status`** is unconfirmed: the docs'
+  example responses don't include it. If it comes back empty in your first
+  live fetch, NBA/NFL injury filtering is effectively off, and I'll tell you.
+
+### Rules (config/context.yaml)
+- Statuses `out`, `injured_list`, `suspended`, `doubtful` and
+  `not_active_roster` → **drop**. `questionable` / `day_to_day` →
+  **downgrade** (confidence high→medium→low). `probable` → note.
+- MLB:
+  - Once a team's lineup is posted, a batter not in it → drop.
+  - Pitcher prop on someone other than the probable starter → drop.
+  - Starter not announced yet → downgrade.
+  - Rain probability ≥ 50% at first pitch → downgrade.
+  - Wind ≥ 8 mph in/out → note.
+- NBA back-to-back → note (switch to `downgrade` if you prefer). Without
+  yesterday's schedule, rest shows as "unknown" rather than being guessed.
+
+### Quota cost
+- The NBA backfill fetches yesterday's games as events only (one market, one
+  book). It costs about 1 object per game played yesterday, at most once per
+  day, and is capped at 30 and by the 90% budget. Expect about 150–300 objects
+  a month during the NBA season. `context --no-backfill` or
+  `nba.backfill_yesterday: false` turns it off.
+- MLB Stats API and Open-Meteo calls are free and don't touch the quota.
+  Their responses are logged to `data/raw/` like everything else.

@@ -6,6 +6,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from bookerbud.config import Settings
@@ -14,6 +15,10 @@ from bookerbud.normalize import NormalizeReport, normalize_props
 from bookerbud.providers.base import FetchResult, OddsProvider
 from bookerbud.raw_log import read_raw
 from bookerbud.storage import finish_run, insert_props, objects_used_since, start_run, upsert_events
+
+
+if TYPE_CHECKING:
+    from bookerbud.context.mlb import MLBContext
 
 
 class QuotaExceeded(RuntimeError):
@@ -137,3 +142,86 @@ def replay_and_store(
         part.raw_paths.append(Path(f))
         result.extend(part)
     return _store(conn, settings, provider, sports, result, source="replay", started_at=started_at, fetched_at=fetched_at)
+
+
+# --------------------------------------------------------------------- Phase 3
+
+
+@dataclass
+class ContextSummary:
+    games: int = 0
+    players: int = 0
+    objects_used: int = 0
+    warnings: list[str] | None = None
+
+
+def refresh_context(
+    conn: sqlite3.Connection,
+    settings: Settings,
+    provider: OddsProvider,
+    sports: list[Sport],
+    day: date,
+    *,
+    mlb: MLBContext | None = None,
+    backfill_nba: bool = True,
+    now: datetime | None = None,
+) -> ContextSummary:
+    """Pull injury/lineup/weather/rest context for `day`'s stored events.
+    Free sources only; the optional NBA backfill is quota-guarded."""
+    from bookerbud.context import nba as nba_ctx
+    from bookerbud.storage import events_between, insert_context, mark_schedule_covered, schedule_covered, upsert_events
+
+    now = now or datetime.now(UTC)
+    start, end = day_window(day, settings.tz)
+    out = ContextSummary(warnings=[])
+
+    if Sport.MLB in sports and mlb is not None:
+        events = events_between(conn, "mlb", start, end)
+        if events:
+            games, players, warns = mlb.build(events, day)
+            insert_context(conn, now, "mlb", "game", [(g.event_id, g.model_dump_json()) for g in games])
+            insert_context(conn, now, "mlb", "player", [(p.player_key, p.model_dump_json()) for p in players])
+            out.games += len(games)
+            out.players += len(players)
+            out.warnings += warns
+
+    if Sport.NBA in sports:
+        events = events_between(conn, "nba", start, end)
+        if events:
+            yday = (day - timedelta(days=1)).isoformat()
+            known = schedule_covered(conn, "nba", yday)
+            if not known and backfill_nba:
+                quota = quota_status(conn, settings, now)
+                cap = min(quota.remaining, 30)  # an NBA day never has more than 15 games
+                if cap > 0:
+                    run_id = start_run(conn, provider.name, "nba", "api", now)
+                    ys, ye = nba_ctx.yesterday_window(day, settings.tz)
+                    res = provider.fetch_schedule({Sport.NBA: settings.sports.get("nba", "NBA")}, ys, ye, max_objects=cap)
+                    upsert_events(conn, res.events, now)
+                    finish_run(conn, run_id, finished_at=datetime.now(UTC), requests_made=res.requests_made,
+                               objects_used=res.objects_used, n_events=len(res.events), n_props=0, n_flagged=0,
+                               notices=["schedule backfill " + yday], skipped={}, raw_paths=res.raw_paths)
+                    out.objects_used += res.objects_used
+                    if not res.truncated:
+                        mark_schedule_covered(conn, "nba", yday)
+                        known = True
+                else:
+                    out.warnings.append("NBA rest: quota budget exhausted, skipped yesterday backfill")
+            games = nba_ctx.build(conn, events, day, start, settings.tz, yesterday_known=known)
+            insert_context(conn, now, "nba", "game", [(g.event_id, g.model_dump_json()) for g in games])
+            out.games += len(games)
+    return out
+
+
+def load_context(conn: sqlite3.Connection, sports: list[Sport]):
+    """Latest stored context: (games by event_id, players by player_key)."""
+    from bookerbud.context.models import GameContext, PlayerContext
+    from bookerbud.storage import latest_context
+
+    games, players = {}, {}
+    for sp in sports:
+        for k, v in latest_context(conn, sp.value, "game").items():
+            games[k] = GameContext.model_validate_json(v)
+        for k, v in latest_context(conn, sp.value, "player").items():
+            players[k] = PlayerContext.model_validate_json(v)
+    return games, players

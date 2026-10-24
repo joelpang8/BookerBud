@@ -1,5 +1,26 @@
 # Changelog
 
+## Phase 3 — Context filters (2026-10-24)
+
+### Added
+- `context/` package:
+  - MLB Stats API: probable pitchers, posted lineups, IL / active-roster
+    status, venue coordinates, roof type and field orientation.
+  - Open-Meteo: first-pitch weather with an out/in wind component; domes are skipped.
+  - NBA rest and back-to-back flags, computed from stored events, with a
+    quota-guarded one-call SportsGameOdds schedule backfill for yesterday.
+  - SportsGameOdds player status, used for all sports.
+- `config/context.yaml`: drop / downgrade / note rules for statuses, lineups,
+  starters, rain, wind and back-to-backs.
+- New tables: `context_snapshots` (append-only) and `schedule_coverage`.
+- CLI:
+  - `betedge context`.
+  - `fetch` refreshes context automatically (`--no-context` to skip).
+  - `edges`/`slips` apply context and show a `notes` column (`--no-context`
+    to ignore it).
+- SGO provider: `fetch_schedule()` (events only, includes finished games).
+
+
 ## Phase 2 — Edge engine (2026-10-24)
 
 ### Added
