@@ -1,0 +1,3451 @@
+{
+ "_comment": "Verbatim copy of components.examples['EventsExample-PastMatch'] from https://sportsgameodds.com/openapi.json (v2.0.0), fetched 2026-10-24. Real response shape.",
+ "success": true,
+ "data": [
+  {
+   "eventID": "mg55OPFOORFcu5v3FvfO",
+   "sportID": "BASEBALL",
+   "leagueID": "MLB",
+   "type": "match",
+   "teams": {
+    "home": {
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "names": {
+      "long": "New York Yankees",
+      "short": "NYY",
+      "medium": "Yankees"
+     },
+     "colors": {
+      "primary": "#000066",
+      "primaryContrast": "#FFFFFF"
+     },
+     "statEntityID": "home",
+     "score": 11
+    },
+    "away": {
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "names": {
+      "long": "Washington Nationals",
+      "short": "WSH",
+      "medium": "Nationals"
+     },
+     "colors": {
+      "primary": "#AA0114",
+      "primaryContrast": "#FFFFFF"
+     },
+     "statEntityID": "away",
+     "score": 2
+    }
+   },
+   "odds": {
+    "points-all-game-ou-over": {
+     "oddID": "points-all-game-ou-over",
+     "opposingOddID": "points-all-game-ou-under",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "+245",
+     "fairOverUnder": "10",
+     "bookOverUnder": "12.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "+430",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.525022793&selectionId=7017905"
+      },
+      "sportsbet": {
+       "odds": "-106",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "+410",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:48.000Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "+200",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "+410",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "-105",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T19:32:02.000Z",
+       "available": false
+      },
+      "888sport": {
+       "odds": "+800",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:02:18.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "-108",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "+103",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "+310",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "+106",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "+346",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:07.148Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "+215",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:58:12.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=6667de2f-3856-36a3-9b66-fc3f5fdd15af"
+      },
+      "draftkings": {
+       "odds": "+451",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0OU81101865O1250_1"
+      },
+      "gtbets": {
+       "odds": "+938",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "-104",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "+100",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=6bdfedef-a8b8-4e0d-88ef-14137b44a13d&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=6bdfedef-a8b8-4e0d-88ef-14137b44a13d&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "matchbook": {
+       "odds": "+102",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:54.000Z",
+       "available": false
+      },
+      "pinnacle": {
+       "odds": "+233",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:58:39.410Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "+170",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:54:51.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874320-1335515315--513675969"
+      },
+      "coral": {
+       "odds": "+200",
+       "overUnder": "10.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "+200",
+       "overUnder": "10.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "+105",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T19:26:05.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "+100",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "+245",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "-108",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "casumo": {
+       "odds": "+245",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "+220",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "+220",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "+245",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "+220",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "+215",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "-108",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "+220",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "+245",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "betsson": {
+       "odds": "-185",
+       "overUnder": "13",
+       "lastUpdatedAt": "2025-08-27T19:39:36.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "-185",
+       "overUnder": "13",
+       "lastUpdatedAt": "2025-08-27T19:39:35.000Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "-110",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "-105",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "tipico": {
+       "odds": "+900",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:02:21.000Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "-280",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "+245",
+     "closeBookOverUnder": "12.5",
+     "closeFairOdds": "+100",
+     "closeFairOverUnder": "10",
+     "score": 13
+    },
+    "points-all-game-ou-under": {
+     "oddID": "points-all-game-ou-under",
+     "opposingOddID": "points-all-game-ou-over",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "-455",
+     "fairOverUnder": "10",
+     "bookOverUnder": "12.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "-769",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.525022793&selectionId=7017906"
+      },
+      "sportsbet": {
+       "odds": "-122",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "-650",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:48.000Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "-278",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "-667",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "-133",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T19:32:02.000Z",
+       "available": false
+      },
+      "888sport": {
+       "odds": "-2500",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:02:18.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "-118",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "-123",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "-480",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "-121",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "-548",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:07.148Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "-280",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:58:12.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=898e24f5-cc50-310d-89fd-0b2348325f21"
+      },
+      "draftkings": {
+       "odds": "-750",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0OU81101865U1250_3"
+      },
+      "gtbets": {
+       "odds": "-2326",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "-114",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "-120",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=28d109c6-a618-4694-a599-d2888e0b7613&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=28d109c6-a618-4694-a599-d2888e0b7613&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "matchbook": {
+       "odds": "-111",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:54.000Z",
+       "available": false
+      },
+      "pinnacle": {
+       "odds": "-298",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:58:39.410Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "-220",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:54:51.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874320-1335515315--513675968"
+      },
+      "coral": {
+       "odds": "-278",
+       "overUnder": "10.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "-278",
+       "overUnder": "10.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "-125",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "-133",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T19:26:05.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "-120",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "-118",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "casumo": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "-480",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "-455",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "betsson": {
+       "odds": "+128",
+       "overUnder": "13",
+       "lastUpdatedAt": "2025-08-27T19:39:36.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "+128",
+       "overUnder": "13",
+       "lastUpdatedAt": "2025-08-27T19:39:35.000Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "-110",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "-115",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "tipico": {
+       "odds": "-5000",
+       "overUnder": "12.5",
+       "lastUpdatedAt": "2025-08-27T20:02:21.000Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "-116",
+       "overUnder": "8.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-455",
+     "closeBookOverUnder": "12.5",
+     "closeFairOdds": "+100",
+     "closeFairOverUnder": "10",
+     "score": 13
+    },
+    "points-away-game-sp-away": {
+     "oddID": "points-away-game-sp-away",
+     "opposingOddID": "points-home-game-sp-home",
+     "marketName": "Spread",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "sp",
+     "sideID": "away",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "+255",
+     "fairSpread": "+11.5",
+     "bookSpread": "+9.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "+520",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.525022795&selectionId=1033687"
+      },
+      "sportsbet": {
+       "odds": "+110",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "+115",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "+350",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "+255",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "-143",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T19:32:02.000Z",
+       "available": false
+      },
+      "888sport": {
+       "odds": "+375",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "+108",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "+325",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "+102",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "+110",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "+120",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "-150",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=40f9cb26-f676-4024-b84a-aed040d8eb12&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "-150",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=40f9cb26-f676-4024-b84a-aed040d8eb12&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "betonline": {
+       "odds": "+115",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "+240",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:58:12.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=b31705cd-26ff-31b5-aeae-067ed13c7bcb"
+      },
+      "draftkings": {
+       "odds": "+451",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0HC81101865P950_3"
+      },
+      "gtbets": {
+       "odds": "+178",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "+118",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "pinnacle": {
+       "odds": "+243",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.019Z",
+       "available": false
+      },
+      "matchbook": {
+       "odds": "-105",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:09:40.000Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "+120",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "+725",
+       "spread": "+8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874320-1356961979--457967723"
+      },
+      "coral": {
+       "odds": "+475",
+       "spread": "-2.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "+475",
+       "spread": "-2.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "+110",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "-143",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T19:26:05.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "+109",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "+255",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "+235",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false,
+       "deeplink": "https://nj.betrivers.com/?page=sportsbook#event/1022036994?coupon=single|3855665428|0"
+      },
+      "casumo": {
+       "odds": "+255",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "+107",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T07:18:39.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "+107",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T07:18:39.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "+255",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "+235",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "+230",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "+102",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "+240",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "+255",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "+110",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "+110",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "+100",
+       "spread": "+1.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "betsson": {
+       "odds": "-141",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T19:32:03.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "-147",
+       "spread": "+10.5",
+       "lastUpdatedAt": "2025-08-27T19:30:38.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "+548",
+       "spread": "+9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tab": {
+       "odds": "-250",
+       "spread": "+13.5",
+       "lastUpdatedAt": "2025-08-27T18:53:47.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "+255",
+     "closeBookSpread": "+9.5",
+     "closeFairOdds": "+100",
+     "closeFairSpread": "+11.5",
+     "score": 2
+    },
+    "points-home-game-sp-home": {
+     "oddID": "points-home-game-sp-home",
+     "opposingOddID": "points-away-game-sp-away",
+     "marketName": "Spread",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "sp",
+     "sideID": "home",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "-385",
+     "fairSpread": "-11.5",
+     "bookSpread": "-9.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "-1000",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.525022795&selectionId=29161"
+      },
+      "sportsbet": {
+       "odds": "-135",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "-140",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "-556",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "+105",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T19:32:02.000Z",
+       "available": false
+      },
+      "888sport": {
+       "odds": "-699",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "-133",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "-510",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "-121",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "-130",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "-140",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "+115",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=49efd80f-b3a0-4aa9-a99f-36b7381f5738&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "+115",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=49efd80f-b3a0-4aa9-a99f-36b7381f5738&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "betonline": {
+       "odds": "-135",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "-320",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:58:12.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=7517123d-4475-36b2-b8b6-6e8cec5e8276"
+      },
+      "draftkings": {
+       "odds": "-750",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:00:47.000Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0HC81101865N950_1"
+      },
+      "gtbets": {
+       "odds": "-234",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "-133",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "pinnacle": {
+       "odds": "-312",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:56:05.019Z",
+       "available": false
+      },
+      "matchbook": {
+       "odds": "-161",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:09:40.000Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "-140",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "-1400",
+       "spread": "-8.5",
+       "lastUpdatedAt": "2025-08-27T20:03:53.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874320-1356961979--457967722"
+      },
+      "coral": {
+       "odds": "-909",
+       "spread": "+2.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "-909",
+       "spread": "+2.5",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "-140",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "+115",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T19:26:05.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "-129",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "-400",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false,
+       "deeplink": "https://nj.betrivers.com/?page=sportsbook#event/1022036994?coupon=single|3855665429|0"
+      },
+      "casumo": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "-133",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T07:18:39.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "-133",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T07:18:39.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "-420",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:10.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "-125",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "-385",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "-138",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "-130",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "-130",
+       "spread": "-1.5",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betsson": {
+       "odds": "+100",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T19:32:03.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "+104",
+       "spread": "-10.5",
+       "lastUpdatedAt": "2025-08-27T19:30:38.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "-1088",
+       "spread": "-9.5",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tab": {
+       "odds": "+190",
+       "spread": "-13.5",
+       "lastUpdatedAt": "2025-08-27T18:53:47.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-385",
+     "closeBookSpread": "-9.5",
+     "closeFairOdds": "+100",
+     "closeFairSpread": "-11.5",
+     "score": 11
+    },
+    "points-away-game-ml-away": {
+     "oddID": "points-away-game-ml-away",
+     "opposingOddID": "points-home-game-ml-home",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "away",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+1998",
+     "bookOdds": "+1900",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "+3000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.524922893&selectionId=1033687"
+      },
+      "888sport": {
+       "odds": "+1800",
+       "lastUpdatedAt": "2025-08-27T18:11:34.000Z",
+       "available": false
+      },
+      "sportsbet": {
+       "odds": "+234",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "betrsportsbook": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T17:03:56.000Z",
+       "available": false
+      },
+      "paddypower": {
+       "odds": "+2200",
+       "lastUpdatedAt": "2025-08-27T18:08:37.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "+259",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "+240",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "+4000",
+       "lastUpdatedAt": "2025-08-27T18:10:09.000Z",
+       "available": false
+      },
+      "betway": {
+       "odds": "+1600",
+       "lastUpdatedAt": "2025-08-27T19:47:01.000Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "+475",
+       "lastUpdatedAt": "2025-08-27T17:56:46.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "+225",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "williamhill": {
+       "odds": "+210",
+       "lastUpdatedAt": "2025-08-27T17:12:31.000Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "+250",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "+240",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "+250",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "+1037",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "+2500",
+       "lastUpdatedAt": "2025-08-27T19:58:53.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=a462c3c1-951c-3a0f-b98a-ae6bcdb79543"
+      },
+      "draftkings": {
+       "odds": "+10000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0ML81082868_3"
+      },
+      "gtbets": {
+       "odds": "+998",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "matchbook": {
+       "odds": "+380",
+       "lastUpdatedAt": "2025-08-27T17:34:49.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "+222",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "marathonbet": {
+       "odds": "+220",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "+240",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "+335",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "+2500",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=06cb889e-efe0-4bbd-92f8-560c1f7cf91e&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "+2500",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=06cb889e-efe0-4bbd-92f8-560c1f7cf91e&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "pinnacle": {
+       "odds": "+1798",
+       "lastUpdatedAt": "2025-08-27T18:17:22.000Z",
+       "available": false
+      },
+      "boylesports": {
+       "odds": "+220",
+       "lastUpdatedAt": "2025-08-27T17:05:22.000Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "+3300",
+       "lastUpdatedAt": "2025-08-27T19:57:41.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports/events/17874081?options=17874081-1335502124--513708481"
+      },
+      "coral": {
+       "odds": "+225",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "+220",
+       "lastUpdatedAt": "2025-08-27T17:08:14.000Z",
+       "available": false
+      },
+      "neds": {
+       "odds": "+220",
+       "lastUpdatedAt": "2025-08-27T17:06:44.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "+2250",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "+1900",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "+425",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "+1300",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://nj.betrivers.com/?page=sportsbook#event/1022036994?coupon=single|3854766794|0"
+      },
+      "casumo": {
+       "odds": "+1300",
+       "lastUpdatedAt": "2025-08-27T17:52:26.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "+1100",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "+1100",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "+1100",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "+460",
+       "lastUpdatedAt": "2025-08-27T17:50:59.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "+225",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "+1100",
+       "lastUpdatedAt": "2025-08-27T17:52:28.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "+1300",
+       "lastUpdatedAt": "2025-08-27T17:52:26.000Z",
+       "available": false
+      },
+      "tab": {
+       "odds": "+2000",
+       "lastUpdatedAt": "2025-08-27T17:55:28.000Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "+210",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "+230",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "tipico": {
+       "odds": "+1900",
+       "lastUpdatedAt": "2025-08-27T20:05:22.000Z",
+       "available": false
+      },
+      "betfairexchange": {
+       "odds": "-10000",
+       "lastUpdatedAt": "2025-08-27T18:14:29.000Z",
+       "available": false,
+       "deeplink": "https://betfair.com/exchange/plus/baseball/market/1.247149713"
+      },
+      "betsson": {
+       "odds": "+14900",
+       "lastUpdatedAt": "2025-08-27T19:57:42.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "+14900",
+       "lastUpdatedAt": "2025-08-27T19:53:02.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "+1900",
+     "closeFairOdds": "+1998",
+     "score": 2
+    },
+    "points-home-game-ml-home": {
+     "oddID": "points-home-game-ml-home",
+     "opposingOddID": "points-away-game-ml-away",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "home",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "-1998",
+     "bookOdds": "-100000",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "-50000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.524922893&selectionId=29161"
+      },
+      "888sport": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T18:11:34.000Z",
+       "available": false
+      },
+      "sportsbet": {
+       "odds": "-303",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "betrsportsbook": {
+       "odds": "-294",
+       "lastUpdatedAt": "2025-08-27T17:03:56.000Z",
+       "available": false
+      },
+      "paddypower": {
+       "odds": "-50000",
+       "lastUpdatedAt": "2025-08-27T18:08:37.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "-304",
+       "lastUpdatedAt": "2025-08-27T20:03:53.953Z",
+       "available": false
+      },
+      "fanatics": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "pointsbet": {
+       "odds": "-20000",
+       "lastUpdatedAt": "2025-08-27T18:10:09.000Z",
+       "available": false
+      },
+      "betway": {
+       "odds": "-10000",
+       "lastUpdatedAt": "2025-08-27T19:47:01.000Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "-714",
+       "lastUpdatedAt": "2025-08-27T17:56:46.000Z",
+       "available": false
+      },
+      "playup": {
+       "odds": "-286",
+       "lastUpdatedAt": "2025-08-27T17:02:32.000Z",
+       "available": false
+      },
+      "williamhill": {
+       "odds": "-275",
+       "lastUpdatedAt": "2025-08-27T17:12:31.000Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "-282",
+       "lastUpdatedAt": "2025-08-27T19:44:03.717Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "-310",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "lowvig": {
+       "odds": "-282",
+       "lastUpdatedAt": "2025-08-27T17:05:21.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "-3484",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "caesars": {
+       "odds": "-15000",
+       "lastUpdatedAt": "2025-08-27T19:58:53.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=a933b382-cc99-3461-9ee7-14e9cd7171e1"
+      },
+      "draftkings": {
+       "odds": "-5200",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0ML81082868_1"
+      },
+      "gtbets": {
+       "odds": "-2331",
+       "lastUpdatedAt": "2025-08-27T20:03:54.000Z",
+       "available": false
+      },
+      "matchbook": {
+       "odds": "-714",
+       "lastUpdatedAt": "2025-08-27T17:34:49.000Z",
+       "available": false
+      },
+      "1xbet": {
+       "odds": "-272",
+       "lastUpdatedAt": "2025-08-27T16:51:02.000Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "-280",
+       "lastUpdatedAt": "2025-08-27T19:39:33.717Z",
+       "available": false
+      },
+      "marathonbet": {
+       "odds": "-278",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "-300",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "-20000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=4f18f09f-cb12-4159-9a57-cadd631e47d0&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "thescorebet": {
+       "odds": "-20000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false,
+       "deeplink": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=4f18f09f-cb12-4159-9a57-cadd631e47d0&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "pinnacle": {
+       "odds": "-4152",
+       "lastUpdatedAt": "2025-08-27T18:17:22.000Z",
+       "available": false
+      },
+      "boylesports": {
+       "odds": "-300",
+       "lastUpdatedAt": "2025-08-27T17:05:22.000Z",
+       "available": false
+      },
+      "betus": {
+       "odds": "-270",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "betmgm": {
+       "odds": "-10000",
+       "lastUpdatedAt": "2025-08-27T19:57:41.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports/events/17874081?options=17874081-1335502124--513708480"
+      },
+      "coral": {
+       "odds": "-278",
+       "lastUpdatedAt": "2025-08-27T17:08:13.000Z",
+       "available": false
+      },
+      "ladbrokes": {
+       "odds": "-286",
+       "lastUpdatedAt": "2025-08-27T17:08:14.000Z",
+       "available": false
+      },
+      "neds": {
+       "odds": "-286",
+       "lastUpdatedAt": "2025-08-27T17:06:44.000Z",
+       "available": false
+      },
+      "hardrockbet": {
+       "odds": "-10000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "coolbet": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T19:59:11.000Z",
+       "available": false
+      },
+      "circa": {
+       "odds": "-550",
+       "lastUpdatedAt": "2025-08-27T20:03:50.406Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "-278",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false,
+       "deeplink": "https://nj.betrivers.com/?page=sportsbook#event/1022036994?coupon=single|3854766789|0"
+      },
+      "casumo": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:26.000Z",
+       "available": false
+      },
+      "livescorebet": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "virginbet": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "betparx": {
+       "odds": "-278",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "grosvenor": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:27.000Z",
+       "available": false
+      },
+      "leovegas": {
+       "odds": "-1000",
+       "lastUpdatedAt": "2025-08-27T17:50:59.000Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "-278",
+       "lastUpdatedAt": "2025-08-27T19:44:30.717Z",
+       "available": false
+      },
+      "tabtouch": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:28.000Z",
+       "available": false
+      },
+      "unibet": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:52:26.000Z",
+       "available": false
+      },
+      "tab": {
+       "odds": "-5000",
+       "lastUpdatedAt": "2025-08-27T17:55:28.000Z",
+       "available": false
+      },
+      "betanysports": {
+       "odds": "-260",
+       "lastUpdatedAt": "2025-08-27T12:12:08.000Z",
+       "available": false
+      },
+      "everygame": {
+       "odds": "-270",
+       "lastUpdatedAt": "2025-08-27T17:03:55.000Z",
+       "available": false
+      },
+      "tipico": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T20:05:22.000Z",
+       "available": false
+      },
+      "betfairexchange": {
+       "odds": "-3333",
+       "lastUpdatedAt": "2025-08-27T18:14:29.000Z",
+       "available": false,
+       "deeplink": "https://betfair.com/exchange/plus/baseball/market/1.247149713"
+      },
+      "betsson": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T19:57:42.000Z",
+       "available": false
+      },
+      "nordicbet": {
+       "odds": "-100000",
+       "lastUpdatedAt": "2025-08-27T19:53:02.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-100000",
+     "closeFairOdds": "-1998",
+     "score": 11
+    },
+    "points-away-1h-ml3way-away": {
+     "oddID": "points-away-1h-ml3way-away",
+     "opposingOddID": "points-home-1h-ml3way-home+draw",
+     "marketName": "1st Half 3-Way Moneyline",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "1h",
+     "betTypeID": "ml3way",
+     "sideID": "away",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+1024",
+     "bookOdds": "+1051",
+     "closeFairOdds": "+1024",
+     "closeBookOdds": "+1051",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "+1051",
+       "lastUpdatedAt": "2025-08-27T17:51:03.962Z",
+       "available": false
+      }
+     },
+     "score": 0
+    },
+    "points-home-1h-ml3way-home+draw": {
+     "oddID": "points-home-1h-ml3way-home+draw",
+     "opposingOddID": "points-away-1h-ml3way-away",
+     "marketName": "1st Half 3-Way Moneyline",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "1h",
+     "betTypeID": "ml3way",
+     "sideID": "home+draw",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "-1024",
+     "closeFairOdds": "-1024",
+     "scoringSupported": true,
+     "score": 11
+    },
+    "batting_hits-all-game-ou-over": {
+     "oddID": "batting_hits-all-game-ou-over",
+     "opposingOddID": "batting_hits-all-game-ou-under",
+     "marketName": "Total Hits Over/Under",
+     "statID": "batting_hits",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "-120",
+     "fairOverUnder": "14.5",
+     "bookOverUnder": "14.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "bet365": {
+       "odds": "-120",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T17:03:27.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-120",
+     "closeBookOverUnder": "14.5",
+     "closeFairOdds": "+100",
+     "closeFairOverUnder": "14.5",
+     "score": 19
+    },
+    "batting_hits-all-game-ou-under": {
+     "oddID": "batting_hits-all-game-ou-under",
+     "opposingOddID": "batting_hits-all-game-ou-over",
+     "marketName": "Total Hits Over/Under",
+     "statID": "batting_hits",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": true,
+     "ended": true,
+     "cancelled": false,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+100",
+     "bookOdds": "-120",
+     "fairOverUnder": "14.5",
+     "bookOverUnder": "14.5",
+     "scoringSupported": true,
+     "byBookmaker": {
+      "bet365": {
+       "odds": "-120",
+       "overUnder": "14.5",
+       "lastUpdatedAt": "2025-08-27T17:03:27.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-120",
+     "closeBookOverUnder": "14.5",
+     "closeFairOdds": "+100",
+     "closeFairOverUnder": "14.5",
+     "score": 19
+    },
+    "lastToScore-away-game-ml-away": {
+     "oddID": "lastToScore-away-game-ml-away",
+     "opposingOddID": "lastToScore-home-game-ml-home",
+     "marketName": "Last Run Moneyline",
+     "statID": "lastToScore",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "away",
+     "started": true,
+     "ended": true,
+     "cancelled": true,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+141",
+     "bookOdds": "+125",
+     "scoringSupported": false,
+     "byBookmaker": {
+      "bet365": {
+       "odds": "+125",
+       "lastUpdatedAt": "2025-08-27T17:04:03.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "+125",
+     "closeFairOdds": "+141"
+    },
+    "lastToScore-home-game-ml-home": {
+     "oddID": "lastToScore-home-game-ml-home",
+     "opposingOddID": "lastToScore-away-game-ml-away",
+     "marketName": "Last Run Moneyline",
+     "statID": "lastToScore",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "home",
+     "started": true,
+     "ended": true,
+     "cancelled": true,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "-141",
+     "bookOdds": "-167",
+     "scoringSupported": false,
+     "byBookmaker": {
+      "bet365": {
+       "odds": "-167",
+       "lastUpdatedAt": "2025-08-27T17:04:03.000Z",
+       "available": false
+      }
+     },
+     "closeBookOdds": "-167",
+     "closeFairOdds": "-141"
+    },
+    "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-over": {
+     "oddID": "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-over",
+     "opposingOddID": "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-under",
+     "statID": "batting_totalBases",
+     "statEntityID": "AUSTIN_WELLS_1_MLB",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "playerID": "AUSTIN_WELLS_1_MLB",
+     "started": true,
+     "ended": true,
+     "cancelled": true,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "-113",
+     "bookOdds": "-152",
+     "fairOverUnder": "0.5",
+     "bookOverUnder": "0.5",
+     "scoringSupported": false,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "+145",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false,
+       "deeplink": "https://sportsbook.fanduel.com/addToBetslip?marketId=42.525075665&selectionId=60060908"
+      },
+      "hardrockbet": {
+       "odds": "-105",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T18:38:33.000Z",
+       "available": false
+      },
+      "underdog": {
+       "odds": "+100",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "-140",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.719Z",
+       "available": false
+      },
+      "draftkings": {
+       "odds": "+110",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0QA272370437%23323606530_13L84240Q1468537267Q20"
+      },
+      "fliff": {
+       "odds": "+165",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.719Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "+171",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:05:35.185Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "+171",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "+158",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T17:07:52.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "+154",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:01.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "-135",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "prizepicks": {
+       "odds": "+100",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false,
+       "deeplink": "https://app.prizepicks.com/?projections=6319058-o-0.5"
+      },
+      "caesars": {
+       "odds": "-117",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=1f673f05-3a4d-347e-9959-7bb513958c0c"
+      },
+      "fanatics": {
+       "odds": "-125",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "+168",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "-155",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/StandardEvent:839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=MarketSelection:e5d00abd-3e68-47e3-921d-872039546aaf&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "betmgm": {
+       "odds": "-150",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T17:07:41.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874081-1356775339--458466899"
+      },
+      "betparx": {
+       "odds": "+170",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "ballybet": {
+       "odds": "-103",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T18:43:07.000Z",
+       "available": false
+      },
+      "betrivers": {
+       "odds": "-152",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "sugarhouse": {
+       "odds": "-152",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      }
+     },
+     "marketName": "Austin Wells Total Bases Over/Under",
+     "closeBookOdds": "-152",
+     "closeBookOverUnder": "0.5",
+     "closeFairOdds": "-113",
+     "closeFairOverUnder": "0.5"
+    },
+    "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-under": {
+     "oddID": "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-under",
+     "opposingOddID": "batting_totalBases-AUSTIN_WELLS_1_MLB-game-ou-over",
+     "statID": "batting_totalBases",
+     "statEntityID": "AUSTIN_WELLS_1_MLB",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "playerID": "AUSTIN_WELLS_1_MLB",
+     "started": true,
+     "ended": true,
+     "cancelled": true,
+     "bookOddsAvailable": false,
+     "fairOddsAvailable": false,
+     "fairOdds": "+113",
+     "fairOverUnder": "0.5",
+     "scoringSupported": false,
+     "marketName": "Austin Wells Total Bases Over/Under",
+     "bookOdds": "-115",
+     "bookOverUnder": "0.5",
+     "byBookmaker": {
+      "hardrockbet": {
+       "odds": "-135",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T18:38:33.000Z",
+       "available": false
+      },
+      "underdog": {
+       "odds": "+100",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "bet365": {
+       "odds": "+110",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.719Z",
+       "available": false
+      },
+      "fliff": {
+       "odds": "-245",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T19:39:33.719Z",
+       "available": false
+      },
+      "betonline": {
+       "odds": "-227",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:05:35.185Z",
+       "available": false
+      },
+      "bovada": {
+       "odds": "-227",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "mybookie": {
+       "odds": "-224",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T17:07:52.000Z",
+       "available": false
+      },
+      "unknown": {
+       "odds": "-230",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T17:05:01.000Z",
+       "available": false
+      },
+      "bookmakereu": {
+       "odds": "+105",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "prizepicks": {
+       "odds": "+100",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false,
+       "deeplink": "https://app.prizepicks.com/?projections=6319058-u-0.5"
+      },
+      "caesars": {
+       "odds": "-117",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false,
+       "deeplink": "https://sportsbook.caesars.com/us/nj/bet/betslip?selectionIds=dc2bcc28-ca0a-3874-a24b-df7a648418b8"
+      },
+      "fanatics": {
+       "odds": "-115",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "prophetexchange": {
+       "odds": "-215",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false
+      },
+      "espnbet": {
+       "odds": "+110",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T19:44:30.719Z",
+       "available": false,
+       "deeplink": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/StandardEvent:839ddc27-a783-4133-9e2c-06c1aa264e82?market_selection_id[0]=MarketSelection:1639ecba-7268-42de-a9b8-7e31339a2603&odds_numerator[0]=2&odds_denominator[0]=1"
+      },
+      "betmgm": {
+       "odds": "+110",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T17:07:41.000Z",
+       "available": false,
+       "deeplink": "https://sports.nj.betmgm.com/en/sports?options=17874081-1356775339--458466898"
+      },
+      "betparx": {
+       "odds": "-245",
+       "overUnder": "1.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false
+      },
+      "draftkings": {
+       "odds": "-142",
+       "overUnder": "0.5",
+       "lastUpdatedAt": "2025-08-27T20:06:02.185Z",
+       "available": false,
+       "deeplink": "https://sportsbook.draftkings.com/event/32706380?outcomes=0QA272370437%23323606533_13L84240Q11211674028Q20"
+      }
+     },
+     "closeBookOdds": "-115",
+     "closeBookOverUnder": "0.5",
+     "closeFairOdds": "+113",
+     "closeFairOverUnder": "0.5"
+    }
+   },
+   "status": {
+    "started": true,
+    "completed": true,
+    "cancelled": false,
+    "ended": true,
+    "live": false,
+    "delayed": false,
+    "displayLong": "Final",
+    "hardStart": true,
+    "finalized": true,
+    "currentPeriodID": "",
+    "previousPeriodID": "",
+    "displayShort": "F",
+    "oddsPresent": true,
+    "oddsAvailable": false,
+    "inBreak": false,
+    "periods": {
+     "started": [
+      "1i",
+      "2i",
+      "3i",
+      "4i",
+      "5i",
+      "6i",
+      "7i",
+      "8i",
+      "9i",
+      "game",
+      "reg"
+     ],
+     "ended": [
+      "1i",
+      "2i",
+      "3i",
+      "4i",
+      "5i",
+      "6i",
+      "7i",
+      "8i",
+      "9i",
+      "game",
+      "reg"
+     ]
+    },
+    "startsAt": "2025-08-27T17:05:00.000Z",
+    "previousStartsAt": [
+     "2025-08-27T20:00:00.000Z"
+    ]
+   },
+   "players": {
+    "AARON_JUDGE_1_MLB": {
+     "playerID": "AARON_JUDGE_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Aaron",
+     "lastName": "Judge",
+     "name": "Aaron Judge"
+    },
+    "CJ_ABRAMS_1_MLB": {
+     "playerID": "CJ_ABRAMS_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Paul",
+     "lastName": "Abrams",
+     "name": "CJ Abrams"
+    },
+    "CODY_BELLINGER_1_MLB": {
+     "playerID": "CODY_BELLINGER_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Cody",
+     "lastName": "Bellinger",
+     "name": "Cody Bellinger"
+    },
+    "JAMES_WOOD_1_MLB": {
+     "playerID": "JAMES_WOOD_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "James",
+     "lastName": "Wood",
+     "name": "James Wood"
+    },
+    "RYAN_MCMAHON_1_MLB": {
+     "playerID": "RYAN_MCMAHON_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Ryan",
+     "lastName": "McMahon",
+     "name": "Ryan McMahon"
+    },
+    "TRENT_GRISHAM_1_MLB": {
+     "playerID": "TRENT_GRISHAM_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Trenton",
+     "lastName": "Grisham",
+     "name": "Trent Grisham"
+    },
+    "CADE_CAVALLI_1_MLB": {
+     "playerID": "CADE_CAVALLI_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Steven",
+     "lastName": "Cavalli",
+     "name": "Cade Cavalli"
+    },
+    "MAX_FRIED_1_MLB": {
+     "playerID": "MAX_FRIED_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Max",
+     "lastName": "Fried",
+     "name": "Max Fried"
+    },
+    "ANDRES_CHAPARRO_1_MLB": {
+     "playerID": "ANDRES_CHAPARRO_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Andres",
+     "lastName": "Chaparro",
+     "name": "Andres Chaparro"
+    },
+    "ANTHONY_VOLPE_1_MLB": {
+     "playerID": "ANTHONY_VOLPE_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Anthony",
+     "lastName": "Volpe",
+     "name": "Anthony Volpe"
+    },
+    "AUSTIN_WELLS_1_MLB": {
+     "playerID": "AUSTIN_WELLS_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Austin",
+     "lastName": "Wells",
+     "name": "Austin Wells"
+    },
+    "BENJAMIN_RICE_1_MLB": {
+     "playerID": "BENJAMIN_RICE_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Ben",
+     "lastName": "Rice",
+     "name": "Ben Rice"
+    },
+    "BRADY_HOUSE_1_MLB": {
+     "playerID": "BRADY_HOUSE_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Brady",
+     "lastName": "House",
+     "name": "Brady House"
+    },
+    "DAYLEN_LILE_1_MLB": {
+     "playerID": "DAYLEN_LILE_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Daylen",
+     "lastName": "Lile",
+     "name": "Daylen Lile"
+    },
+    "DYLAN_CREWS_1_MLB": {
+     "playerID": "DYLAN_CREWS_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Dylan",
+     "lastName": "Crews",
+     "name": "Dylan Crews"
+    },
+    "JACOB_YOUNG_1_MLB": {
+     "playerID": "JACOB_YOUNG_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Jacob",
+     "lastName": "Young",
+     "name": "Jacob Young"
+    },
+    "JASRADO_CHISHOLM_1_MLB": {
+     "playerID": "JASRADO_CHISHOLM_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Jasrado",
+     "lastName": "Chisholm",
+     "name": "Jazz Chisholm Jr."
+    },
+    "JASSON_DOMINGUEZ_1_MLB": {
+     "playerID": "JASSON_DOMINGUEZ_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Jasson",
+     "lastName": "Dominguez",
+     "name": "Jasson Dominguez"
+    },
+    "PAUL_DEJONG_1_MLB": {
+     "playerID": "PAUL_DEJONG_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Paul",
+     "lastName": "DeJong",
+     "name": "Paul DeJong"
+    },
+    "RILEY_ADAMS_1_MLB": {
+     "playerID": "RILEY_ADAMS_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Riley",
+     "lastName": "Adams",
+     "name": "Riley Adams"
+    },
+    "GIANCARLO_STANTON_1_MLB": {
+     "playerID": "GIANCARLO_STANTON_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Giancarlo",
+     "lastName": "Stanton",
+     "name": "Giancarlo Stanton"
+    },
+    "ROBERT_HASSELL_III_1_MLB": {
+     "playerID": "ROBERT_HASSELL_III_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Robert",
+     "lastName": "Hassell",
+     "name": "Robert Hassell III"
+    },
+    "JOSHUA_BELL_1_MLB": {
+     "playerID": "JOSHUA_BELL_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Joshua",
+     "lastName": "Bell",
+     "name": "Josh Bell"
+    },
+    "DREW_MILLAS_1_MLB": {
+     "playerID": "DREW_MILLAS_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Drew",
+     "lastName": "Millas",
+     "name": "Drew Millas"
+    },
+    "LUIS_GARCIA_3_MLB": {
+     "playerID": "LUIS_GARCIA_3_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Luis",
+     "lastName": "Garcia",
+     "name": "Luis Garcia"
+    },
+    "SHINNOSUKE_OGASAWARA_1_MLB": {
+     "playerID": "SHINNOSUKE_OGASAWARA_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Shinnosuke",
+     "lastName": "Ogasawara",
+     "name": "Shinnosuke Ogasawara"
+    },
+    "PJ_POULIN_1_MLB": {
+     "playerID": "PJ_POULIN_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "PJ",
+     "lastName": "Poulin",
+     "name": "PJ Poulin"
+    },
+    "JOSE_FERRER_1_MLB": {
+     "playerID": "JOSE_FERRER_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Jose",
+     "lastName": "Ferrer",
+     "name": "Jose Ferrer"
+    },
+    "KONNOR_PILKINGTON_1_MLB": {
+     "playerID": "KONNOR_PILKINGTON_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Konnor",
+     "lastName": "Pilkington",
+     "name": "Konnor Pilkington"
+    },
+    "PAUL_BLACKBURN_1_MLB": {
+     "playerID": "PAUL_BLACKBURN_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Paul",
+     "lastName": "Blackburn",
+     "name": "Paul Blackburn"
+    },
+    "JACKSON_RUTLEDGE_1_MLB": {
+     "playerID": "JACKSON_RUTLEDGE_1_MLB",
+     "teamID": "WASHINGTON_NATIONALS_MLB",
+     "firstName": "Jackson",
+     "lastName": "Rutledge",
+     "name": "Jackson Rutledge"
+    },
+    "JOSE_CABALLERO_1_MLB": {
+     "playerID": "JOSE_CABALLERO_1_MLB",
+     "teamID": "NEW_YORK_YANKEES_MLB",
+     "firstName": "Jose",
+     "lastName": "Caballero",
+     "name": "Jose Caballero"
+    }
+   },
+   "results": {
+    "1i": {
+     "home": {
+      "points": 1
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "game": {
+     "MAX_FRIED_1_MLB": {
+      "pitching_runsAllowed": 1,
+      "pitching_homeRunsAllowed": 0,
+      "pitching_strikeouts": 6,
+      "pitching_basesOnBalls": 2,
+      "pitching_hits": 4,
+      "pitching_inningsPitched": 7,
+      "pitching_earnedRuns": 1,
+      "pitching_battersFaced": 26,
+      "pitching_outs": 21,
+      "pitching_pitchesThrown": 94,
+      "pitching_strikesThrown": 61,
+      "pitching_ERA": 1.286
+     },
+     "JAMES_WOOD_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 1,
+      "points": 0,
+      "batting_doubles": 1,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 2,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.5
+     },
+     "CJ_ABRAMS_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 1,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 1,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.25
+     },
+     "home": {
+      "points": 11,
+      "batting_doubles": 1,
+      "batting_triples": 0,
+      "batting_homeRuns": 6,
+      "batting_strikeouts": 12,
+      "batting_basesOnBalls": 4,
+      "batting_hits": 13,
+      "batting_battingAvg": 0.351,
+      "batting_onBasePercent": 0.429,
+      "batting_sluggingPercent": 0.865,
+      "batting_OPS": 1.294,
+      "batting_RBI": 11,
+      "batting_atBats": 37,
+      "batting_leftOnBase": 17,
+      "pitching_runsAllowed": 2,
+      "pitching_homeRunsAllowed": 1,
+      "pitching_strikeouts": 6,
+      "pitching_basesOnBalls": 2,
+      "pitching_hits": 6,
+      "pitching_ERA": 2,
+      "pitching_inningsPitched": 9,
+      "pitching_earnedRuns": 2,
+      "pitching_battersFaced": 34,
+      "pitching_outs": 27,
+      "fielding_assists": 13,
+      "fielding_putOuts": 27,
+      "fielding_errors": 0
+     },
+     "away": {
+      "points": 2,
+      "batting_doubles": 1,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 6,
+      "batting_basesOnBalls": 2,
+      "batting_hits": 6,
+      "batting_battingAvg": 0.188,
+      "batting_onBasePercent": 0.235,
+      "batting_sluggingPercent": 0.313,
+      "batting_OPS": 0.548,
+      "batting_RBI": 2,
+      "batting_atBats": 32,
+      "batting_leftOnBase": 10,
+      "pitching_runsAllowed": 11,
+      "pitching_homeRunsAllowed": 6,
+      "pitching_strikeouts": 12,
+      "pitching_basesOnBalls": 4,
+      "pitching_hits": 13,
+      "pitching_ERA": 11.25,
+      "pitching_inningsPitched": 8,
+      "pitching_earnedRuns": 10,
+      "pitching_battersFaced": 43,
+      "pitching_outs": 24,
+      "fielding_assists": 3,
+      "fielding_putOuts": 24,
+      "fielding_errors": 1
+     },
+     "BENJAMIN_RICE_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 2,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 3,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 5,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.6
+     },
+     "CADE_CAVALLI_1_MLB": {
+      "pitching_runsAllowed": 8,
+      "pitching_homeRunsAllowed": 4,
+      "pitching_strikeouts": 4,
+      "pitching_basesOnBalls": 1,
+      "pitching_hits": 8,
+      "pitching_inningsPitched": 2.1,
+      "pitching_earnedRuns": 7,
+      "pitching_battersFaced": 18,
+      "pitching_outs": 7,
+      "pitching_pitchesThrown": 76,
+      "pitching_strikesThrown": 48,
+      "pitching_ERA": 27,
+      "batting_RBI": 0,
+      "batting_atBats": 0,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 0,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "RILEY_ADAMS_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 1,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 1,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 3,
+      "batting_leftOnBase": 3,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "TRENT_GRISHAM_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 2,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 5,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.2
+     },
+     "AARON_JUDGE_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 0,
+      "points": 2,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 2,
+      "batting_hitByPitch": 1,
+      "batting_RBI": 2,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.5
+     },
+     "CODY_BELLINGER_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 1,
+      "batting_hits": 3,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.75
+     },
+     "ANTHONY_VOLPE_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 1,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 2,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 5,
+      "batting_leftOnBase": 9,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "JASRADO_CHISHOLM_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 2,
+      "batting_basesOnBalls": 3,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 1,
+      "batting_atBats": 2,
+      "batting_leftOnBase": 3,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "JASSON_DOMINGUEZ_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 0,
+      "points": 1,
+      "batting_doubles": 1,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 2,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 2,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 2,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 5,
+      "batting_leftOnBase": 5,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.4
+     },
+     "LUIS_GARCIA_3_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 4,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 3,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "ANDRES_CHAPARRO_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 2,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 1,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 3,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.333
+     },
+     "DYLAN_CREWS_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 3,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "AUSTIN_WELLS_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 2,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 2,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 1,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 3,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.333
+     },
+     "RYAN_MCMAHON_1_MLB": {
+      "batting_flyOuts": 1,
+      "batting_groundOuts": 1,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 1,
+      "batting_strikeouts": 1,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 3,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 4,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.25
+     },
+     "BRADY_HOUSE_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 2,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 3,
+      "batting_leftOnBase": 2,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "DREW_MILLAS_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 1,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "JACOB_YOUNG_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 1,
+      "points": 1,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 3,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0.333
+     },
+     "SHINNOSUKE_OGASAWARA_1_MLB": {
+      "pitching_runsAllowed": 3,
+      "pitching_homeRunsAllowed": 2,
+      "pitching_strikeouts": 3,
+      "pitching_basesOnBalls": 2,
+      "pitching_hits": 4,
+      "pitching_inningsPitched": 1.2,
+      "pitching_earnedRuns": 3,
+      "pitching_battersFaced": 11,
+      "pitching_outs": 5,
+      "pitching_pitchesThrown": 64,
+      "pitching_strikesThrown": 43,
+      "pitching_ERA": 16.2,
+      "batting_RBI": 0,
+      "batting_atBats": 1,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 1,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 1,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "PJ_POULIN_1_MLB": {
+      "pitching_runsAllowed": 0,
+      "pitching_homeRunsAllowed": 0,
+      "pitching_strikeouts": 1,
+      "pitching_basesOnBalls": 1,
+      "pitching_hits": 1,
+      "pitching_inningsPitched": 1,
+      "pitching_earnedRuns": 0,
+      "pitching_battersFaced": 5,
+      "pitching_outs": 3,
+      "pitching_pitchesThrown": 24,
+      "pitching_strikesThrown": 14,
+      "pitching_ERA": 0,
+      "batting_RBI": 0,
+      "batting_atBats": 0,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 0,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "JOSE_FERRER_1_MLB": {
+      "pitching_runsAllowed": 0,
+      "pitching_homeRunsAllowed": 0,
+      "pitching_strikeouts": 1,
+      "pitching_basesOnBalls": 0,
+      "pitching_hits": 0,
+      "pitching_inningsPitched": 1,
+      "pitching_earnedRuns": 0,
+      "pitching_battersFaced": 3,
+      "pitching_outs": 3,
+      "pitching_pitchesThrown": 13,
+      "pitching_strikesThrown": 10,
+      "pitching_ERA": 0,
+      "batting_RBI": 0,
+      "batting_atBats": 0,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 0,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "JOSHUA_BELL_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 1,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 1,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 1
+     },
+     "KONNOR_PILKINGTON_1_MLB": {
+      "pitching_runsAllowed": 0,
+      "pitching_homeRunsAllowed": 0,
+      "pitching_strikeouts": 1,
+      "pitching_basesOnBalls": 0,
+      "pitching_hits": 0,
+      "pitching_inningsPitched": 1,
+      "pitching_earnedRuns": 0,
+      "pitching_battersFaced": 3,
+      "pitching_outs": 3,
+      "pitching_pitchesThrown": 15,
+      "pitching_strikesThrown": 9,
+      "pitching_ERA": 0,
+      "batting_RBI": 0,
+      "batting_atBats": 0,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 0,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "PAUL_BLACKBURN_1_MLB": {
+      "pitching_runsAllowed": 1,
+      "pitching_homeRunsAllowed": 1,
+      "pitching_strikeouts": 0,
+      "pitching_basesOnBalls": 0,
+      "pitching_hits": 2,
+      "pitching_inningsPitched": 2,
+      "pitching_earnedRuns": 1,
+      "pitching_battersFaced": 8,
+      "pitching_outs": 6,
+      "pitching_pitchesThrown": 27,
+      "pitching_strikesThrown": 17,
+      "pitching_ERA": 4.5
+     },
+     "JACKSON_RUTLEDGE_1_MLB": {
+      "pitching_runsAllowed": 0,
+      "pitching_homeRunsAllowed": 0,
+      "pitching_strikeouts": 2,
+      "pitching_basesOnBalls": 0,
+      "pitching_hits": 0,
+      "pitching_inningsPitched": 1,
+      "pitching_earnedRuns": 0,
+      "pitching_battersFaced": 3,
+      "pitching_outs": 3,
+      "pitching_pitchesThrown": 16,
+      "pitching_strikesThrown": 8,
+      "pitching_ERA": 0,
+      "batting_RBI": 0,
+      "batting_atBats": 0,
+      "batting_basesOnBalls": 0,
+      "batting_battingAvg": 0,
+      "batting_caughtStealing": 0,
+      "batting_doubles": 0,
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "batting_hitByPitch": 0,
+      "batting_hits": 0,
+      "batting_homeRuns": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_stolenBases": 0,
+      "batting_strikeouts": 0,
+      "batting_triples": 0,
+      "points": 0
+     },
+     "ROBERT_HASSELL_III_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 1,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 1,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     },
+     "JOSE_CABALLERO_1_MLB": {
+      "batting_flyOuts": 0,
+      "batting_groundOuts": 0,
+      "points": 0,
+      "batting_doubles": 0,
+      "batting_triples": 0,
+      "batting_homeRuns": 0,
+      "batting_strikeouts": 0,
+      "batting_basesOnBalls": 0,
+      "batting_hits": 0,
+      "batting_hitByPitch": 0,
+      "batting_RBI": 0,
+      "batting_caughtStealing": 0,
+      "batting_stolenBases": 0,
+      "batting_atBats": 0,
+      "batting_leftOnBase": 0,
+      "batting_sacrificeBunts": 0,
+      "batting_sacrificeFlies": 0,
+      "batting_battingAvg": 0
+     }
+    },
+    "2i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "3i": {
+     "home": {
+      "points": 9
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "4i": {
+     "home": {
+      "points": 1
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "5i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "6i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 1
+     }
+    },
+    "7i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "8i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 0
+     }
+    },
+    "9i": {
+     "home": {
+      "points": 0
+     },
+     "away": {
+      "points": 1
+     }
+    }
+   },
+   "info": {
+    "seasonWeek": "MLB 2025"
+   },
+   "links": {
+    "bookmakers": {
+     "fanduel": "https://sportsbook.fanduel.com/baseball/-/34666043",
+     "888sport": "https://www.888sport.com/baseball/united-states-of-america/major-league-baseball/washington-nationals-new-york-yankees-e-6269958",
+     "sportsbet": "https://www.sportsbet.com.au/betting/baseball/major-league-baseball/washington-nationals-(tbd)-at-new-york-yankees-(tbd)-9559299",
+     "betrsportsbook": "https://www.betr.com.au/sports/Baseball/103/United-States-of-America/MLB-Matches/Washington-Nationals-@-New-York-Yankees/1822795/All-Markets",
+     "paddypower": "https://www.paddypower.com/baseball/major-league-baseball/washington-nationals-(tb-@-new-york-yankees-(tbd)-34666043",
+     "pointsbet": "https://pointsbet.com.au/sports/baseball/MLB/2403530",
+     "betway": "https://betway.com/en/sports/evt/15729109",
+     "playup": "https://www.playup.com.au/betting/sports/mlb/new-york-yankees-v-washington-nationals/1609109",
+     "williamhill": "https://sports.williamhill.com/betting/en-gb/baseball/OB_EV34951889/washington-nationals-at-new-york-yankees",
+     "betonline": "https://sports.betonline.ag/sportsbook/baseball/mlb/game/490793435",
+     "fliff": "https://sports.getfliff.com/markets/314614_c_p_203_prematch",
+     "lowvig": "https://sports.lowvig.ag/sportsbook/baseball/mlb/game/490793435",
+     "caesars": "https://sportsbook.caesars.com/us/nj/bet/baseball/3215d327-4ea9-44fa-a2d9-94990dc41af2/washington-nationals-at-new-york-yankees",
+     "draftkings": "https://sportsbook.draftkings.com/event/32706380",
+     "matchbook": "https://www.matchbook.com/events/baseball/united-states-of-america/major-league-baseball/31027102992300061",
+     "1xbet": "https://1xbet.com/en/line/football/166775-usa-mlb/276191492-new-york-yankees-washington-nationals",
+     "bovada": "https://www.bovada.lv/sports/baseball/mlb/washington-nationals-new-york-yankees-202508271305",
+     "espnbet": "https://espnbet.com/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82",
+     "thescorebet": "https://thescore.bet/sport/baseball/organization/united-states/competition/mlb/event/839ddc27-a783-4133-9e2c-06c1aa264e82",
+     "pinnacle": "https://www.pinnacle.com/en/baseball/mlb/washington-nationals-vs-new-york-yankees/1613687518",
+     "boylesports": "https://www.boylesports.com/sports/baseball/event/usa-mlb/new-york-yankees-v-washington-nationals",
+     "betmgm": "https://sports.nj.betmgm.com/en/sports/events/17874081",
+     "coral": "https://sports.coral.co.uk/event/baseball/baseball-usa/mlb/ny-yankees-v-was-nationals/39097489",
+     "ladbrokes": "https://www.ladbrokes.com.au/sports/-/-/-/a7259b59-0d5a-4589-a4a8-42c5301c1c6c",
+     "neds": "https://www.neds.com.au/sports/-/-/-/a7259b59-0d5a-4589-a4a8-42c5301c1c6c",
+     "hardrockbet": "https://app.hardrock.bet/home/competition/mlb/9202186806819029252",
+     "coolbet": "https://www.coolbet.com/en/sports/match/4306349",
+     "ballybet": "https://play.ballybet.com/sports#event/1022036994",
+     "betrivers": "https://nj.betrivers.com/?page=sportsbook#event/1022036994",
+     "casumo": "https://www.casumo.com/en-gb/sports#event/1022036994",
+     "livescorebet": "https://www.livescorebet.com/uk/sports/baseball/mlb/new-york-yankees-washington-nationals/SBTE_2_1022036994",
+     "virginbet": "https://www.virginbet.com/sports/baseball/mlb/new-york-yankees-washington-nationals/SBTE_2_1022036994",
+     "betparx": "https://nj.betparx.com/kambi#event/1022036994",
+     "grosvenor": "https://www.grosvenorcasinos.com/sport#event/1022036994",
+     "leovegas": "https://www.leovegas.co.uk/betting#event/1022036994",
+     "tabtouch": "https://www.tabtouch.mobi/tabtouch-sports/event/1022036994",
+     "unibet": "https://www.unibet.com/betting/sports/event/1022036994",
+     "tab": "https://www.tab.com.au/sports/betting/Baseball/competitions/Major%20League%20Baseball/matches/NY%20Yankees%20v%20Washington",
+     "betsson": "https://www.betsson.com/en/sportsbook/baseball/mlb/mlb?eventId=f--_OhrC7hmkeYfqMKdK8bWw",
+     "nordicbet": "https://www.nordicbet.com/en/sportsbook/baseball/mlb/mlb/new-york-yankees-washington-nationals",
+     "everygame": "https://sports.everygame.eu/en/Bets/Baseball/MLB-Lines/WAS-(C-Cavalli)-at-NYY-(M-Fried)/2701665"
+    }
+   }
+  }
+ ]
+}

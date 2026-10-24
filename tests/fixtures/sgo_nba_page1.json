@@ -1,0 +1,786 @@
+{
+ "_comment": "SYNTHETIC test data, hand-built to the documented SportsGameOdds v2 /events schema (openapi.json + bookmaker docs). Prices are invented. Split into two pages to exercise cursor pagination.",
+ "success": true,
+ "data": [
+  {
+   "eventID": "SYNTH_NBA_LAL_DEN",
+   "sportID": "BASKETBALL",
+   "leagueID": "NBA",
+   "type": "match",
+   "teams": {
+    "home": {
+     "teamID": "DENVER_NUGGETS_NBA",
+     "names": {
+      "long": "Denver Nuggets",
+      "medium": "Nuggets",
+      "short": "DEN"
+     }
+    },
+    "away": {
+     "teamID": "LOS_ANGELES_LAKERS_NBA",
+     "names": {
+      "long": "Los Angeles Lakers",
+      "medium": "Lakers",
+      "short": "LAL"
+     }
+    }
+   },
+   "status": {
+    "started": false,
+    "ended": false,
+    "live": false,
+    "displayLong": "Upcoming",
+    "oddsPresent": true,
+    "oddsAvailable": true,
+    "finalized": false,
+    "startsAt": "2026-10-25T01:00:00.000Z"
+   },
+   "players": {
+    "LEBRON_JAMES_1_NBA": {
+     "playerID": "LEBRON_JAMES_1_NBA",
+     "teamID": "LOS_ANGELES_LAKERS_NBA",
+     "firstName": "LeBron",
+     "lastName": "James",
+     "name": "LeBron James",
+     "status": "probable"
+    },
+    "NIKOLA_JOKIC_1_NBA": {
+     "playerID": "NIKOLA_JOKIC_1_NBA",
+     "teamID": "DENVER_NUGGETS_NBA",
+     "firstName": "Nikola",
+     "lastName": "Jokić",
+     "name": "Nikola Jokić",
+     "status": "active"
+    },
+    "JAMAL_MURRAY_1_NBA": {
+     "playerID": "JAMAL_MURRAY_1_NBA",
+     "teamID": "DENVER_NUGGETS_NBA",
+     "firstName": "Jamal",
+     "lastName": "Murray",
+     "name": "Jamal Murray",
+     "status": "questionable",
+     "statusDetails": "Hamstring"
+    }
+   },
+   "odds": {
+    "points-home-game-ml-home": {
+     "oddID": "points-home-game-ml-home",
+     "opposingOddID": "points-away-game-ml-away",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "home",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-185",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-190",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-178",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-away-game-ml-away": {
+     "oddID": "points-away-game-ml-away",
+     "opposingOddID": "points-home-game-ml-home",
+     "marketName": "Moneyline",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "ml",
+     "sideID": "away",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "+165",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "+160",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "+150",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-home-game-sp-home": {
+     "oddID": "points-home-game-sp-home",
+     "opposingOddID": "points-away-game-sp-away",
+     "marketName": "Spread",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "sp",
+     "sideID": "home",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-104",
+       "spread": "-4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-110",
+       "spread": "-4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-108",
+       "spread": "-4",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-away-game-sp-away": {
+     "oddID": "points-away-game-sp-away",
+     "opposingOddID": "points-home-game-sp-home",
+     "marketName": "Spread",
+     "statID": "points",
+     "statEntityID": "away",
+     "periodID": "game",
+     "betTypeID": "sp",
+     "sideID": "away",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-106",
+       "spread": "+4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-110",
+       "spread": "+4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-112",
+       "spread": "+4",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-all-game-ou-over": {
+     "oddID": "points-all-game-ou-over",
+     "opposingOddID": "points-all-game-ou-under",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-103",
+       "overUnder": "229.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-110",
+       "overUnder": "229.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-105",
+       "overUnder": "230",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-all-game-ou-under": {
+     "oddID": "points-all-game-ou-under",
+     "opposingOddID": "points-all-game-ou-over",
+     "marketName": "Over/Under",
+     "statID": "points",
+     "statEntityID": "all",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-107",
+       "overUnder": "229.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-110",
+       "overUnder": "229.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-115",
+       "overUnder": "230",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     }
+    },
+    "points-home-game-ou-over": {
+     "oddID": "points-home-game-ou-over",
+     "opposingOddID": "points-home-game-ou-under",
+     "marketName": "Home Team Total",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-115",
+       "overUnder": "117.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      }
+     }
+    },
+    "points-home-game-ou-under": {
+     "oddID": "points-home-game-ou-under",
+     "opposingOddID": "points-home-game-ou-over",
+     "marketName": "Home Team Total",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-105",
+       "overUnder": "117.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      }
+     }
+    },
+    "points-home-reg-ml3way-home": {
+     "oddID": "points-home-reg-ml3way-home",
+     "opposingOddID": "points-home-reg-ml3way-away+draw",
+     "marketName": "3-Way",
+     "statID": "points",
+     "statEntityID": "home",
+     "periodID": "reg",
+     "betTypeID": "ml3way",
+     "sideID": "home",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-200",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      }
+     }
+    },
+    "points-LEBRON_JAMES_1_NBA-game-ou-over": {
+     "oddID": "points-LEBRON_JAMES_1_NBA-game-ou-over",
+     "opposingOddID": "points-LEBRON_JAMES_1_NBA-game-ou-under",
+     "marketName": "LeBron James Points Over/Under",
+     "statID": "points",
+     "statEntityID": "LEBRON_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-112",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z",
+       "altLines": [
+        {
+         "odds": "+130",
+         "overUnder": "26.5",
+         "available": true,
+         "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+        }
+       ]
+      },
+      "draftkings": {
+       "odds": "-115",
+       "overUnder": "24.5",
+       "available": true,
+       "isMainLine": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z",
+       "altLines": [
+        {
+         "odds": "+120",
+         "overUnder": "25.5",
+         "available": true,
+         "isMainLine": false,
+         "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+        },
+        {
+         "odds": "-160",
+         "overUnder": "23.5",
+         "available": true,
+         "isMainLine": false,
+         "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+        }
+       ]
+      },
+      "fanduel": {
+       "odds": "+102",
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z",
+       "deeplink": "https://app.prizepicks.com/?projections=1-o-25.5"
+      },
+      "underdog": {
+       "odds": "+100",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "LEBRON_JAMES_1_NBA"
+    },
+    "points-LEBRON_JAMES_1_NBA-game-ou-under": {
+     "oddID": "points-LEBRON_JAMES_1_NBA-game-ou-under",
+     "opposingOddID": "points-LEBRON_JAMES_1_NBA-game-ou-over",
+     "marketName": "LeBron James Points Over/Under",
+     "statID": "points",
+     "statEntityID": "LEBRON_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-108",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z",
+       "altLines": [
+        {
+         "odds": "-165",
+         "overUnder": "26.5",
+         "available": true,
+         "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+        }
+       ]
+      },
+      "draftkings": {
+       "odds": "-105",
+       "overUnder": "24.5",
+       "available": true,
+       "isMainLine": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-130",
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "underdog": {
+       "odds": "+100",
+       "overUnder": "24.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "25.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "LEBRON_JAMES_1_NBA"
+    },
+    "rebounds-LEBRON_JAMES_1_NBA-game-ou-over": {
+     "oddID": "rebounds-LEBRON_JAMES_1_NBA-game-ou-over",
+     "opposingOddID": "rebounds-LEBRON_JAMES_1_NBA-game-ou-under",
+     "marketName": "LeBron James Rebounds Over/Under",
+     "statID": "rebounds",
+     "statEntityID": "LEBRON_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "+105",
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "+100",
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "LEBRON_JAMES_1_NBA"
+    },
+    "rebounds-LEBRON_JAMES_1_NBA-game-ou-under": {
+     "oddID": "rebounds-LEBRON_JAMES_1_NBA-game-ou-under",
+     "opposingOddID": "rebounds-LEBRON_JAMES_1_NBA-game-ou-over",
+     "marketName": "LeBron James Rebounds Over/Under",
+     "statID": "rebounds",
+     "statEntityID": "LEBRON_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-125",
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-120",
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "7.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "LEBRON_JAMES_1_NBA"
+    },
+    "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-over": {
+     "oddID": "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-over",
+     "opposingOddID": "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-under",
+     "marketName": "Nikola Jokic Pts+Reb+Ast Over/Under",
+     "statID": "points+rebounds+assists",
+     "statEntityID": "NIKOLA_JOKIC_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-110",
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-114",
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "underdog": {
+       "overUnder": "49.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "NIKOLA_JOKIC_1_NBA"
+    },
+    "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-under": {
+     "oddID": "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-under",
+     "opposingOddID": "points+rebounds+assists-NIKOLA_JOKIC_1_NBA-game-ou-over",
+     "marketName": "Nikola Jokic Pts+Reb+Ast Over/Under",
+     "statID": "points+rebounds+assists",
+     "statEntityID": "NIKOLA_JOKIC_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-110",
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-106",
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "underdog": {
+       "overUnder": "49.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "50.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "NIKOLA_JOKIC_1_NBA"
+    },
+    "assists-NIKOLA_JOKIC_1_NBA-game-ou-over": {
+     "oddID": "assists-NIKOLA_JOKIC_1_NBA-game-ou-over",
+     "opposingOddID": "assists-NIKOLA_JOKIC_1_NBA-game-ou-under",
+     "marketName": "Nikola Jokic Assists Over/Under",
+     "statID": "assists",
+     "statEntityID": "NIKOLA_JOKIC_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-130",
+       "overUnder": "9.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "-125",
+       "overUnder": "9.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     },
+     "playerID": "NIKOLA_JOKIC_1_NBA"
+    },
+    "assists-NIKOLA_JOKIC_1_NBA-game-ou-under": {
+     "oddID": "assists-NIKOLA_JOKIC_1_NBA-game-ou-under",
+     "opposingOddID": "assists-NIKOLA_JOKIC_1_NBA-game-ou-over",
+     "marketName": "Nikola Jokic Assists Over/Under",
+     "statID": "assists",
+     "statEntityID": "NIKOLA_JOKIC_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "+105",
+       "overUnder": "9.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "fanduel": {
+       "odds": "+100",
+       "overUnder": "9.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      }
+     },
+     "playerID": "NIKOLA_JOKIC_1_NBA"
+    },
+    "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-over": {
+     "oddID": "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-over",
+     "opposingOddID": "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-under",
+     "marketName": "Jamal Murray Double Double Over/Under",
+     "statID": "doubleDoubles",
+     "statEntityID": "JAMAL_MURRAY_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "+400",
+       "overUnder": "0.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      }
+     },
+     "playerID": "JAMAL_MURRAY_1_NBA"
+    },
+    "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-under": {
+     "oddID": "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-under",
+     "opposingOddID": "doubleDoubles-JAMAL_MURRAY_1_NBA-game-ou-over",
+     "marketName": "Jamal Murray Double Double Over/Under",
+     "statID": "doubleDoubles",
+     "statEntityID": "JAMAL_MURRAY_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "draftkings": {
+       "odds": "-600",
+       "overUnder": "0.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      }
+     },
+     "playerID": "JAMAL_MURRAY_1_NBA"
+    },
+    "points-BRONNY_JAMES_1_NBA-game-ou-over": {
+     "oddID": "points-BRONNY_JAMES_1_NBA-game-ou-over",
+     "opposingOddID": "points-BRONNY_JAMES_1_NBA-game-ou-under",
+     "marketName": "Bronny James Points Over/Under",
+     "statID": "points",
+     "statEntityID": "BRONNY_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "prizepicks": {
+       "overUnder": "3.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "BRONNY_JAMES_1_NBA"
+    },
+    "points-BRONNY_JAMES_1_NBA-game-ou-under": {
+     "oddID": "points-BRONNY_JAMES_1_NBA-game-ou-under",
+     "opposingOddID": "points-BRONNY_JAMES_1_NBA-game-ou-over",
+     "marketName": "Bronny James Points Over/Under",
+     "statID": "points",
+     "statEntityID": "BRONNY_JAMES_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "prizepicks": {
+       "overUnder": "3.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "BRONNY_JAMES_1_NBA"
+    }
+   }
+  }
+ ],
+ "nextCursor": "n.SYNTH.page2",
+ "notice": "Response is missing 0 events and 3 bookmaker odds. Upgrade your API key to access all data from this query."
+}

@@ -1,0 +1,31 @@
+[project]
+name = "bookerbud"
+version = "0.1.0"
+description = "Daily sports-betting research tool: finds +EV props and game lines. Research only; never places bets."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pandas>=2.2",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+betedge = "bookerbud.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8.2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bookerbud"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

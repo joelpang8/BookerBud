@@ -1,0 +1,44 @@
+# Canonical stat types per sport, with every provider/book label we've seen
+# for them. The matcher lowercases and strips punctuation before comparing, so
+# "Total Bases" and "total_bases" both hit.
+#
+# "verified" = seen in SportsGameOdds docs/OpenAPI examples. Anything else a
+# provider sends is stored with stat_type = raw label and flagged
+# `unmapped_stat` (see `betedge unmatched`), then you add it here.
+nba:
+  points:       {label: Points,   aliases: [points, pts]}                       # verified
+  rebounds:     {label: Rebounds, aliases: [rebounds, reb, rebs]}               # verified
+  assists:      {label: Assists,  aliases: [assists, ast, asts]}                # verified
+  steals:       {label: Steals,   aliases: [steals, stl]}                       # verified
+  blocks:       {label: Blocks,   aliases: [blocks, blk, blocked shots]}
+  turnovers:    {label: Turnovers, aliases: [turnovers, tov]}
+  threes_made:  {label: 3-PT Made, aliases: [threes, 3pt made, 3 pointers made, three pointers made, 3-pt made, threepointersmade]}
+  pts_reb_ast:  {label: Pts+Rebs+Asts, aliases: [points+rebounds+assists, pts+rebs+asts, pra]}
+  pts_reb:      {label: Pts+Rebs, aliases: [points+rebounds, pts+rebs]}
+  pts_ast:      {label: Pts+Asts, aliases: [points+assists, pts+asts]}
+  reb_ast:      {label: Rebs+Asts, aliases: [rebounds+assists, rebs+asts]}
+  blk_stl:      {label: Blks+Stls, aliases: [blocks+steals, blks+stls, steals+blocks]}
+mlb:
+  runs:              {label: Runs (team/game), aliases: [points]}                 # verified (SGO uses `points` for runs)
+  total_bases:       {label: Total Bases, aliases: [batting_totalbases, total bases, tb]}   # verified
+  home_runs:         {label: Home Runs, aliases: [batting_homeruns, home runs, hr]}         # verified
+  batter_strikeouts: {label: Batter Strikeouts, aliases: [batting_strikeouts, hitter strikeouts]}  # verified
+  pitcher_strikeouts: {label: Pitcher Strikeouts, aliases: [pitching_strikeouts, pitcher strikeouts, strikeouts, ks]}  # verified
+  hits:              {label: Hits, aliases: [batting_hits, hits]}
+  rbi:               {label: RBIs, aliases: [batting_rbi, rbis, rbi]}
+  hits_runs_rbis:    {label: Hits+Runs+RBIs, aliases: [hits+runs+rbis, h+r+rbi]}
+  pitcher_outs:      {label: Pitching Outs, aliases: [pitching_outs, outs recorded, pitching outs]}
+  earned_runs:       {label: Earned Runs Allowed, aliases: [pitching_earnedruns, earned runs allowed, earned runs]}
+nfl:
+  points:          {label: Points, aliases: [points]}                            # verified
+  passing_yards:   {label: Pass Yards, aliases: [passing_yards, pass yards, passing yards]}       # verified
+  rushing_yards:   {label: Rush Yards, aliases: [rushing_yards, rush yards, rushing yards]}       # verified
+  receiving_yards: {label: Receiving Yards, aliases: [receiving_yards, rec yards, receiving yards]}  # verified
+  receptions:      {label: Receptions, aliases: [receptions, rec]}               # verified
+  passing_tds:     {label: Pass TDs, aliases: [passing_touchdowns, pass tds, passing tds]}
+  interceptions:   {label: INTs Thrown, aliases: [passing_interceptions, interceptions, ints thrown]}
+  rush_attempts:   {label: Rush Attempts, aliases: [rushing_attempts, rush attempts]}
+  pass_completions: {label: Pass Completions, aliases: [passing_completions, completions]}
+  pass_attempts:   {label: Pass Attempts, aliases: [passing_attempts, pass attempts]}
+  rush_rec_yards:  {label: Rush+Rec Yards, aliases: [rushing+receiving_yards, rush+rec yds, rush+rec yards]}
+  anytime_td:      {label: Anytime TD, aliases: [touchdowns, anytime td]}

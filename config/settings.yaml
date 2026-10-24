@@ -1,0 +1,38 @@
+# BookerBud runtime settings. Secrets (API keys) live in .env, never here.
+
+# Timezone used to decide what "today's slate" means.
+timezone: America/New_York
+
+# Where SQLite and raw API logs go (relative to the project root).
+data_dir: data
+db_path: data/bookerbud.sqlite
+
+# Active odds provider (must exist in bookerbud.providers.registry).
+provider: sportsgameodds
+
+# Sport key -> provider league ID.
+sports:
+  nba: NBA
+  mlb: MLB
+  nfl: NFL
+
+# Bookmakers we care about, by role. IDs are canonical BookerBud IDs; each
+# provider maps them to its own IDs.
+bookmakers:
+  sharp: [pinnacle]
+  sportsbooks: [draftkings, fanduel]
+  pickem: [prizepicks, underdog, sleeper]
+
+providers:
+  sportsgameodds:
+    base_url: https://api.sportsgameodds.com/v2
+    # Amateur (free) plan = 10 req/min, Rookie = 50, Pro = 300.
+    requests_per_minute: 10
+    # Events per page. Each event returned counts as one "object" against the
+    # monthly quota (2,500/month on the free plan).
+    page_limit: 25
+    # Alt lines are needed in Phase 2 to line up mismatched lines. They don't
+    # cost extra objects, only response size.
+    include_alt_lines: true
+    timeout_seconds: 30
+    max_retries: 4

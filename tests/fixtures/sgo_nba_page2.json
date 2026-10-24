@@ -1,0 +1,188 @@
+{
+ "_comment": "SYNTHETIC test data, hand-built to the documented SportsGameOdds v2 /events schema (openapi.json + bookmaker docs). Prices are invented. Split into two pages to exercise cursor pagination.",
+ "success": true,
+ "data": [
+  {
+   "eventID": "SYNTH_NBA_GSW_PHX",
+   "sportID": "BASKETBALL",
+   "leagueID": "NBA",
+   "type": "match",
+   "teams": {
+    "home": {
+     "teamID": "PHOENIX_SUNS_NBA",
+     "names": {
+      "long": "Phoenix Suns",
+      "medium": "Suns",
+      "short": "PHX"
+     }
+    },
+    "away": {
+     "teamID": "GOLDEN_STATE_WARRIORS_NBA",
+     "names": {
+      "long": "Golden State Warriors",
+      "medium": "Warriors",
+      "short": "GSW"
+     }
+    }
+   },
+   "status": {
+    "started": false,
+    "ended": false,
+    "displayLong": "Upcoming",
+    "startsAt": "2026-10-25T02:30:00.000Z"
+   },
+   "players": {
+    "STEPHEN_CURRY_1_NBA": {
+     "playerID": "STEPHEN_CURRY_1_NBA",
+     "teamID": "GOLDEN_STATE_WARRIORS_NBA",
+     "name": "Stephen Curry"
+    },
+    "DEVIN_BOOKER_1_NBA": {
+     "playerID": "DEVIN_BOOKER_1_NBA",
+     "teamID": "PHOENIX_SUNS_NBA",
+     "name": "Devin Booker"
+    }
+   },
+   "odds": {
+    "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-over": {
+     "oddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-over",
+     "opposingOddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-under",
+     "marketName": "Stephen Curry Threes Over/Under",
+     "statID": "threePointersMade",
+     "statEntityID": "STEPHEN_CURRY_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "-120",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-125",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "underdog": {
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "STEPHEN_CURRY_1_NBA"
+    },
+    "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-under": {
+     "oddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-under",
+     "opposingOddID": "threePointersMade-STEPHEN_CURRY_1_NBA-game-ou-over",
+     "marketName": "Stephen Curry Threes Over/Under",
+     "statID": "threePointersMade",
+     "statEntityID": "STEPHEN_CURRY_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "pinnacle": {
+       "odds": "+100",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:51:00.000Z"
+      },
+      "draftkings": {
+       "odds": "-105",
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:52:00.000Z"
+      },
+      "prizepicks": {
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      },
+      "underdog": {
+       "overUnder": "4.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "STEPHEN_CURRY_1_NBA"
+    },
+    "points-DEVIN_BOOKER_1_NBA-game-ou-over": {
+     "oddID": "points-DEVIN_BOOKER_1_NBA-game-ou-over",
+     "opposingOddID": "points-DEVIN_BOOKER_1_NBA-game-ou-under",
+     "marketName": "Devin Booker Points Over/Under",
+     "statID": "points",
+     "statEntityID": "DEVIN_BOOKER_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "over",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "-110",
+       "overUnder": "26.5",
+       "available": false,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "26.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "DEVIN_BOOKER_1_NBA"
+    },
+    "points-DEVIN_BOOKER_1_NBA-game-ou-under": {
+     "oddID": "points-DEVIN_BOOKER_1_NBA-game-ou-under",
+     "opposingOddID": "points-DEVIN_BOOKER_1_NBA-game-ou-over",
+     "marketName": "Devin Booker Points Over/Under",
+     "statID": "points",
+     "statEntityID": "DEVIN_BOOKER_1_NBA",
+     "periodID": "game",
+     "betTypeID": "ou",
+     "sideID": "under",
+     "started": false,
+     "ended": false,
+     "cancelled": false,
+     "bookOddsAvailable": true,
+     "fairOddsAvailable": true,
+     "byBookmaker": {
+      "fanduel": {
+       "odds": "-110",
+       "overUnder": "26.5",
+       "available": false,
+       "lastUpdatedAt": "2026-10-24T21:53:00.000Z"
+      },
+      "sleeper": {
+       "overUnder": "26.5",
+       "available": true,
+       "lastUpdatedAt": "2026-10-24T21:54:00.000Z"
+      }
+     },
+     "playerID": "DEVIN_BOOKER_1_NBA"
+    }
+   }
+  }
+ ]
+}
