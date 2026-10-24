@@ -28,6 +28,8 @@ class ReportCfg(BaseModel):
     top_slips: int = 6
     output_dir: Path | None = None  # None -> <settings.data_dir>/reports
     quota_warn_pct: float = 80
+    top_picks: int = 3
+    confidence_weight: dict[str, float] = {"high": 1.0, "medium": 0.75, "low": 0.5}
 
 
 def report_dir(settings: Settings, rcfg: ReportCfg) -> Path:
@@ -57,6 +59,7 @@ class Report:
     settings: dict
     totals: dict = field(default_factory=dict)
     performance: dict | None = None
+    top_picks: list[dict] = field(default_factory=list)
     recommended: list = field(default_factory=list, repr=False)  # Edge objects shown (recorded for CLV)
 
     def to_json(self) -> str:
@@ -130,6 +133,27 @@ def slip_dict(s: Slip, events: dict, tz, bankroll: float) -> dict:
             for l, p in zip(s.legs, s.probs)
         ],
     }
+
+
+def pick_top(plays: dict[str, list[dict]], rcfg: ReportCfg) -> list[dict]:
+    """Best plays across all sports by edge x confidence weight, one per player
+    (or per game line), sportsbook bets and pick'em legs alike."""
+    scored = sorted(
+        (p for ps in plays.values() for p in ps),
+        key=lambda p: p["edge_pct"] * rcfg.confidence_weight.get(p["confidence"], 0.5),
+        reverse=True,
+    )
+    out, seen = [], set()
+    for p in scored:
+        who = (p["sport"], p["subject"], p["matchup"])
+        if who in seen:
+            continue
+        seen.add(who)
+        out.append({**p, "rank": len(out) + 1,
+                    "score": p["edge_pct"] * rcfg.confidence_weight.get(p["confidence"], 0.5)})
+        if len(out) == rcfg.top_picks:
+            break
+    return out
 
 
 def _game_lines(g) -> list[str]:
@@ -227,6 +251,10 @@ def build_report(
         sp_edges = [e for e in res.edges if e.sport == sp.value][: rcfg.top_plays_per_sport]
         recommended += sp_edges
         plays[sp.value] = [play_dict(e, events, tz, bankroll) for e in sp_edges]
+    for sport_plays in plays.values():
+        for i, p in enumerate(sport_plays):
+            p["anchor"] = f"play-{p['sport']}-{i + 1}"
+    top_picks = pick_top(plays, rcfg)
 
     # Slips
     payouts = load_payouts()
@@ -273,6 +301,7 @@ def build_report(
         generated_at=generated_at or now, as_of=now, tz=settings.timezone, sports=[s.value for s in sports],
         freshness=freshness, quota=quota, warnings=warnings, plays=plays, slips=slip_rows, games=games,
         skipped=dict(res.skipped), totals=totals, recommended=recommended, performance=performance,
+        top_picks=top_picks,
         settings={"bankroll": bankroll, "kelly_fraction": cfg.bankroll.kelly_fraction,
                   "max_bet_pct": cfg.bankroll.max_bet_pct, "min_edge_pct": cfg.filters.min_edge_pct,
                   "states": settings.states, "plan": settings.plan, "max_line_age": max_age,

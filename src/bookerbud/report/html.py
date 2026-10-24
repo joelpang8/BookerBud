@@ -183,6 +183,21 @@ tr:last-child td { border-bottom: 0; }
 .games ul { margin: 0; padding: 0 14px 12px 32px; font-size: .86rem; color: var(--muted); }
 
 .banner { margin: 12px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-weight: 600; font-size: .88rem; }
+/* Top picks */
+.top { margin-block: 4px 14px; }
+.top h2 { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .02em; margin: 0 0 8px; }
+.top ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .top ol { grid-template-columns: minmax(0, 1fr); } }
+.pick { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: inherit; text-decoration: none; }
+.pick:hover { border-color: var(--accent); }
+.pick .rk { font-family: var(--display); font-weight: 700; font-size: 2rem; line-height: 1; color: var(--accent); grid-row: span 2; align-self: center; min-width: 1ch; }
+.pick .who { font-weight: 600; line-height: 1.25; min-width: 0; }
+.pick .who small { display: block; font-weight: 400; color: var(--muted); font-size: .82rem; }
+.pick .ev { font-family: var(--display); font-weight: 700; font-size: 1.5rem; color: var(--good); text-align: right; font-variant-numeric: tabular-nums; }
+.pick .meta { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: .8rem; color: var(--muted); align-items: center; }
+.pick .meta b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+.top .empty { margin: 0; }
+
 /* Tabs + performance */
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-block: 4px 12px; }
 .tab { border: 0; background: none; padding: 8px 4px; margin-right: 18px; cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 1.15rem; letter-spacing: .02em; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
@@ -314,7 +329,8 @@ def _ticket(p: dict) -> str:
         src += f' · line moved {p["line_gap"]:g}'
     states = ", ".join(p["states"]) or "not in your states"
     link = f' · <a href="{_e(p["deeplink"])}" rel="noopener" target="_blank">Open in {_e(p["book_label"])}</a>' if p.get("deeplink") else ""
-    return f"""<article class="ticket" {_attrs(p)}>
+    anchor = f' id="{_e(p["anchor"])}"' if p.get("anchor") else ""
+    return f"""<article class="ticket"{anchor} {_attrs(p)}>
 <div class="t-top"><span class="match">{_e(p["matchup"])}</span><span class="mono">{_e(p["start_label"])}</span></div>
 <div class="t-who"><h3>{_e(p["subject"])}</h3><p>{_e(p["market"])}{alt}</p></div>
 <div class="t-book"><span>{_e(p["book_label"])}</span><span class="price">{_e(p["price"])}</span></div>
@@ -325,6 +341,28 @@ def _ticket(p: dict) -> str:
 <p class="reason">{_e(p["reason"])}</p>
 <div class="t-src"><span>{src}</span><span>Usable in {_e(states)}</span>{link}</div>
 </article>"""
+
+
+def _top_picks(picks: list[dict]) -> str:
+    if not picks:
+        return ('<section class="top"><h2>Top picks</h2><p class="empty">No plays pass the filters right now. '
+                'Check the warnings below, or fetch fresh odds.</p></section>')
+    items = []
+    for p in picks:
+        stake = f'${p["stake"]:.2f}' if p["kind"] != "pickem" else "per slip"
+        alt = " (alt line)" if p["alt"] else ""
+        notes = f'<span>{_e("; ".join(p["notes"]))}</span>' if p["notes"] else ""
+        items.append(
+            f'<li><a class="pick" href="#{_e(p.get("anchor", ""))}">'
+            f'<span class="rk">{p["rank"]}</span>'
+            f'<span class="who">{_e(p["subject"])}<small>{_e(p["market"])}{alt} · {_e(p["matchup"])} {_e(p["start_label"])}</small></span>'
+            f'<span class="ev">{p["edge_pct"]:+.1f}%</span>'
+            f'<span class="meta"><span>{_e(p["book_label"])} <b>{_e(p["price"])}</b></span><span>Stake <b>{stake}</b></span>'
+            f'<span class="conf {p["confidence"]}">{CONF.get(p["confidence"], p["confidence"])}</span>{notes}</span>'
+            "</a></li>"
+        )
+    return (f'<section class="top" aria-label="Top picks"><h2>Top {len(picks)} picks today</h2>'
+            f'<ol>{"".join(items)}</ol></section>')
 
 
 def _row(p: dict) -> str:
@@ -547,6 +585,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 </div>
 <div data-panel="today">
 <div class="wrap">
+{_top_picks(r.top_picks)}
 <div class="board">
 <div><span class="eyebrow">Plays</span><b>{t["plays"]}</b><small>edge ≥ {s["min_edge_pct"]:g}%</small></div>
 <div><span class="eyebrow">Best edge</span><b class="pos">{best}</b><small>expected return</small></div>

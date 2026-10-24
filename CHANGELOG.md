@@ -2,6 +2,13 @@
 
 ## Follow-up (2026-10-24)
 
+### Added
+- **Top 3 picks** box at the top of the dashboard's Today tab (and of the
+  Markdown report). Picks are ranked by edge % × confidence weight (high 1.0,
+  medium 0.75, low 0.5), one per player or game line, and each links to its
+  full card. Configure with `top_picks` and `confidence_weight` in
+  `config/report.yaml`.
+
 ### Added (from the first live run)
 - Mapped 14 SportsGameOdds statIDs seen live:
   - MLB: hits+runs+RBIs, runs+RBIs, singles, doubles, triples, stolen bases,

@@ -133,3 +133,35 @@ def test_dashboard_has_performance_tab(report):
     assert 'data-tab="performance"' in doc and 'data-panel="performance"' in doc
     assert "Nothing settled yet" in doc
     assert "## Performance" in render_markdown(report)
+
+
+def test_top_picks_rank_by_confidence_weighted_edge(report):
+    tops = report.top_picks
+    assert [p["rank"] for p in tops] == [1, 2, 3]
+    scores = [p["score"] for p in tops]
+    assert scores == sorted(scores, reverse=True)
+    w = ReportCfg().confidence_weight
+    for p in tops:
+        assert p["score"] == pytest.approx(p["edge_pct"] * w[p["confidence"]])
+    # one pick per player / game line
+    assert len({(p["subject"], p["matchup"]) for p in tops}) == len(tops)
+    # nothing left out scores higher than the last pick (excluding a player already picked)
+    picked = {(p["subject"], p["matchup"]) for p in tops}
+    rest = [p for ps in report.plays.values() for p in ps if (p["subject"], p["matchup"]) not in picked]
+    assert all(p["edge_pct"] * w[p["confidence"]] <= scores[-1] + 1e-9 for p in rest)
+
+
+def test_top_picks_on_dashboard_and_markdown(report):
+    doc = render_html(report)
+    top = doc.index('aria-label="Top picks"')
+    assert top < doc.index('class="board"')  # above everything else on the Today tab
+    first = report.top_picks[0]
+    assert f'href="#{first["anchor"]}"' in doc and f'id="{first["anchor"]}"' in doc  # jumps to the full card
+    assert "## Top 3 picks" in render_markdown(report)
+
+
+def test_top_picks_empty_state(settings, nba_result):
+    conn = connect(settings.db_file)
+    _store(conn, nba_result, FETCHED)
+    r = build_report(conn, settings, [Sport.NBA], now=datetime(2026, 10, 25, 3, tzinfo=UTC), rcfg=ReportCfg())
+    assert r.top_picks == [] and "No plays pass the filters right now" in render_html(r)

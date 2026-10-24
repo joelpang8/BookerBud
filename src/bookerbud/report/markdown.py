@@ -27,6 +27,13 @@ def render_markdown(r: Report) -> str:
     out = [f"# BookerBud — {as_of:%A %B} {as_of.day}, {as_of.year}", ""]
     out.append(f"_Research only. Nothing here places bets. Generated {gen.strftime('%I:%M %p').lstrip('0')} {gen.tzname()}._")
     out.append("")
+    if r.top_picks:
+        out.append(f"## Top {len(r.top_picks)} picks")
+        for p in r.top_picks:
+            stake = f"${p['stake']:.2f}" if p["kind"] != "pickem" else "per slip"
+            out.append(f"{p['rank']}. **{p['subject']}** {p['market']}: {p['book_label']} {p['price']}, "
+                       f"edge {p['edge_pct']:+.1f}%, stake {stake}, {p['confidence']} confidence ({p['matchup']} {p['start_label']})")
+        out.append("")
     out.append("## Data freshness")
     for f in r.freshness:
         state = "stale" if f["stale"] else "fresh"
