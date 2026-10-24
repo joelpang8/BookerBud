@@ -1,4 +1,7 @@
 from bookerbud.storage.db import (
+    events_by_id,
+    latest_context_time,
+    run_info,
     events_between,
     insert_context,
     latest_context,
@@ -18,6 +21,9 @@ from bookerbud.storage.db import (
 )
 
 __all__ = [
+    "events_by_id",
+    "latest_context_time",
+    "run_info",
     "events_between",
     "insert_context",
     "latest_context",

@@ -12,16 +12,17 @@ import pandas as pd
 import typer
 
 from bookerbud.config import load_settings
-from bookerbud.edge.config import load_availability, load_edge_config, load_payouts
-from bookerbud.edge.engine import EdgeResult, find_edges
+from bookerbud.context.apply import load_context_rules
+from bookerbud.edge.config import load_payouts
+from bookerbud.edge.engine import EdgeResult
 from bookerbud.edge.slips import build_slips
 from bookerbud.models import Sport
-from bookerbud.context.apply import apply_context, load_context_rules
 from bookerbud.context.http import JsonClient
 from bookerbud.context.mlb import MLBContext
 from bookerbud.context.weather import OpenMeteo
 from bookerbud.pipeline import (
     FetchSummary,
+    analyze,
     QuotaExceeded,
     fetch_and_store,
     load_context,
@@ -31,7 +32,7 @@ from bookerbud.pipeline import (
 )
 from bookerbud.raw_log import RawLogger
 from bookerbud.providers import ProviderError, get_provider
-from bookerbud.storage import connect, flagged_summary, latest_runs, load_latest_props, query_player_props
+from bookerbud.storage import connect, flagged_summary, latest_runs, query_player_props
 
 app = typer.Typer(help="BookerBud: daily +EV research. Never places bets.", no_args_is_help=True)
 
@@ -261,38 +262,25 @@ def usage() -> None:
         provider.close()
 
 
+def _as_of(settings, as_of: str | None) -> datetime:
+    now = datetime.fromisoformat(as_of) if as_of else datetime.now(UTC)
+    return now if now.tzinfo else now.replace(tzinfo=settings.tz)
+
+
 def _run_engine(
     sport: str, as_of: str | None, all_books: bool, min_edge: float | None, use_context: bool = True
 ) -> tuple[EdgeResult, object]:
     settings = load_settings()
-    cfg = load_edge_config()
-    if min_edge is not None:
-        cfg.filters.min_edge_pct = min_edge
     conn = connect(settings.db_file)
-    props = load_latest_props(conn, [s.value for s in _sports(sport)])
-    games, players = load_context(conn, _sports(sport)) if use_context else ({}, {})
-    conn.close()
-    if not props:
+    try:
+        a = analyze(conn, settings, _sports(sport), now=_as_of(settings, as_of), use_context=use_context,
+                    all_books=all_books, min_edge=min_edge)
+    finally:
+        conn.close()
+    if not a.props:
         typer.echo("No snapshot to analyse. Run `betedge fetch` first.")
         raise typer.Exit(1)
-    now = datetime.fromisoformat(as_of) if as_of else datetime.now(UTC)
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=settings.tz)
-    res = find_edges(
-        props, cfg, now=now, sharp_books=settings.bookmakers.sharp, states=settings.states,
-        availability=load_availability(), payouts=load_payouts(), all_books=all_books,
-    )
-    if use_context:
-        rules = load_context_rules()
-        # A pick'em leg can sit in both lists as the same object: apply once.
-        unique = list({id(e): e for e in res.edges + res.pickem_legs}.values())
-        kept, dropped = apply_context(unique, games, players, rules)
-        kept_ids = {id(e) for e in kept}
-        res.edges = [e for e in res.edges if id(e) in kept_ids]
-        res.pickem_legs = [e for e in res.pickem_legs if id(e) in kept_ids]
-        for reason, n in dropped.items():
-            res.skipped[f"context:{reason}"] += n
-    return res, cfg
+    return a.result, a.cfg
 
 
 def _pct(x: float) -> str:
@@ -375,6 +363,79 @@ def slips(
         )
         for leg, p in zip(sl.legs, sl.probs):
             typer.echo(f"  {_describe(leg):40} fair {_pct(p)}  ({leg.confidence}, {','.join(leg.usable_in)})")
+
+
+@app.command()
+def report(
+    sport: Annotated[str, typer.Option(help="nba, mlb, nfl, or all")] = "all",
+    as_of: Annotated[str | None, typer.Option(help="Evaluate freshness as of this ISO time (for replays)")] = None,
+    no_context: Annotated[bool, typer.Option(help="Ignore injury/lineup/weather/rest context")] = False,
+) -> None:
+    """Write today's dashboard (HTML) and Markdown report to the reports folder."""
+    from bookerbud.report.build import build_report, load_report_config, report_dir
+    from bookerbud.report.html import render_html
+    from bookerbud.report.markdown import render_markdown
+
+    settings = load_settings()
+    rcfg = load_report_config()
+    out_dir = report_dir(settings, rcfg)
+    conn = connect(settings.db_file)
+    try:
+        now = _as_of(settings, as_of)
+        r = build_report(conn, settings, _sports(sport), now=now, generated_at=datetime.now(UTC),
+                         rcfg=rcfg, use_context=not no_context)
+    finally:
+        conn.close()
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = now.astimezone(settings.tz).strftime("%Y-%m-%d")
+    html_doc = render_html(r)
+    (out_dir / f"{stem}.html").write_text(html_doc)
+    (out_dir / "latest.html").write_text(html_doc)
+    (out_dir / f"{stem}.md").write_text(render_markdown(r))
+    (out_dir / f"{stem}.json").write_text(r.to_json())
+    typer.echo(f"{r.totals['plays']} plays, {r.totals['slips']} slips, "
+               f"{sum(1 for w in r.warnings if w['level'] == 'warn')} warnings")
+    typer.echo(f"  dashboard: {out_dir / f'{stem}.html'}  (also latest.html)")
+    typer.echo(f"  markdown:  {out_dir / f'{stem}.md'}")
+    typer.echo("  view on your phone: `betedge serve`")
+
+
+@app.command()
+def daily(
+    sport: Annotated[str, typer.Option(help="nba, mlb, nfl, or all")] = "all",
+    force: Annotated[bool, typer.Option(help="Allow spending past the quota budget, up to the plan's hard limit")] = False,
+) -> None:
+    """The whole morning routine: fetch odds + context, then write the dashboard."""
+    fetch(sport=sport, day=None, include_live=False, force=force, no_context=False, replay=None)
+    report(sport=sport, as_of=None, no_context=False)
+
+
+@app.command()
+def serve(
+    port: Annotated[int, typer.Option(help="Port to listen on")] = 8765,
+    host: Annotated[str, typer.Option(help="0.0.0.0 = reachable from your phone on the same Wi-Fi; 127.0.0.1 = this computer only")] = "0.0.0.0",
+) -> None:
+    """Serve the dashboard to your phone/computer over your home network (Ctrl+C to stop)."""
+    from bookerbud.report.build import load_report_config, report_dir
+    from bookerbud.report.serve import lan_addresses, make_server
+
+    out_dir = report_dir(load_settings(), load_report_config())
+    if not (out_dir / "latest.html").exists():
+        typer.echo("No dashboard yet. Run `betedge report` first.")
+        raise typer.Exit(1)
+    server = make_server(out_dir, host, port)
+    typer.echo(f"Serving {out_dir} (read-only). On this computer: http://localhost:{port}/")
+    if host == "0.0.0.0":
+        for ip in lan_addresses():
+            typer.echo(f"  On your phone (same Wi-Fi): http://{ip}:{port}/")
+        typer.secho("  Anyone on this Wi-Fi network can open it. Use --host 127.0.0.1 to keep it private.",
+                    fg=typer.colors.YELLOW)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
 
 
 if __name__ == "__main__":

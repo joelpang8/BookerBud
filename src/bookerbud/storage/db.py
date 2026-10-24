@@ -355,3 +355,26 @@ def events_between(conn: sqlite3.Connection, sport: str, start: datetime, end: d
                   start_time=_dt(r["start_time"]), home_team=r["home_team"], away_team=r["away_team"], status=r["status"])
         for r in rows
     ]
+
+
+def run_info(conn: sqlite3.Connection, run_id: int) -> dict:
+    row = conn.execute("SELECT * FROM fetch_runs WHERE run_id = ?", (run_id,)).fetchone()
+    return dict(row) if row else {}
+
+
+def latest_context_time(conn: sqlite3.Connection, sport: str) -> datetime | None:
+    row = conn.execute("SELECT MAX(fetched_at) FROM context_snapshots WHERE sport = ?", (sport,)).fetchone()
+    return _dt(row[0]) if row and row[0] else None
+
+
+def events_by_id(conn: sqlite3.Connection, ids: list[str]) -> dict[str, EventInfo]:
+    if not ids:
+        return {}
+    marks = ",".join("?" * len(ids))
+    rows = conn.execute(f"SELECT * FROM events WHERE event_id IN ({marks})", ids)
+    return {
+        r["event_id"]: EventInfo(provider=r["provider"], event_id=r["event_id"], sport=Sport(r["sport"]),
+                                 league=r["league"], start_time=_dt(r["start_time"]), home_team=r["home_team"],
+                                 away_team=r["away_team"], status=r["status"])
+        for r in rows
+    }

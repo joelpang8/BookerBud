@@ -225,3 +225,54 @@ def load_context(conn: sqlite3.Connection, sports: list[Sport]):
         for k, v in latest_context(conn, sp.value, "player").items():
             players[k] = PlayerContext.model_validate_json(v)
     return games, players
+
+
+# --------------------------------------------------------------------- Phase 4
+
+
+@dataclass
+class Analysis:
+    result: object  # EdgeResult
+    cfg: object  # EdgeConfig
+    games: dict
+    players: dict
+    props: list
+    now: datetime
+
+
+def analyze(
+    conn: sqlite3.Connection,
+    settings: Settings,
+    sports: list[Sport],
+    *,
+    now: datetime,
+    use_context: bool = True,
+    all_books: bool = False,
+    min_edge: float | None = None,
+) -> Analysis:
+    """Latest snapshot -> edges, with context rules applied. Shared by `edges`,
+    `slips` and `report`."""
+    from bookerbud.context.apply import apply_context, load_context_rules
+    from bookerbud.edge.config import load_availability, load_edge_config, load_payouts
+    from bookerbud.edge.engine import find_edges
+    from bookerbud.storage import load_latest_props
+
+    cfg = load_edge_config()
+    if min_edge is not None:
+        cfg.filters.min_edge_pct = min_edge
+    props = load_latest_props(conn, [s.value for s in sports])
+    games, players = load_context(conn, sports) if use_context else ({}, {})
+    res = find_edges(
+        props, cfg, now=now, sharp_books=settings.bookmakers.sharp, states=settings.states,
+        availability=load_availability(), payouts=load_payouts(), all_books=all_books,
+    )
+    if use_context:
+        # A pick'em leg can sit in both lists as the same object: apply once.
+        unique = list({id(e): e for e in res.edges + res.pickem_legs}.values())
+        kept, dropped = apply_context(unique, games, players, load_context_rules())
+        kept_ids = {id(e) for e in kept}
+        res.edges = [e for e in res.edges if id(e) in kept_ids]
+        res.pickem_legs = [e for e in res.pickem_legs if id(e) in kept_ids]
+        for reason, n in dropped.items():
+            res.skipped[f"context:{reason}"] += n
+    return Analysis(res, cfg, games, players, props, now)

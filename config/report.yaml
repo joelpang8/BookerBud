@@ -1,0 +1,6 @@
+# Daily report / dashboard (Phase 4).
+top_plays_per_sport: 12
+slip_legs: [2, 3]          # the report's pick'em section: best 2-3 leg entries
+top_slips: 6
+output_dir: null            # default: <data_dir>/reports (gitignored); latest.html = newest
+quota_warn_pct: 80         # warn when the 30-day quota use passes this share of the budget

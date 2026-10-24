@@ -1,5 +1,26 @@
 # Changelog
 
+## Phase 4 — Daily report & dashboard (2026-10-24)
+
+### Added
+- `betedge report` writes `data/reports/YYYY-MM-DD.html` (dashboard),
+  `.md`, `.json` and `latest.html`.
+- The header shows data freshness per sport, quota use, warnings and notes.
+- Top plays per sport show: player and prop, book and price, fair vs. needed
+  probability (drawn to scale), edge, Kelly stake, confidence, context notes
+  and a two-sentence plain-English reason.
+- Best 2–3 leg pick'em slips, plus a games panel (starters, lineups,
+  weather, rest).
+- The dashboard is responsive (cards on a phone, a cards/table toggle on
+  desktop), supports light and dark, filters by sport, book, confidence and
+  state, and works without JavaScript.
+- `betedge serve`: a read-only server for the reports folder so your phone can
+  view it on home Wi-Fi.
+- `betedge daily`: fetch, then context, then report in one command.
+- `pipeline.analyze()` is shared by `edges`, `slips` and `report`.
+- `config/report.yaml`.
+
+
 ## Phase 3 — Context filters (2026-10-24)
 
 ### Added

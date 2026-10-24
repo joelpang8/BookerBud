@@ -299,3 +299,41 @@ for this use.
   `nba.backfill_yesterday: false` turns it off.
 - MLB Stats API and Open-Meteo calls are free and don't touch the quota.
   Their responses are logged to `data/raw/` like everything else.
+
+## Phase 4 — daily report & dashboard (2026-10-24)
+
+- **One self-contained HTML file per day** rather than a web app. Nothing
+  to host or keep running, it works offline, and old days stay viewable. The
+  same report data also renders to Markdown and JSON, and Phase 5 will reuse
+  it.
+- **Phone access via `betedge serve`.** It's a read-only server for the
+  reports folder (Python's stdlib file server, confined to that folder,
+  `no-store` caching so the phone always gets the newest page). It binds to
+  your LAN by default, because the phone is the point. It prints a warning
+  that anyone on the same Wi-Fi can open it, and `--host 127.0.0.1` keeps it
+  local. I didn't build public hosting: your bets would sit on the internet,
+  and GitHub Pages on a private repo isn't free. Tailscale is the suggested
+  way to view it away from home.
+- **Design:** betting-slip tickets with a perforated tear line, a condensed
+  scoreboard face for numbers, IBM Plex for text and odds, and cool
+  green-grey neutrals with a blue accent.
+  - Every color is a token with light and dark values.
+  - Phones always get cards; desktop can switch to a table.
+  - Filters are remembered per device (localStorage, failing safely).
+  - The fair vs. needed probability chart uses one zoomed linear axis whose
+    end labels are its real bounds, so a 3-point edge is actually visible.
+- **The two-sentence reason** is generated from the numbers, not by an AI
+  model. Sentence 1 states the price, what it needs to break even, and where
+  the fair line came from (Pinnacle or which books, and any line move).
+  Sentence 2 states the edge, why the confidence level is what it is, and any
+  injury, lineup, weather or rest notes.
+- **Warnings shown in the header:**
+  - lines older than the freshness limit (their plays are hidden);
+  - no snapshot or no context for a sport;
+  - SGO sending no player statuses;
+  - quota at or above 80% of budget;
+  - unverified pick'em payout tables;
+  - the free plan having no Pinnacle or pick'em lines.
+
+  SGO's routine "upgrade your plan" notice is folded into the free-plan note
+  rather than repeated.

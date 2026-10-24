@@ -88,6 +88,7 @@ class Edge:
     deeplink: str | None = None
     flags: list[str] = field(default_factory=list)
     context_notes: list[str] = field(default_factory=list)  # Phase 3: injuries, lineups, weather, rest
+    is_alt_line: bool = False
 
     @property
     def edge_pp(self) -> float:
@@ -298,6 +299,7 @@ def find_edges(
                 confidence=fair.confidence, ev_pct=ev_pct, kelly_full=kelly_full, stake=stake_amt,
                 breakeven_slip=be_label, usable_in=usable, player_status=r.player_status,
                 fetched_at=r.fetched_at, deeplink=r.deeplink, flags=[f.value for f in r.flags],
+                is_alt_line=r.is_alt_line,
             )
             if is_pickem:
                 if be is None:

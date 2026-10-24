@@ -90,3 +90,18 @@ def test_context_command_and_notes_in_edges(cli_env):
     assert "status: probable; status: probable" not in res.output  # applied once per play
     bare = runner.invoke(app, ["edges", "--as-of", "2026-10-24T18:10:00-04:00", "--no-context"])
     assert "status: probable" not in bare.output
+
+
+def test_report_command_writes_files(cli_env, tmp_path):
+    assert runner.invoke(app, ["fetch", "--sport", "nba", "--replay", str(cli_env)]).exit_code == 0
+    res = runner.invoke(app, ["report", "--as-of", "2026-10-24T18:10:00-04:00"])
+    assert res.exit_code == 0, res.output
+    out = tmp_path / "data" / "reports"
+    for name in ("2026-10-24.html", "latest.html", "2026-10-24.md", "2026-10-24.json"):
+        assert (out / name).exists(), name
+    assert "LeBron James" in (out / "latest.html").read_text()
+
+
+def test_serve_without_report(cli_env):
+    res = runner.invoke(app, ["serve"])
+    assert res.exit_code == 1 and "betedge report" in res.output

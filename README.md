@@ -7,7 +7,7 @@ Underdog and Sleeper against sharp-book (Pinnacle) no-vig fair probabilities.
 > **Research only.** BookerBud never places bets and never logs into a betting
 > account. It reads odds from a data provider and writes reports.
 
-Status: **Phases 1–3 (data layer, edge engine, context filters) are done.** See [CHANGELOG.md](CHANGELOG.md) and
+Status: **Phases 1–4 (data layer, edge engine, context filters, daily dashboard) are done.** See [CHANGELOG.md](CHANGELOG.md) and
 [DECISIONS.md](DECISIONS.md).
 
 ## Setup
@@ -27,6 +27,25 @@ FanDuel and 7 other US books, but **not** Pinnacle, PrizePicks, Underdog or
 Sleeper. So fair odds come from a multi-book consensus, and pick'em slips stay
 empty until a pick'em data source is added. See DECISIONS.md.
 
+## Daily routine
+
+```bash
+uv run betedge daily     # fetch odds + injuries/lineups/weather/rest, then write the dashboard
+uv run betedge serve     # open the printed http://<your-computer-ip>:8765 link on your phone
+```
+
+`daily` writes `data/reports/YYYY-MM-DD.html` (the dashboard), a `.md` copy,
+a `.json` copy, and `latest.html`. The dashboard is one self-contained file
+that works on a phone (cards) and a computer (cards or a sortable-at-a-glance
+table). It follows your light/dark setting and has filters for sport, book,
+confidence and state. It needs no internet except for its fonts.
+
+**Phone access:** `betedge serve` shares only the reports folder, read-only, on
+your home network. Phone and computer must be on the same Wi-Fi, and the
+computer has to stay on while you browse. To keep it private to the computer,
+use `--host 127.0.0.1`. For access away from home, a free private-network
+tool such as Tailscale works without exposing anything to the internet.
+
 ## Usage
 
 ```bash
@@ -43,6 +62,7 @@ uv run betedge edges                      # +EV plays from the latest snapshot, 
 uv run betedge edges --sport nba --min-edge 3 --book fanduel
 uv run betedge slips --legs 2-3           # best pick'em slips (needs pick'em lines)
 uv run betedge quota                      # rolling 30-day object usage vs. budget (no API call)
+uv run betedge report                     # rebuild the dashboard from the latest snapshot (no API call)
 
 uv run betedge unmatched                  # rows the matcher flagged (unknown stat label, unknown player, …)
 uv run betedge runs                       # recent fetch runs, request counts, provider notices
@@ -64,6 +84,7 @@ minutes are filtered out of `edges`.
   devig method, line-move models, and slip rules.
 - `config/payouts.yaml`: pick'em payout tables. Re-verify these.
 - `config/availability.yaml`: which books you can use in which state.
+- `config/report.yaml`: plays per sport, slip sizes, output folder, quota warning level.
 - `config/context.yaml`: what injuries, lineups, weather and rest do to a
   play (drop / downgrade / note).
 
@@ -104,6 +125,11 @@ src/bookerbud/
   context/weather.py        Open-Meteo game-time weather, wind in/out
   context/nba.py            rest days / back-to-backs from stored schedule
   context/apply.py          drop / downgrade / annotate plays
+  report/build.py           report data: plays, slips, freshness, warnings, games
+  report/text.py            labels + the two-sentence reason per play
+  report/html.py            responsive dashboard (phone + desktop, light + dark)
+  report/markdown.py        Markdown copy of the report
+  report/serve.py           read-only LAN server for viewing on your phone
   cli.py                    `betedge` commands
 tests/                      pytest; fixtures/ has one real SGO response + a synthetic NBA slate
 data/                       (gitignored) SQLite DB and raw API logs
