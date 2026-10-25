@@ -46,7 +46,12 @@ def normalize_props(
         flags = list(raw.parse_flags)
 
         sm = stat_matchers.setdefault(sport, StatMatcher(sport))
-        stat_type = sm.match(raw.stat_label)
+        if raw.market_kind is MarketKind.GAME_LINE:
+            # Game lines are named by their own stat ("points", "touchdowns", ...). Player
+            # aliases must not apply: game-level "touchdowns" is total TDs, not Anytime TD.
+            stat_type = normalize_label(raw.stat_label).replace(" ", "_") or "points"
+        else:
+            stat_type = sm.match(raw.stat_label)
         if stat_type is None:
             stat_type = normalize_label(raw.stat_label).replace(" ", "_")
             flags.append(Flag.UNMAPPED_STAT)

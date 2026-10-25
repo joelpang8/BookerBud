@@ -1,5 +1,23 @@
 # Changelog
 
+## Follow-up (2026-10-25)
+
+### Fixed
+- **Wrong NFL "game total" picks** (e.g. "Over 6.5 game total" at +180 with
+  a 24% edge). Those markets are game-level counts of another stat, such as
+  total touchdowns, not points:
+  - The stat name "touchdowns" was matched to the player Anytime TD alias.
+  - The engine then moved other books' 5.5 lines to 6.5 with the
+    points-total model (sd 10). A one-touchdown move barely changed the
+    probability, which produced fake 20%+ edges.
+  - The chart showed final scores (52, 42) against a 6.5 line.
+
+  Now:
+  - Game lines keep their own stat name ("total touchdowns").
+  - They are only compared at the exact same line (no model).
+  - The card says "Over 6.5 total touchdowns".
+  - They get no points chart.
+
 ## Follow-up (2026-10-24)
 
 ### Added

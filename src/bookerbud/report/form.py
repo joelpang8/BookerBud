@@ -32,6 +32,16 @@ def form_for(conn: sqlite3.Connection, e: Edge, events: dict, n: int = 10) -> di
 
         threshold = e.line if e.bet_type == "ou" else 0.5
         what = "stat"
+    elif e.stat_type not in ("points", ""):
+        if e.entity == "all" or not e.team:
+            return None  # needs both teams' value of this stat per game; not stored
+        keys = [team_key(e.sport, e.team)]
+
+        def value(g):
+            return stat_value_from(g["stats"], e.stat_label_raw or e.stat_type)
+
+        threshold = e.line
+        what = e.stat_type.replace("_", " ")
     elif e.bet_type in ("ml", "sp"):
         keys = [team_key(e.sport, e.team)] if e.team else []
 

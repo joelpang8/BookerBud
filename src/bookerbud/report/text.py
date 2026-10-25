@@ -47,7 +47,11 @@ def market(e: Edge) -> str:
         return f"{stat_label(e)}: {e.side.title()}{per}"
     if e.market_kind == "player_prop":
         return f"{e.side.title()} {line_str(e.line)} {stat_label(e)}{per}"
-    what = "team total" if e.team else "game total"
+    if e.stat_type not in ("points", ""):  # e.g. total touchdowns, not the score
+        name = e.stat_type.replace("_", " ")
+        what = f"{name} ({e.team})" if e.team else f"total {name}"
+    else:
+        what = "team total" if e.team else "game total"
     return f"{e.side.title()} {line_str(e.line)} {what}{per}"
 
 

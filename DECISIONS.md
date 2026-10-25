@@ -543,3 +543,12 @@ That leaves room for a second fetch closer to game time on busy days.
   graded bets go back to pending for the next `settle`. Changing the terms
   clears the old CLV numbers, since they were measured for the old price or
   line.
+
+## Game lines on stats other than the score (2026-10-25)
+
+- SGO offers game-level and team-level lines on stats other than points (NFL
+  total touchdowns, for example). Their stat name is now kept as-is rather
+  than matched against player aliases.
+- They get no line-move model (`game_line:<stat>` has no entry in edge.yaml),
+  so only books on the exact same line are compared. The points-total sds
+  are wrong by an order of magnitude for counts like touchdowns.

@@ -107,3 +107,29 @@ def test_ambiguous_player_flagged():
                      RosterPlayer(provider_player_id="B", name="Josh Smith Jr.", team_id="LAL")]}
     (p,), _ = normalize_props([raw], roster, fetched_at=NOW, pickem_books=PICKEM)
     assert Flag.AMBIGUOUS_PLAYER in p.flags
+
+
+def test_game_line_on_other_stat_is_not_a_points_total():
+    """NFL game-level 'touchdowns' (total TDs, line 6.5) must not become Anytime TD
+    or be treated, moved or charted as a points total."""
+    from types import SimpleNamespace
+
+    from bookerbud.edge.config import load_edge_config
+    from bookerbud.edge.engine import model_key
+    from bookerbud.report.text import market
+
+    ev = EventInfo(provider="sgo", event_id="NFL1", sport=Sport.NFL, league="NFL", start_time=NOW,
+                   home_team="Atlanta Falcons", away_team="San Francisco 49ers")
+    raws = [RawProp(provider="sgo", event=ev, market_kind=MarketKind.GAME_LINE, provider_market_id=f"{stat}-all-game-ou-over",
+                    stat_label=stat, period="game", bet_type="ou", side="over", entity="all", line=line,
+                    bookmaker="draftkings", price_american=180) for stat, line in (("touchdowns", 6.5), ("points", 45.5))]
+    tds, pts = normalize_props(raws, {}, fetched_at=NOW, pickem_books=PICKEM)[0]
+    assert (tds.stat_type, pts.stat_type) == ("touchdowns", "points")
+    assert Flag.UNMAPPED_STAT not in tds.flags
+    cfg = load_edge_config()
+    assert model_key(tds) == "game_line:touchdowns" and cfg.model_for("nfl", model_key(tds)).max_gap == 0.0
+    assert model_key(pts) == "game_total" and cfg.model_for("nfl", "game_total").max_gap == 1.0
+    e = SimpleNamespace(period="game", bet_type="ou", market_kind="game_line", side="over", line=6.5, team=None,
+                        stat_type="touchdowns", sport="nfl")
+    assert market(e) == "Over 6.5 total touchdowns"
+    assert market(SimpleNamespace(**{**vars(e), "stat_type": "points", "line": 45.5})) == "Over 45.5 game total"

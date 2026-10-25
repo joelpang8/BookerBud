@@ -68,6 +68,8 @@ class EdgeConfig(BaseModel):
             "kind": "normal", "cv": 0.35, "max_gap": 1.0,
         })
         f = PERIOD_FRACTION.get(period)
+        if key.startswith("game_line:") and not (self.stat_models.get(sport) or {}).get(key):
+            spec["max_gap"] = 0.0  # no model for this game-level stat: compare exact lines only
         if f is None:
             spec["max_gap"] = 0.0
         elif f != 1.0:

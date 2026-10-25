@@ -33,7 +33,7 @@ from pydantic import BaseModel
 
 from bookerbud.config import CONFIG_DIR, Settings
 from bookerbud.edge.config import EdgeConfig, load_edge_config, load_payouts
-from bookerbud.edge.engine import book_pairs, fair_for, pickem_breakeven, to_threshold
+from bookerbud.edge.engine import book_pairs, fair_for, line_model_key, pickem_breakeven, to_threshold
 from bookerbud.edge.odds import american_to_decimal
 from bookerbud.models import MarketKind, PayoutType, Prop, Sport
 from bookerbud.normalize.stats import stat_value_from
@@ -135,11 +135,7 @@ def profit(result: str | None, stake: float, price: int | None, payout_type: str
 # ------------------------------------------------------------------ closing value
 
 def _model_key(row: sqlite3.Row) -> str:
-    if row["market_kind"] == MarketKind.PLAYER_PROP.value:
-        return row["stat_type"]
-    if row["bet_type"] == "sp":
-        return "game_spread"
-    return "game_total" if row["entity"] == "all" else "team_total"
+    return line_model_key(row["market_kind"], row["bet_type"], row["entity"], row["stat_type"])
 
 
 def _close_prop(row: sqlite3.Row, book: str, side: str, price: int | None, line: float | None, pickem: set[str]) -> Prop:

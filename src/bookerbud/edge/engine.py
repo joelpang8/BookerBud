@@ -128,12 +128,21 @@ def from_threshold(bet_type: str, side: str, threshold: float | None) -> float |
     return threshold
 
 
-def model_key(p: Prop) -> str:
-    if p.market_kind is MarketKind.PLAYER_PROP:
-        return p.stat_type
-    if p.bet_type == "sp":
+def line_model_key(market_kind: str, bet_type: str, entity: str | None, stat_type: str) -> str:
+    """Key into edge.yaml stat_models. Game lines on a stat other than the score
+    (total touchdowns, sacks, ...) get their own key, which has no model, so their
+    lines are never moved with the points model."""
+    if market_kind == MarketKind.PLAYER_PROP.value:
+        return stat_type
+    if stat_type not in ("points", ""):
+        return f"game_line:{stat_type}"
+    if bet_type == "sp":
         return "game_spread"
-    return "game_total" if p.entity == "all" else "team_total"
+    return "game_total" if entity == "all" else "team_total"
+
+
+def model_key(p: Prop) -> str:
+    return line_model_key(p.market_kind.value, p.bet_type, p.entity, p.stat_type)
 
 
 def book_pairs(rows: list[Prop], method: str) -> dict[str, list[Pair]]:
