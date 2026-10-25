@@ -35,7 +35,7 @@ from bookerbud.config import CONFIG_DIR, Settings
 from bookerbud.edge.config import EdgeConfig, load_edge_config, load_payouts
 from bookerbud.edge.engine import book_pairs, fair_for, line_model_key, pickem_breakeven, to_threshold
 from bookerbud.edge.odds import american_to_decimal
-from bookerbud.models import MarketKind, PayoutType, Prop, Sport
+from bookerbud.models import PayoutType, Prop, Sport
 from bookerbud.normalize.stats import stat_value_from
 from bookerbud.pipeline import quota_status
 from bookerbud.providers.base import EventSettlement, OddsProvider
