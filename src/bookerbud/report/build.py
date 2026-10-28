@@ -147,6 +147,38 @@ def slip_dict(s: Slip, events: dict, tz, bankroll: float) -> dict:
     }
 
 
+def _row_labels(b, tz) -> dict:
+    """Display fields shared by noted bets and graded recommendations."""
+    st = datetime.fromisoformat(b["start_time"]).astimezone(tz)
+    line = "" if b["line"] is None else f" {text.line_str(b['line'], signed=b['bet_type'] == 'sp')}"
+    stat = text.StatMatcher(b["sport"]).display(b["stat_type"])
+    side = {"home": "", "away": ""}.get(b["side"], b["side"].title() + " ")
+    what = {"ml": "Moneyline", "sp": f"Spread{line}"}.get(b["bet_type"], f"{side}{line.strip()} {stat}".strip())
+    return {
+        "who": b["player"] or b["team"] or "Game total", "market": what, "sport": b["sport"],
+        "book_label": text.book(b["bookmaker"]),
+        "price": text.american(b["price_american"]) if b["price_american"] is not None else "Pick'em",
+        "start_label": st.strftime("%I:%M %p").lstrip("0"), "day": f"{st.month}/{st.day}",
+    }
+
+
+def recent_results(conn: sqlite3.Connection, tz, limit: int = 100) -> list[dict]:
+    """Graded recommendations, newest game first, for the Performance tab."""
+    rows = conn.execute(
+        """SELECT r.*, EXISTS(SELECT 1 FROM bets b WHERE b.rec_id = r.id) AS you_bet FROM recommendations r
+           WHERE r.result IN ('win', 'loss', 'push') ORDER BY r.start_time DESC, r.ev_pct DESC LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    out = []
+    for r in rows:
+        units = None
+        if r["payout_type"] != "pickem" and r["price_american"] is not None:
+            units = {"win": american_to_decimal(r["price_american"]) - 1, "loss": -1.0, "push": 0.0}[r["result"]]
+        out.append({**_row_labels(r, tz), "result": r["result"], "stat_value": r["stat_value"],
+                    "edge_pct": r["ev_pct"], "units": units, "you_bet": bool(r["you_bet"])})
+    return out
+
+
 def bets_for_day(conn: sqlite3.Connection, now: datetime, tz) -> list[dict]:
     """Bets whose game is today or later (local), plus any noted today."""
     start = datetime.combine(now.astimezone(tz).date(), datetime.min.time(), tzinfo=tz)
@@ -156,17 +188,9 @@ def bets_for_day(conn: sqlite3.Connection, now: datetime, tz) -> list[dict]:
     ).fetchall()
     out = []
     for b in rows:
-        st = datetime.fromisoformat(b["start_time"]).astimezone(tz)
-        line = "" if b["line"] is None else f" {text.line_str(b['line'], signed=b['bet_type'] == 'sp')}"
-        stat = text.StatMatcher(b["sport"]).display(b["stat_type"])
-        side = {"home": "", "away": ""}.get(b["side"], b["side"].title() + " ")
-        what = {"ml": "Moneyline", "sp": f"Spread{line}"}.get(b["bet_type"], f"{side}{line.strip()} {stat}".strip())
         out.append({
-            "id": b["id"], "who": b["player"] or b["team"] or "Game total", "market": what,
-            "book_label": text.book(b["bookmaker"]),
-            "price": text.american(b["price_american"]) if b["price_american"] is not None else "Pick'em",
+            **_row_labels(b, tz), "id": b["id"],
             "stake": b["stake"] or 0.0, "result": b["result"], "profit": b["profit"],
-            "start_label": st.strftime("%I:%M %p").lstrip("0"), "day": f"{st.month}/{st.day}",
             "from_pick": b["rec_id"] is not None,
             "edit": {"stake": b["stake"] or 0.0, "price": b["price_american"], "line": b["line"], "side": b["side"],
                      "sides": list(SIDES.get(b["bet_type"], ())), "book": b["bookmaker"]},
@@ -357,6 +381,7 @@ def build_report(
     from bookerbud.tracking.performance import summarize
 
     performance = summarize(conn)
+    performance["recent"] = recent_results(conn, tz)
     all_plays = [p for ps in plays.values() for p in ps]
     totals = {
         "plays": len(all_plays),

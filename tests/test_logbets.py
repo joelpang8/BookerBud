@@ -203,3 +203,21 @@ def test_refresh_grades_finished_games_at_most_every_30_min(settings, monkeypatc
     warnings = []
     assert jobs.settle_finished(None, settings, None, now=AS_OF + timedelta(hours=2), warnings=warnings) == {}
     assert warnings == ["grading results failed: HTTP 500"]
+
+
+def test_performance_tab_lists_won_picks(conn, settings):
+    from bookerbud.storage.tracking import save_settlement
+
+    r, play = _rec_play(conn, settings)
+    others = [p for ps in r.plays.values() for p in ps if p.get("rec_id") and p["rec_id"] != play["rec_id"]]
+    save_settlement(conn, "recommendations", play["rec_id"], {"result": "win", "stat_value": 31.0})
+    save_settlement(conn, "recommendations", others[0]["rec_id"], {"result": "loss", "stat_value": 2.0})
+    place(conn, bet_from_rec(conn, play["rec_id"], line=None, price=None), stake=None)
+    r2 = build_report(conn, settings, [Sport.NBA], now=AS_OF, rcfg=ReportCfg())
+    recent = r2.performance["recent"]
+    assert [x["result"] for x in recent].count("win") == 1 and len(recent) == 2
+    won = next(x for x in recent if x["result"] == "win")
+    assert won["who"] == play["subject"] and won["you_bet"] and won["stat_value"] == 31.0
+    html = render_html(r2)
+    assert "Recent results" in html and "Won (1)" in html and "Lost (1)" in html and "you bet it" in html
+    assert '<li data-res="loss" hidden>' in html and '<li data-res="win">' in html

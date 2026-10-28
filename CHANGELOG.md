@@ -2,6 +2,13 @@
 
 ## Follow-up (2026-10-28)
 
+### Added
+- **Recent results** on the Performance tab: every graded pick, newest
+  first, with Won / Lost / All filters (Won by default).
+  - Each row shows the book, price, edge, the final stat and the units won
+    or lost at 1 unit per pick.
+  - Picks you bet on are marked "you bet it".
+
 ### Fixed
 - **Finished picks never reached the Performance tab when you only used the
   dashboard.** Results were graded only by `betedge daily` / `betedge

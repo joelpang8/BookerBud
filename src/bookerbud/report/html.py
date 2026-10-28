@@ -349,6 +349,12 @@ JS = r"""
       document.querySelectorAll('[data-bd-table]').forEach(function (x) { x.hidden = x.dataset.bdTable !== bd.dataset.bd; });
       document.querySelectorAll('[data-bd]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === bd)); });
     }
+    var rf = ev.target.closest('[data-resf]');
+    if (rf) {
+      var want = rf.dataset.resf;
+      document.querySelectorAll('.results li[data-res]').forEach(function (x) { x.hidden = want !== 'all' && x.dataset.res !== want; });
+      document.querySelectorAll('[data-resf]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === rf)); });
+    }
   });
   showTab(location.hash === '#performance' ? 'performance' : 'today');
 
@@ -774,6 +780,30 @@ def _calib_svg(points: list[dict]) -> str:
             f'<text class="axis" transform="translate(12 {T + ph / 2:.1f}) rotate(-90)" text-anchor="middle">Actual</text></svg>')
 
 
+def _results_list(recent: list[dict]) -> str:
+    if not recent:
+        return ""
+    wins = sum(1 for x in recent if x["result"] == "win")
+    losses = sum(1 for x in recent if x["result"] == "loss")
+    rows = []
+    for x in recent:
+        res = x["result"]
+        label = {"win": "Won", "loss": "Lost", "push": "Push"}[res]
+        if x["units"] is not None:
+            label += f' {x["units"]:+.2f}u'
+        final = "" if x["stat_value"] is None else f' \u00b7 final {x["stat_value"]:g}'
+        mine = ' \u00b7 <b>you bet it</b>' if x["you_bet"] else ""
+        rows.append(f'<li data-res="{res}"{"" if res == "win" else " hidden"}><span><b>{_e(x["who"])}</b> {_e(x["market"])}<br>'
+                    f'<small>{_e(x["book_label"])} {_e(x["price"])} \u00b7 edge {x["edge_pct"]:+.1f}%{final}'
+                    f' \u00b7 {_e(x["day"])}{mine}</small></span><span class="res {res}">{_e(label)}</span></li>')
+    chips = "".join(f'<button class="chip" data-resf="{k}" aria-pressed="{str(k == "win").lower()}">{lbl}</button>'
+                    for k, lbl in (("win", f"Won ({wins})"), ("loss", f"Lost ({losses})"), ("all", "All")))
+    return (f'<section class="mybets results" aria-label="Recent results"><h2>Recent results</h2>'
+            f'<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">{chips}</div>'
+            f'<ul>{"".join(rows)}</ul><p class="note">Every recommended play, graded from the final box score. '
+            '"u" = units won or lost betting 1 unit at the recommended price.</p></section>')
+
+
 def _perf_panel(perf: dict | None) -> str:
     if not perf:
         return ""
@@ -826,6 +856,7 @@ def _perf_panel(perf: dict | None) -> str:
              'Dots on the dashed line mean the fair probabilities are well calibrated; below it means they run optimistic.</p>'
              if perf["calibration"] else '<p class="note">Needs graded plays.</p>')
     return f"""{board}{note}
+{_results_list(perf.get("recent") or [])}
 <div class="perf-grid">
 <div class="panel"><h3>Breakdown</h3><div class="row" style="display:flex;gap:6px;flex-wrap:wrap">{seg}</div>{tables}
 <h3>Edge buckets</h3><p class="note">Is a bigger predicted edge actually a better bet?</p>
