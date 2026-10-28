@@ -84,7 +84,8 @@ confidence and state. It needs no internet except for its fonts.
 **Refresh odds button:** when you open the dashboard through the link
 `betedge serve` prints (it includes a private key, `?k=...`), a **Refresh
 odds** button appears at the top. It fetches odds, injuries and lineups and
-rebuilds the page. There's a 5-minute cooldown between refreshes, and the
+rebuilds the page. It also grades games that finished (about 4 hours after
+start), so results show up on the Performance tab. There's a 5-minute cooldown between refreshes, and the
 usual quota guard applies. Bookmark that link or add it to your phone's
 home screen: the key is saved in `data/serve_key.txt`, so it keeps working.
 `serve --no-refresh` hides the button and the bet controls.

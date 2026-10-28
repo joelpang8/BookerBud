@@ -1,5 +1,15 @@
 # Changelog
 
+## Follow-up (2026-10-28)
+
+### Fixed
+- **Finished picks never reached the Performance tab when you only used the
+  dashboard.** Results were graded only by `betedge daily` / `betedge
+  settle`, and the Refresh button never ran that step. Refresh now grades
+  finished games first, at most once every 30 minutes. That costs about 1
+  quota object per finished game with a pick. The status line says how many
+  picks were graded.
+
 ## Follow-up (2026-10-25)
 
 ### Fixed

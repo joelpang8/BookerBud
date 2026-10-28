@@ -48,18 +48,42 @@ def write_report(settings: Settings, sports: list[Sport], *, now: datetime, use_
     return r, path
 
 
+SETTLE_EVERY_S = 30 * 60
+_last_settle: dict[str, float] = {}
+
+
+def settle_finished(conn, settings: Settings, provider, *, now: datetime, warnings: list[str]) -> dict:
+    """Grade finished games (results for picks and bets), at most every 30 minutes
+    so frequent refreshes don't spend quota or burn a game's settle attempts while
+    it is still being played."""
+    from bookerbud.tracking.settle import settle
+
+    last = _last_settle.get(str(settings.db_file))
+    if last is not None and now.timestamp() - last < SETTLE_EVERY_S:
+        return {}
+    _last_settle[str(settings.db_file)] = now.timestamp()
+    try:
+        s = settle(conn, settings, provider, now=now)
+    except Exception as exc:  # grading is a side job; never lose the odds over it
+        warnings.append(f"grading results failed: {exc}")
+        return {}
+    warnings += s.warnings
+    return dict(s.settled)
+
+
 def refresh_odds(settings: Settings, sports: list[Sport] | None = None) -> dict:
-    """What the dashboard's Refresh button runs: fetch odds (quota-guarded),
-    refresh injuries/lineups/weather/rest, rebuild the dashboard."""
+    """What the dashboard's Refresh button runs: grade finished games, fetch odds
+    (quota-guarded), refresh injuries/lineups/weather/rest, rebuild the dashboard."""
     sports = sports or [Sport(s) for s in settings.sports if s in {x.value for x in Sport}]
     now = datetime.now(UTC)
     day = now.astimezone(settings.tz).date()
     provider = get_provider(settings)
     conn = connect(settings.db_file)
     mlb = mlb_context(settings) if Sport.MLB in sports else None
+    warnings: list[str] = []
     try:
+        graded = settle_finished(conn, settings, provider, now=now, warnings=warnings)
         summary = fetch_and_store(conn, settings, provider, sports, day)
-        warnings: list[str] = []
         try:
             ctx = refresh_context(conn, settings, provider, sports, day, mlb=mlb)
             warnings += ctx.warnings or []
@@ -78,6 +102,7 @@ def refresh_odds(settings: Settings, sports: list[Sport] | None = None) -> dict:
         "objects_used": summary.result.objects_used,
         "plays": report.totals["plays"],
         "quota": f"{q.used}/{q.budget}",
+        "graded": graded,
         "warnings": warnings,
     }
 

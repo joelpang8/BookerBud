@@ -451,7 +451,10 @@ JS = r"""
       document.querySelectorAll('.need-key').forEach(function (el) { el.hidden = false; });
       box.hidden = false;
       if (r.body.running) { waiting = true; poll(); }
-      else if (r.body.result) { msg.textContent = 'Last refresh: ' + r.body.result.plays + ' plays, quota ' + r.body.result.quota; }
+      else if (r.body.result) {
+        var g = r.body.result.graded || {}, n = Object.keys(g).reduce(function (a, k) { return a + g[k]; }, 0);
+        msg.textContent = 'Last refresh: ' + r.body.result.plays + ' plays' + (n ? ', ' + n + ' finished picks graded' : '') + ', quota ' + r.body.result.quota;
+      }
     }).catch(function () {});
   })();
   apply(); ages(); setInterval(ages, 60000);

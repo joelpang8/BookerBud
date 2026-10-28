@@ -171,3 +171,35 @@ def test_edit_and_delete_via_action(conn, settings):
     assert code == 200 and body["text"].startswith("Deleted:")
     assert log_bet_action(settings, {"action": "delete", "id": bet_id})[0] == 400
     assert log_bet_action(settings, {"action": "edit"}) == (400, {"error": "Which bet? (missing id)"})
+
+
+def test_refresh_grades_finished_games_at_most_every_30_min(settings, monkeypatch):
+    from collections import Counter
+    from datetime import timedelta
+
+    import bookerbud.jobs as jobs
+    import bookerbud.tracking.settle as settle_mod
+    from bookerbud.tracking.settle import SettleSummary
+
+    calls = []
+
+    def fake_settle(conn, s, provider, *, now):
+        calls.append(now)
+        return SettleSummary(pending=3, settled=Counter(win=2, loss=1), warnings=["note"])
+
+    monkeypatch.setattr(settle_mod, "settle", fake_settle)
+    monkeypatch.setattr(jobs, "_last_settle", {})
+    warnings: list[str] = []
+    assert jobs.settle_finished(None, settings, None, now=AS_OF, warnings=warnings) == {"win": 2, "loss": 1}
+    assert warnings == ["note"]
+    assert jobs.settle_finished(None, settings, None, now=AS_OF + timedelta(minutes=10), warnings=[]) == {}
+    jobs.settle_finished(None, settings, None, now=AS_OF + timedelta(minutes=31), warnings=[])
+    assert len(calls) == 2
+
+    def broken(*a, **k):
+        raise RuntimeError("HTTP 500")
+
+    monkeypatch.setattr(settle_mod, "settle", broken)
+    warnings = []
+    assert jobs.settle_finished(None, settings, None, now=AS_OF + timedelta(hours=2), warnings=warnings) == {}
+    assert warnings == ["grading results failed: HTTP 500"]
