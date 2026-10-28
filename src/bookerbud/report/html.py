@@ -64,7 +64,8 @@ button { font: inherit; color: inherit; }
 .mast { padding-block: 20px 8px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
 .mast h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.9rem, 6vw, 2.6rem); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
 .mast h1 span { color: var(--muted); font-weight: 600; }
-.mast .sub { color: var(--muted); font-size: .85rem; }
+.mast .sub { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.themebtn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 12px; font-size: .8rem; font-weight: 600; cursor: pointer; }
 
 /* Refresh button (only shown when served by `betedge serve` with a key) */
 .refresh { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
@@ -279,7 +280,25 @@ footer { color: var(--muted); font-size: .78rem; padding-block: 28px 32px; displ
 @media (prefers-reduced-motion: no-preference) { .seg, .chip { transition: background-color .12s, color .12s; } }
 """
 
+THEME_JS = (
+    "(function(){var t='dark';try{t=localStorage.getItem('bookerbud.theme')||'dark';}catch(e){}"
+    "if(t!=='auto')document.documentElement.dataset.theme=t;})();"
+)
+
 JS = r"""
+(function () {
+  var b = document.getElementById('theme-btn');
+  if (!b) return;
+  function cur() { return document.documentElement.dataset.theme || 'dark'; }
+  function label() { b.textContent = cur() === 'dark' ? 'Light mode' : 'Dark mode'; }
+  label();
+  b.addEventListener('click', function () {
+    var t = cur() === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('bookerbud.theme', t); } catch (e) {}
+    label();
+  });
+})();
 (function () {
   var app = document.getElementById('app');
   if (!app) return;
@@ -954,7 +973,8 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 <div class="wrap">
 {f'<p class="banner">{_e(banner)}</p>' if banner else ""}
 <header class="mast"><h1>BookerBud <span>{as_of.strftime("%a %b")} {as_of.day}</span></h1>
-<span class="sub">Research only. Nothing here places a bet.</span>
+<span class="sub">Research only. Nothing here places a bet.
+<button class="themebtn" id="theme-btn" type="button" aria-label="Switch light or dark mode">Light mode</button></span>
 <div class="refresh" id="refresh" hidden><button class="rbtn" id="refresh-btn" type="button">Refresh odds</button><span class="rmsg" id="refresh-msg" role="status"></span></div>
 </header>
 <div class="tabs" role="tablist"><button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button><button class="tab" role="tab" data-tab="performance" aria-selected="false">Performance</button></div>
@@ -990,7 +1010,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 
     title = f"<title>BookerBud {as_of.strftime('%b')} {as_of.day}</title>"
     if not standalone:
-        return (f'{title}\n<meta name="claude:viewport-fit-sides" content="cover">\n{FONTS}\n'
+        return (f'{title}\n<meta name="claude:viewport-fit-sides" content="cover">\n<script>{THEME_JS}</script>\n{FONTS}\n'
                 f"<style>{CSS}</style>\n{body}\n<script>{JS}</script>\n")
     return f"""<!doctype html>
 <html lang="en">
@@ -999,6 +1019,7 @@ def render_html(r: Report, *, standalone: bool = True, banner: str | None = None
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 {title}
+<script>{THEME_JS}</script>
 {FONTS}
 <style>:root {{ padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }} body {{ margin: 0; font-size: 14px; }} [hidden] {{ display: none !important; }} img {{ max-width: 100%; }}
 {CSS}</style>

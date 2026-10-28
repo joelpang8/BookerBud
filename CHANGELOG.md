@@ -2,6 +2,11 @@
 
 ## Follow-up (2026-10-28)
 
+### Changed
+- **The dashboard is dark by default**, whatever the device setting is. A
+  "Light mode" / "Dark mode" button at the top switches it, and each device
+  remembers its choice.
+
 ### Added
 - **Recent results** on the Performance tab: every graded pick, newest
   first, with Won / Lost / All filters (Won by default).
